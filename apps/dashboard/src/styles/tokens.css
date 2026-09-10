@@ -1,0 +1,154 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Season Sheet — design tokens
+
+   World: the Ordnance Survey sheet. Paper ground, hairline grid, colour used
+   only as legend — never decoration. A sheet is dense on purpose and legible
+   because every mark means one thing and the key tells you what.
+
+   Use scene that decides light vs dark: a centre office in July, daylight,
+   a laptop on a desk with paper forms beside it, and sometimes a parent or
+   an inspector reading over the admin's shoulder. Paper. Not a dark console.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ── Ground. A sheet has two papers: the map face and the margin. ───── */
+  --face: #faf8f2;
+  --margin: #f2efe4;
+  --sunk: #ebe7d9;
+
+  /* ── Ink ────────────────────────────────────────────────────────────── */
+  --ink: #23211c;   /* 14.8:1 on face */
+  --ink-2: #57534a; /*  7.4:1 — secondary */
+  --ink-3: #6e6859; /*  4.9:1 — tertiary, still legal for body */
+  --ink-4: #8d8776; /*  3.2:1 — marks and rules only, never text */
+
+  /* ── Rules and grid ─────────────────────────────────────────────────── */
+  --rule: #ded9cb;
+  --rule-strong: #bdb7a5;
+  --grid: #dbe3e8;
+
+  /* ── Legend colours. Each means exactly one class of thing. ─────────── */
+  --contour: #c2622a;     /* overdue — the pressure lines */
+  --contour-ink: #a2501f; /* 5.3:1 */
+  --water: #2c6e96;       /* payments */
+  --water-ink: #285f81;
+  --woodland: #3e7146;    /* settled, compliant, done */
+  --woodland-ink: #37633e;
+  --danger: #a62e22;      /* safeguarding-critical */
+  --danger-ink: #93281d;
+  --boundary: #7a5c93;    /* staff, DBS, qualifications */
+  --boundary-ink: #6b5081;
+
+  /* Wash variants — legend colour at sheet strength, as ground behind ink */
+  --contour-wash: #f6e6da;
+  --water-wash: #e0ecf3;
+  --woodland-wash: #e2ede4;
+  --danger-wash: #f6e2df;
+  --boundary-wash: #ece5f1;
+
+  /* ── Type ───────────────────────────────────────────────────────────── */
+  --face-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  /* Fixed rem scale, ratio ~1.14. Product UI, not a brand surface. */
+  --t-key: 0.6875rem;   /* 11px — legend keys, column heads */
+  --t-fine: 0.75rem;    /* 12px — annotation */
+  --t-small: 0.8125rem; /* 13px — dense table text */
+  --t-body: 0.875rem;   /* 14px — body */
+  --t-lead: 1rem;       /* 16px */
+  --t-title: 1.1875rem; /* 19px */
+  --t-sheet: 1.5rem;    /* 24px — sheet title, the largest thing here */
+
+  --track-key: 0.09em;
+
+  /* ── Space ──────────────────────────────────────────────────────────── */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+
+  /* ── Motion. State only, never decoration. ──────────────────────────── */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --fast: 140ms;
+  --base: 200ms;
+
+  --focus: #1f5f8b;
+
+  color-scheme: light;
+  caret-color: var(--contour);
+  accent-color: var(--water);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--margin);
+  color: var(--ink);
+  font-family: var(--face-sans);
+  font-size: var(--t-body);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Browser surfaces. The parts we did not draw still carry the sheet. ── */
+::selection {
+  background: var(--contour-wash);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+
+a {
+  color: var(--water-ink);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+  border: 3px solid var(--margin);
+  border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
