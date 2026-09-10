@@ -33,3 +33,6 @@ build/
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Build output
+web/dist/

@@ -1,0 +1,425 @@
+/* Seeded fake data. Deterministic — same output every run.
+   No real student, staff member, or centre appears here. */
+
+export const DEMO_TODAY = new Date('2027-07-12T09:00:00');
+export const SEASON_START = new Date('2027-06-21T00:00:00');
+export const SEASON_END = new Date('2027-08-15T00:00:00');
+
+/* Small LCG so the set is stable without committing a fixture file. */
+function rng(seed: number) {
+  let s = seed >>> 0;
+  return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+}
+
+const FORENAMES = [
+  'Mateo', 'Sofia', 'Yuki', 'Amara', 'Luca', 'Ines', 'Rafael', 'Chiara',
+  'Nour', 'Tomas', 'Elif', 'Diego', 'Anouk', 'Hugo', 'Leila', 'Kenji',
+  'Marta', 'Andres', 'Freya', 'Omar', 'Bianca', 'Levi', 'Zara', 'Pablo',
+  'Greta', 'Idris', 'Alba', 'Nikolai', 'Ravi', 'Juno',
+];
+const SURNAMES = [
+  'Aguilar', 'Berkmann', 'Castellano', 'Duarte', 'Eriksen', 'Fontaine',
+  'Grimaldi', 'Halvorsen', 'Iversen', 'Jansen', 'Kowalski', 'Lindqvist',
+  'Moretti', 'Nakamura', 'Okonjo', 'Petrov', 'Quintana', 'Rossi',
+  'Salgado', 'Toledano', 'Ueda', 'Vasquez', 'Weiss', 'Ximenes',
+];
+const COUNTRIES = [
+  'Spain', 'Italy', 'Japan', 'France', 'Germany', 'Poland', 'Brazil',
+  'Türkiye', 'Norway', 'Netherlands', 'Portugal', 'Mexico',
+];
+
+export type AgeBand = '8–11' | '12–14' | '15–17';
+
+export type DocState = 'in' | 'outstanding' | 'overdue';
+
+export interface Student {
+  id: string;
+  forename: string;
+  surname: string;
+  dob: string;
+  age: number;
+  band: AgeBand;
+  groupId: string;
+  arrival: string;
+  leaving: string;
+  country: string;
+  docs: { medical: DocState; consent: DocState; passport: DocState };
+  balancePence: number;
+  paidPence: number;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  band: AgeBand;
+  ratio: number; // students per staff member required for this band
+  whatsapp: string;
+}
+
+export const GROUPS: Group[] = [
+  { id: 'g-kestrel', name: 'Kestrel', band: '8–11', ratio: 8, whatsapp: 'Kestrel · staff' },
+  { id: 'g-merlin', name: 'Merlin', band: '8–11', ratio: 8, whatsapp: 'Merlin · staff' },
+  { id: 'g-harrier', name: 'Harrier', band: '12–14', ratio: 10, whatsapp: 'Harrier · staff' },
+  { id: 'g-osprey', name: 'Osprey', band: '12–14', ratio: 10, whatsapp: 'Osprey · staff' },
+  { id: 'g-peregrine', name: 'Peregrine', band: '15–17', ratio: 12, whatsapp: 'Peregrine · staff' },
+];
+
+function iso(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function addDays(d: Date, n: number) {
+  const c = new Date(d);
+  c.setDate(c.getDate() + n);
+  return c;
+}
+
+function buildStudents(): Student[] {
+  const r = rng(20270621);
+  const out: Student[] = [];
+  const count = 214;
+  for (let i = 0; i < count; i++) {
+    const forename = FORENAMES[Math.floor(r() * FORENAMES.length)];
+    const surname = SURNAMES[Math.floor(r() * SURNAMES.length)];
+    const band: AgeBand = r() < 0.32 ? '8–11' : r() < 0.62 ? '12–14' : '15–17';
+    const age =
+      band === '8–11'
+        ? 8 + Math.floor(r() * 4)
+        : band === '12–14'
+        ? 12 + Math.floor(r() * 3)
+        : 15 + Math.floor(r() * 3);
+    const groupsInBand = GROUPS.filter((g) => g.band === band);
+    const group = groupsInBand[Math.floor(r() * groupsInBand.length)];
+
+    /* Stays are staggered: most arrive on a Sunday, stay 2–5 weeks. */
+    const weekOffset = Math.floor(r() * 6);
+    const arrival = addDays(SEASON_START, weekOffset * 7);
+    const weeks = 2 + Math.floor(r() * 4);
+    let leaving = addDays(arrival, weeks * 7);
+    if (leaving > SEASON_END) leaving = SEASON_END;
+
+    const docState = (): DocState => {
+      const x = r();
+      if (x < 0.78) return 'in';
+      /* Overdue only counts once the student is already here. */
+      return arrival <= DEMO_TODAY && x < 0.9 ? 'overdue' : 'outstanding';
+    };
+
+    const balance = [95000, 128000, 164000, 210000][Math.floor(r() * 4)];
+    const paidRatio = r();
+    out.push({
+      id: `s-${String(i + 1).padStart(3, '0')}`,
+      forename,
+      surname,
+      dob: iso(addDays(new Date(`${2027 - age}-01-01`), Math.floor(r() * 364))),
+      age,
+      band,
+      groupId: group.id,
+      arrival: iso(arrival),
+      leaving: iso(leaving),
+      country: COUNTRIES[Math.floor(r() * COUNTRIES.length)],
+      docs: { medical: docState(), consent: docState(), passport: docState() },
+      balancePence: balance,
+      paidPence: paidRatio < 0.7 ? balance : Math.round(balance * (0.3 + r() * 0.4)),
+    });
+  }
+  return out;
+}
+
+export const STUDENTS: Student[] = buildStudents();
+
+/* ── Staff ─────────────────────────────────────────────────────────────── */
+
+export type DbsState = 'cleared' | 'expiring' | 'pending' | 'missing';
+
+export interface Staff {
+  id: string;
+  forename: string;
+  surname: string;
+  role: string;
+  dob: string;
+  age: number;
+  phone: string;
+  email: string;
+  dbs: {
+    state: DbsState;
+    certificate: string | null;
+    issued: string | null;
+    expires: string | null;
+  };
+  quals: string[];
+  bands: AgeBand[];
+  safeguardingLead?: boolean;
+}
+
+const NAMED_STAFF: Staff[] = [
+  {
+    id: 'st-01', forename: 'Kebba', surname: 'Sarr', role: 'Safeguarding lead',
+    dob: '1989-03-14', age: 38, phone: '07700 900081', email: 'k.sarr@example-centre.test',
+    dbs: { state: 'cleared', certificate: 'DBS 0041 8827 3390', issued: '2026-11-02', expires: '2028-11-02' },
+    quals: ['Designated Safeguarding Lead', 'Paediatric first aid', 'Prevent awareness'],
+    bands: ['8–11', '12–14', '15–17'], safeguardingLead: true,
+  },
+  {
+    id: 'st-02', forename: 'Tomas', surname: 'Halvorsen', role: 'Activity manager',
+    dob: '1994-07-22', age: 33, phone: '07700 900117', email: 't.halvorsen@example-centre.test',
+    dbs: { state: 'cleared', certificate: 'DBS 0041 9034 1182', issued: '2027-01-19', expires: '2029-01-19' },
+    quals: ['Beach lifeguard', 'Paediatric first aid', 'Level 2 coaching'],
+    bands: ['12–14', '15–17'],
+  },
+  {
+    id: 'st-03', forename: 'Marta', surname: 'Salgado', role: 'Group leader',
+    dob: '2001-11-08', age: 25, phone: '07700 900244', email: 'm.salgado@example-centre.test',
+    dbs: { state: 'expiring', certificate: 'DBS 0041 7719 5540', issued: '2025-08-01', expires: '2027-07-31' },
+    quals: ['Paediatric first aid', 'TEFL'],
+    bands: ['8–11', '12–14'],
+  },
+  {
+    id: 'st-04', forename: 'Idris', surname: 'Okonjo', role: 'Group leader',
+    dob: '2003-02-27', age: 24, phone: '07700 900318', email: 'i.okonjo@example-centre.test',
+    dbs: { state: 'pending', certificate: null, issued: null, expires: null },
+    quals: ['Paediatric first aid'],
+    bands: ['12–14'],
+  },
+  {
+    id: 'st-05', forename: 'Freya', surname: 'Lindqvist', role: 'Group leader',
+    dob: '2002-05-30', age: 25, phone: '07700 900402', email: 'f.lindqvist@example-centre.test',
+    dbs: { state: 'cleared', certificate: 'DBS 0041 8102 7741', issued: '2026-04-11', expires: '2028-04-11' },
+    quals: ['Paediatric first aid', 'Duke of Edinburgh supervisor'],
+    bands: ['15–17'],
+  },
+  {
+    id: 'st-06', forename: 'Ravi', surname: 'Iyer', role: 'Activity instructor',
+    dob: '1998-09-12', age: 28, phone: '07700 900556', email: 'r.iyer@example-centre.test',
+    dbs: { state: 'missing', certificate: null, issued: null, expires: null },
+    quals: ['Level 2 archery'],
+    bands: ['12–14', '15–17'],
+  },
+  {
+    id: 'st-07', forename: 'Anouk', surname: 'Jansen', role: 'Welfare officer',
+    dob: '1991-12-03', age: 35, phone: '07700 900613', email: 'a.jansen@example-centre.test',
+    dbs: { state: 'cleared', certificate: 'DBS 0041 8890 2214', issued: '2026-06-28', expires: '2028-06-28' },
+    quals: ['Mental health first aid', 'Paediatric first aid'],
+    bands: ['8–11', '12–14', '15–17'],
+  },
+  {
+    id: 'st-08', forename: 'Luca', surname: 'Moretti', role: 'Group leader',
+    dob: '2000-04-18', age: 27, phone: '07700 900728', email: 'l.moretti@example-centre.test',
+    dbs: { state: 'cleared', certificate: 'DBS 0041 7994 6603', issued: '2026-09-15', expires: '2028-09-15' },
+    quals: ['Paediatric first aid', 'Minibus D1'],
+    bands: ['8–11'],
+  },
+];
+
+/* The eight above are the named season leads. A centre running 214 students
+   needs a full roster to meet 1:8 in the youngest band, so the rest of the
+   seasonal staff are generated — same shape, cleared checks, spread of
+   qualifications. */
+function buildStaff(): Staff[] {
+  const r = rng(4821);
+  const roles = ['Group leader', 'Activity instructor', 'EFL teacher'];
+  const qualPool = [
+    'Paediatric first aid', 'TEFL', 'Level 2 coaching', 'Beach lifeguard',
+    'Level 2 archery', 'Minibus D1', 'Mental health first aid',
+  ];
+  const bandSets: AgeBand[][] = [
+    ['8–11'], ['12–14'], ['15–17'], ['8–11', '12–14'], ['12–14', '15–17'],
+    ['8–11', '12–14', '15–17'],
+  ];
+  const out: Staff[] = [...NAMED_STAFF];
+  for (let i = 0; i < 24; i++) {
+    const forename = FORENAMES[Math.floor(r() * FORENAMES.length)];
+    const surname = SURNAMES[Math.floor(r() * SURNAMES.length)];
+    const age = 21 + Math.floor(r() * 18);
+    const quals = ['Paediatric first aid'];
+    /* Two extra qualifications each, so specialist activities can be staffed. */
+    for (let k = 0; k < 2; k++) {
+      const q = qualPool[Math.floor(r() * qualPool.length)];
+      if (!quals.includes(q)) quals.push(q);
+    }
+    const issued = `202${5 + Math.floor(r() * 2)}-0${1 + Math.floor(r() * 9)}-1${Math.floor(r() * 9)}`;
+    out.push({
+      id: `st-${String(i + 9).padStart(2, '0')}`,
+      forename,
+      surname,
+      role: roles[Math.floor(r() * roles.length)],
+      dob: `${2027 - age}-0${1 + Math.floor(r() * 9)}-1${Math.floor(r() * 9)}`,
+      age,
+      phone: `07700 9${String(Math.floor(r() * 90000) + 10000)}`,
+      email: `${forename[0].toLowerCase()}.${surname.toLowerCase()}@example-centre.test`,
+      dbs: {
+        state: 'cleared',
+        certificate: `DBS ${String(Math.floor(r() * 9000) + 1000)} ${String(Math.floor(r() * 9000) + 1000)} ${String(Math.floor(r() * 9000) + 1000)}`,
+        issued,
+        expires: issued.replace(/^202(\d)/, (_m, d) => `202${Number(d) + 2}`),
+      },
+      quals,
+      bands: bandSets[Math.floor(r() * bandSets.length)],
+    });
+  }
+  return out;
+}
+
+export const STAFF: Staff[] = buildStaff();
+
+/* ── Activities, sessions, bookings ───────────────────────────────────── */
+
+export interface Activity {
+  id: string;
+  name: string;
+  location: string;
+  capacity: number;
+  requiresQual: string | null;
+  supplier: string | null;
+  costPence: number | null;
+}
+
+export const ACTIVITIES: Activity[] = [
+  { id: 'a-archery', name: 'Archery', location: 'Lower field', capacity: 24, requiresQual: 'Level 2 archery', supplier: 'Fieldcraft Outdoor Ltd', costPence: 42000 },
+  { id: 'a-kayak', name: 'Kayaking', location: 'Marine centre', capacity: 20, requiresQual: 'Beach lifeguard', supplier: 'Harbour Watersports', costPence: 68000 },
+  { id: 'a-english', name: 'English lesson', location: 'Block C', capacity: 30, requiresQual: 'TEFL', supplier: null, costPence: null },
+  { id: 'a-drama', name: 'Drama workshop', location: 'Hall', capacity: 28, requiresQual: null, supplier: 'Playhouse Education', costPence: 31000 },
+  { id: 'a-museum', name: 'Museum excursion', location: 'Off site — city', capacity: 45, requiresQual: null, supplier: 'Crown Coaches', costPence: 96000 },
+  { id: 'a-football', name: 'Football', location: 'Astro pitch', capacity: 24, requiresQual: 'Level 2 coaching', supplier: null, costPence: null },
+  { id: 'a-climbing', name: 'Climbing wall', location: 'Sports centre', capacity: 16, requiresQual: null, supplier: 'Vertical Ltd', costPence: 54000 },
+];
+
+export type SessionStatus = 'scheduled' | 'reslotted' | 'cancelled';
+
+export interface Session {
+  id: string;
+  activityId: string;
+  groupId: string;
+  day: string;
+  start: string;
+  end: string;
+  staffIds: string[];
+  status: SessionStatus;
+  origin: 'ai-draft' | 'manual';
+  reslotFrom?: string;
+  reslotReason?: string;
+}
+
+export const SLOTS = [
+  { start: '09:00', end: '10:30' },
+  { start: '11:00', end: '12:30' },
+  { start: '14:00', end: '15:30' },
+  { start: '16:00', end: '17:30' },
+];
+
+function buildSessions(): Session[] {
+  const r = rng(717);
+  const out: Session[] = [];
+  const day = iso(DEMO_TODAY);
+  const pool = ACTIVITIES.map((a) => a.id);
+  GROUPS.forEach((g, gi) => {
+    SLOTS.forEach((slot, si) => {
+      const activityId = pool[(gi * 3 + si * 2) % pool.length];
+      const activity = ACTIVITIES.find((a) => a.id === activityId)!;
+      const needed = Math.ceil(
+        STUDENTS.filter((s) => s.groupId === g.id).length / g.ratio,
+      );
+      /* A draft only ever rota's cleared staff. An activity carrying a
+         qualification needs ONE staff member holding it — the instructor —
+         plus cleared cover to make the ratio, which is how a centre staffs
+         archery or kayaking in practice. */
+      const cleared = STAFF.filter(
+        (s) => s.dbs.state === 'cleared' && s.bands.includes(g.band),
+      );
+      const instructor = activity.requiresQual
+        ? cleared.find((s) => s.quals.includes(activity.requiresQual!))
+        : undefined;
+
+      /* Two deliberate failures, so the safeguarding gate has something real
+         to catch: one slot short-staffed, one staffed by an uncleared DBS. */
+      const shortStaffed = gi === 2 && si === 1;
+      const unclearedDbs = gi === 4 && si === 3;
+      const take = shortStaffed ? Math.max(1, needed - 2) : needed;
+
+      const picked = instructor ? [instructor] : [];
+      for (const c of cleared) {
+        if (picked.length >= take) break;
+        if (!picked.includes(c)) picked.push(c);
+      }
+      const staffIds = picked.slice(0, Math.max(take, picked.length ? 1 : 0)).map((s) => s.id);
+      if (unclearedDbs) staffIds[staffIds.length - 1] = 'st-06';
+
+      out.push({
+        id: `sess-${g.id}-${si}`,
+        activityId,
+        groupId: g.id,
+        day,
+        start: slot.start,
+        end: slot.end,
+        staffIds,
+        status: 'scheduled',
+        origin: r() < 0.8 ? 'ai-draft' : 'manual',
+      });
+    });
+  });
+  return out;
+}
+
+export const SESSIONS: Session[] = buildSessions();
+
+export interface Receipt {
+  filename: string;
+  bytes: number;
+  attachedAt: string;
+  attachedBy: string;
+}
+
+export type BookingStatus = 'draft' | 'confirmed';
+
+export interface Booking {
+  id: string;
+  activityId: string;
+  groupId: string;
+  date: string;
+  headcount: number;
+  costPence: number;
+  supplier: string;
+  reference: string;
+  status: BookingStatus;
+  receipt: Receipt | null;
+}
+
+export const BOOKINGS: Booking[] = [
+  { id: 'bk-1041', activityId: 'a-kayak', groupId: 'g-harrier', date: '2027-07-13', headcount: 20, costPence: 68000, supplier: 'Harbour Watersports', reference: 'HW-2027-0413', status: 'confirmed', receipt: { filename: 'harbour-watersports-0413.pdf', bytes: 184320, attachedAt: '2027-07-06', attachedBy: 'Ismail' } },
+  { id: 'bk-1042', activityId: 'a-museum', groupId: 'g-peregrine', date: '2027-07-14', headcount: 42, costPence: 96000, supplier: 'Crown Coaches', reference: 'CC-88213', status: 'draft', receipt: null },
+  { id: 'bk-1043', activityId: 'a-climbing', groupId: 'g-osprey', date: '2027-07-15', headcount: 16, costPence: 54000, supplier: 'Vertical Ltd', reference: 'VL-7741', status: 'draft', receipt: null },
+  { id: 'bk-1044', activityId: 'a-archery', groupId: 'g-kestrel', date: '2027-07-16', headcount: 22, costPence: 42000, supplier: 'Fieldcraft Outdoor Ltd', reference: 'FO-2027-118', status: 'confirmed', receipt: { filename: 'fieldcraft-118.pdf', bytes: 96256, attachedAt: '2027-07-09', attachedBy: 'Ismail' } },
+  { id: 'bk-1045', activityId: 'a-drama', groupId: 'g-merlin', date: '2027-07-17', headcount: 26, costPence: 31000, supplier: 'Playhouse Education', reference: 'PE-4402', status: 'draft', receipt: null },
+  { id: 'bk-1046', activityId: 'a-museum', groupId: 'g-harrier', date: '2027-07-20', headcount: 40, costPence: 96000, supplier: 'Crown Coaches', reference: 'CC-88240', status: 'draft', receipt: null },
+];
+
+/* ── Derived helpers ─────────────────────────────────────────────────── */
+
+export const groupById = (id: string) => GROUPS.find((g) => g.id === id)!;
+export const activityById = (id: string) => ACTIVITIES.find((a) => a.id === id)!;
+export const staffById = (id: string) => STAFF.find((s) => s.id === id)!;
+
+export const isOnSite = (s: Student, on: Date = DEMO_TODAY) =>
+  new Date(s.arrival) <= on && new Date(s.leaving) >= on;
+
+export function fmtDate(isoStr: string) {
+  return new Date(isoStr).toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short',
+  });
+}
+
+export function fmtDateLong(isoStr: string) {
+  return new Date(isoStr).toLocaleDateString('en-GB', {
+    weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+  });
+}
+
+export function fmtMoney(pence: number) {
+  return `£${(pence / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function nights(s: Student) {
+  return Math.round(
+    (new Date(s.leaving).getTime() - new Date(s.arrival).getTime()) / 86400000,
+  );
+}
