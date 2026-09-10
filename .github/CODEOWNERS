@@ -1,0 +1,28 @@
+# Automatic reviewer assignment.
+#
+# Replace the placeholder handles below with real GitHub usernames before
+# this does anything. Paths under src/ are provisional — the application
+# layout is David's call and isn't set yet (DECISIONS.md 0004). Update these
+# to the real layout once it lands.
+
+# Default: any of us can review.
+*                           @DAVID-HANDLE @ISMAIL-HANDLE
+
+# Specs and decisions — all three should see changes.
+/docs/                      @DAVID-HANDLE @ISMAIL-HANDLE @KEBBA-HANDLE
+/DECISIONS.md               @DAVID-HANDLE @ISMAIL-HANDLE @KEBBA-HANDLE
+
+# Seat 1 — safeguarding-critical and foundational. David reviews.
+/src/data-model/            @DAVID-HANDLE
+/src/rota/                  @DAVID-HANDLE @KEBBA-HANDLE
+/src/audit-trail/           @DAVID-HANDLE @KEBBA-HANDLE
+/src/payments/matching/     @DAVID-HANDLE
+/mobile/                    @DAVID-HANDLE
+
+# Seat 2 — Ismail's admin dashboard pieces.
+/src/reminders/             @ISMAIL-HANDLE
+/src/timetabling/           @ISMAIL-HANDLE
+/src/centre-config/         @ISMAIL-HANDLE
+
+# Seat 3 — anything encoding a ratio, DBS or escalation rule needs Kebba.
+/docs/safeguarding-spec.md  @KEBBA-HANDLE

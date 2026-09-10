@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Real data — never commit. See CONTRIBUTING.md.
+*.sqlite
+*.db
+/data/
+/imports/
+/exports/
+*.csv
+*.xlsx
+!docs/**/*template*.csv
+!docs/**/*template*.xlsx
+
+# Build output
+dist/
+build/
+.next/
+
+# OS / editor
+.DS_Store
+.idea/
+*.swp
