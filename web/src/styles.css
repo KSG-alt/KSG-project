@@ -6,70 +6,67 @@
    state, and oxide is reserved for safeguarding-critical.
    ────────────────────────────────────────────────────────────────────────── */
 
+/* ── Paper, plum ink, butter ───────────────────────────────────────────────
+   A warm light ground, near-black ink carrying a plum cast rather than
+   neutral grey, one butter accent, deep green for anything settled. Surfaces
+   are large-radius and soft-shadowed; display sets in a serif italic beside
+   the sans. Reference: heidihealth.com.
+   ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  /* Ground. Surfaces above it are translucent greige, not opaque panels —
-     an opaque slab with a 1px border is the tell every generated dashboard
-     shares. Reference: linear.app, attio.com. */
-  --ink: #0e1216;
-  --ink-1: #141a20;
-  --ink-2: #1a222a;
-  --ink-3: #222c36;
+  --paper: #fcfaf8;
+  --paper-2: #f9f4f1;
+  --paper-3: #f3ebe7;
+  --white: #ffffff;
 
-  --surface-1: rgba(230, 231, 217, 0.035);
-  --surface-2: rgba(230, 231, 217, 0.062);
-  --surface-3: rgba(230, 231, 217, 0.095);
+  --ink: #28030f;
+  --ink-2: #755760;
+  --ink-3: #7d6570;
 
-  /* Edges are a 1px inset ring, so a surface reads as lit rather than boxed. */
-  --edge: inset 0 0 0 1px rgba(230, 231, 217, 0.07);
-  --edge-strong: inset 0 0 0 1px rgba(230, 231, 217, 0.13);
+  --rule: rgba(40, 3, 15, 0.09);
+  --rule-strong: rgba(40, 3, 15, 0.16);
+  --rule-faint: rgba(40, 3, 15, 0.05);
 
-  /* Shadows carry the ground's hue. Pure black at low opacity reads muddy. */
-  --shadow-1: 0 1px 2px rgba(3, 6, 10, 0.5), 0 2px 8px -3px rgba(3, 6, 10, 0.6);
-  --shadow-2: 0 2px 6px rgba(3, 6, 10, 0.44), 0 12px 32px -12px rgba(3, 6, 10, 0.72);
-  --shadow-3: 0 24px 68px -20px rgba(3, 6, 10, 0.86);
+  --surface-1: rgba(40, 3, 15, 0.025);
+  --surface-2: rgba(40, 3, 15, 0.05);
+  --surface-3: rgba(40, 3, 15, 0.085);
 
-  /* Spot's greige, carrying every weight of text. */
-  --bone: #e6e7d9;
-  --bone-2: #a8ac9c;
-  --bone-3: #838877;
+  --edge: inset 0 0 0 1px rgba(40, 3, 15, 0.08);
+  --edge-strong: inset 0 0 0 1px rgba(40, 3, 15, 0.16);
 
-  --rule: rgba(230, 231, 217, 0.11);
-  --rule-strong: rgba(230, 231, 217, 0.24);
-  --rule-faint: rgba(230, 231, 217, 0.05);
+  /* Soft and diffuse, the way a light interface carries depth. */
+  --shadow-1: 0 1px 2px rgba(40, 3, 15, 0.05), 0 2px 10px -4px rgba(40, 3, 15, 0.08);
+  --shadow-2: 0 5px 40px rgba(9, 14, 21, 0.1);
+  --shadow-3: 0 18px 60px rgba(9, 14, 21, 0.16);
 
-  /* Acid is the interactive colour and nothing else: primary action, current
-     section, focus. Anything informational uses --info instead, or a yellow
-     square starts reading as a button. */
-  /* Pulled from 100% saturation to 72%: a fully saturated neon on near-black
-     is the most common generated-UI fingerprint there is. */
-  --acid: #d7e24f;
-  --acid-lift: #e4ee6a;
-  --info: #8fb4d6;
+  --butter: #fbf582;
+  --butter-lift: #f7ef62;
+  --forest: #194b22;
 
-  /* State. Oxide stays reserved for safeguarding-critical; ochre is pulled
-     well away from acid so overdue never reads as a live control. */
-  --oxide: #f2542d;
-  --ochre: #c9922e;
-  --sage: #7fb069;
+  /* State, retuned for a light ground — the dark values failed contrast on
+     paper. Oxide stays reserved for safeguarding-critical. */
+  --oxide: #c0341a;
+  --ochre: #9a6a12;
+  --sage: #194b22;
+  --info: #3f6b8f;
 
-  --t-xs: 0.6875rem;
+  --t-xs: 0.75rem;
   --t-sm: 0.8125rem;
   --t-base: 0.9375rem;
   --t-md: 1.125rem;
   --t-lg: 1.5rem;
   --t-xl: 2rem;
   --t-2xl: 3rem;
-  --t-3xl: 4.5rem;
+  --t-3xl: 3.5rem;
 
-  /* One family carries display, UI, labels and data. Tabular figures do
-     the column alignment a mono would otherwise be hired for. */
   --sans: Geist, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Instrument Serif", Georgia, "Times New Roman", serif;
 
-  /* One radius on everything is a tell. Tighter inside, softer outside. */
-  --r-xs: 4px;
-  --r-sm: 7px;
-  --r-md: 10px;
-  --r-lg: 14px;
+  --r-xs: 6px;
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 24px;
+  --r-xl: 36px;
   --r-pill: 999px;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -78,9 +75,8 @@
   --z-bar: 40;
   --z-sheet: 60;
   --z-grain: 80;
-  --rail: 236px;
 
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 *,
@@ -106,7 +102,7 @@ body::after {
   inset: 0;
   z-index: var(--z-grain);
   pointer-events: none;
-  opacity: 0.032;
+  opacity: 0.02;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -116,9 +112,9 @@ body::after {
   top: -60px;
   z-index: 90;
   padding: 10px 16px;
-  background: var(--acid);
+  background: var(--butter);
   border-radius: var(--r-pill);
-  color: var(--ink);
+  color: var(--paper);
   font-size: var(--t-sm);
   font-weight: 500;
   transition: top 180ms var(--ease-ui);
@@ -130,8 +126,8 @@ body::after {
 
 body {
   margin: 0;
-  background: var(--ink);
-  color: var(--bone);
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--sans);
   font-size: var(--t-base);
   line-height: 1.45;
@@ -142,8 +138,8 @@ body {
 /* ── Browser surfaces: the parts we did not draw still carry the design ── */
 
 ::selection {
-  background: var(--acid);
-  color: var(--ink);
+  background: var(--butter);
+  color: var(--paper);
 }
 
 .num,
@@ -153,7 +149,7 @@ time {
 }
 
 * {
-  caret-color: var(--bone);
+  caret-color: var(--ink);
   scrollbar-color: var(--rule-strong) transparent;
   scrollbar-width: thin;
 }
@@ -167,7 +163,7 @@ time {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--rule-strong);
-  border: 3px solid var(--ink);
+  border: 3px solid var(--paper);
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -175,7 +171,7 @@ time {
 }
 
 :focus-visible {
-  outline: 2px solid var(--acid);
+  outline: 2px solid var(--ink);
   outline-offset: 3px;
 }
 
@@ -208,9 +204,18 @@ h2,
 h3 {
   margin: 0;
   font-weight: 500;
-  line-height: 0.96;
-  letter-spacing: -0.024em;
+  line-height: 1;
+  letter-spacing: -0.032em;
   text-wrap: balance;
+}
+
+/* The display accent: a serif italic at the same size as the sans beside it,
+   which is what stops a headline reading as a system default. */
+.serif {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.012em;
 }
 
 p {
@@ -310,13 +315,13 @@ p {
   font-size: var(--t-xs);
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .meta {
   font-size: var(--t-sm);
   line-height: 1.5;
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 /* ── Marks: status reads as a mark on the rule, not a pill on a card ───── */
@@ -362,7 +367,7 @@ p {
   color: var(--info);
 }
 .mark--idle {
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 .mark--idle::before {
   background: none;
@@ -380,7 +385,7 @@ p {
   border: none;
   border-radius: var(--r-pill);
   box-shadow: var(--edge);
-  color: var(--bone);
+  color: var(--ink);
   font-size: var(--t-sm);
   font-weight: 500;
   letter-spacing: -0.005em;
@@ -399,22 +404,39 @@ p {
 }
 
 .btn--primary {
-  background: var(--acid);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), var(--shadow-1);
-  color: var(--ink);
+  background: var(--ink);
+  box-shadow: var(--shadow-1);
+  color: var(--paper);
   font-weight: 500;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: var(--acid-lift);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), var(--shadow-2);
+  background: #3c0a1c;
+  box-shadow: var(--shadow-2);
+  color: var(--paper);
+}
+
+.btn--butter {
+  background: var(--butter);
+  box-shadow: var(--edge);
   color: var(--ink);
+  font-weight: 500;
+}
+
+.btn--butter:hover:not(:disabled) {
+  background: var(--butter-lift);
+  box-shadow: var(--shadow-1);
+}
+
+.btn--lg {
+  padding: 13px 24px;
+  font-size: var(--t-base);
 }
 
 .btn:disabled {
   background: transparent;
   box-shadow: var(--edge);
-  color: var(--bone-3);
+  color: var(--ink-3);
   cursor: not-allowed;
 }
 
@@ -423,46 +445,46 @@ p {
 .btn--primary:disabled {
   background: transparent;
   box-shadow: var(--edge);
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .btn--quiet {
   padding: 7px 11px;
   background: transparent;
   box-shadow: none;
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 .btn--quiet:hover:not(:disabled) {
   background: var(--surface-1);
   box-shadow: var(--edge);
-  color: var(--bone);
+  color: var(--ink);
 }
 
 .field {
   display: block;
   width: 100%;
   padding: 10px 13px;
-  background: rgba(3, 6, 10, 0.4);
+  background: var(--white);
   border: none;
   border-radius: var(--r-sm);
   box-shadow: var(--edge-strong);
-  color: var(--bone);
+  color: var(--ink);
   font-size: var(--t-base);
   transition: border-color 160ms var(--ease);
 }
 
 .field:hover {
-  box-shadow: inset 0 0 0 1px rgba(230, 231, 217, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(40, 3, 15, 0.22);
 }
 
 .field:focus {
   outline: none;
-  box-shadow: inset 0 0 0 1px var(--acid), 0 0 0 3px rgba(215, 226, 79, 0.14);
+  box-shadow: inset 0 0 0 1px var(--ink), 0 0 0 3px rgba(40, 3, 15, 0.08);
 }
 
 .field::placeholder {
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 /* ── The register grid ─────────────────────────────────────────────────── */
@@ -478,7 +500,7 @@ p {
   font-size: var(--t-xs);
   font-weight: 500;
   letter-spacing: 0.015em;
-  color: var(--bone-3);
+  color: var(--ink-3);
   border-bottom: 1px solid var(--rule-strong);
   white-space: nowrap;
 }
@@ -507,68 +529,167 @@ p {
   padding-right: 0;
 }
 
-/* ── Home: the photograph carries the first viewport ───────────────────────
-   The image is the ground, not a decoration behind a card. A two-stop scrim
-   holds text contrast over its bright centre and lands the bottom edge on
-   --ink so the menu column reads as one surface with the rest of the app.
+/* ── Home ─────────────────────────────────────────────────────────────────
+   Centred lede on paper, then a large soft-cornered stage holding the live
+   panels. The blue circuit photograph is retired here: a dark image cannot
+   sit on a warm light ground without fighting it. It stays in public/ if the
+   direction changes back.
    ────────────────────────────────────────────────────────────────────────── */
 
 .hero {
-  position: relative;
   min-height: 100dvh;
+  padding: clamp(40px, 7vh, 88px) clamp(16px, 4vw, 40px) clamp(48px, 8vh, 96px);
+}
+
+.lede {
+  max-width: 720px;
+  margin: 0 auto clamp(34px, 5vh, 56px);
+  text-align: center;
+}
+
+.lede__title {
+  font-size: clamp(2.25rem, 5.4vw, var(--t-3xl));
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.036em;
+}
+
+.lede__sub {
+  max-width: 46ch;
+  margin: 18px auto 0;
+  font-size: var(--t-md);
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.lede__cta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.lede__season {
+  margin: 22px 0 0;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}
+
+/* The stage: one large soft field, the way the reference frames its product
+   shot. The wash is painted, not photographed. */
+.stage {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 30px);
+  border-radius: var(--r-xl);
+  background-image:
+    radial-gradient(110% 90% at 12% 0%, #dce8f6 0%, rgba(220, 232, 246, 0) 58%),
+    radial-gradient(90% 80% at 88% 6%, #fdf6bb 0%, rgba(253, 246, 187, 0) 62%),
+    linear-gradient(180deg, #f4eee9 0%, #fbf8f6 100%);
+  box-shadow: var(--edge), var(--shadow-2);
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: 4px 0 clamp(18px, 3vh, 26px);
+}
+
+.quick__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: none;
+  border-radius: var(--r-pill);
+  box-shadow: var(--edge-strong);
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
+    color 180ms var(--ease-ui), transform 260ms var(--spring);
+}
+
+.quick__pill:hover {
+  background: var(--ink);
+  box-shadow: var(--shadow-1);
+  color: var(--paper);
+  transform: translateY(-2px);
+}
+
+.quick__pill:active {
+  transform: translateY(-1px) scale(0.985);
+}
+
+.quick__count {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.slab {
+  padding: 20px;
+  background: var(--white);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-1);
+}
+
+.slab__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.slab__title {
+  font-size: var(--t-md);
+  font-weight: 500;
+}
+
+.slab__more {
+  margin: 12px 0 0;
+  color: var(--ink-3);
+}
+
+.slab--chat {
+  padding: 20px 20px 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-  isolation: isolate;
 }
 
-.hero__bg {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-image:
-    linear-gradient(
-      100deg,
-      rgba(17, 24, 32, 0.96) 0%,
-      rgba(17, 24, 32, 0.88) 48%,
-      rgba(17, 24, 32, 0.6) 100%
-    ),
-    linear-gradient(
-      to bottom,
-      rgba(17, 24, 32, 0.4) 0%,
-      rgba(17, 24, 32, 0.22) 34%,
-      rgba(17, 24, 32, 0.84) 84%,
-      var(--ink) 100%
-    ),
-    url("/home-bg.jpeg");
-  background-size: cover, cover, cover;
-  background-position: center, center, center 38%;
-  background-repeat: no-repeat;
+.slab--chat .chat:has(.chat__gate) {
+  height: auto;
 }
 
-.hero__inner {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: clamp(48px, 8vh, 104px) clamp(24px, 6vw, 76px);
+.slab--chat .chat {
+  height: 372px;
+  margin: 0 -20px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  border-top: 1px solid var(--rule);
 }
 
-.hero__head {
-  margin-bottom: clamp(38px, 6vh, 70px);
-}
-
-.hero__season {
-  margin: 0 0 20px;
-  color: var(--bone-2);
-}
-
-.hero__title {
-  font-size: clamp(2.6rem, 6.4vw, var(--t-3xl));
-  font-weight: 600;
-  line-height: 0.94;
-  letter-spacing: -0.035em;
-  max-width: 18ch;
+@media (max-width: 1040px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* ── Tabs: views on the same register ──────────────────────────────────── */
@@ -585,7 +706,7 @@ p {
   background: none;
   border: none;
   border-radius: var(--r-pill);
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-sm);
   letter-spacing: -0.005em;
   cursor: pointer;
@@ -594,19 +715,20 @@ p {
 }
 
 .tab:hover {
-  color: var(--bone);
+  color: var(--ink);
   background: var(--surface-1);
 }
 
 .tab--on {
-  background: var(--surface-3);
-  box-shadow: var(--edge-strong);
-  color: var(--bone);
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--paper);
   font-weight: 500;
 }
 
 .tab--on:hover {
-  background: var(--surface-3);
+  background: var(--ink);
+  color: var(--paper);
 }
 
 /* ── Stay: the student's window across the season ──────────────────────── */
@@ -638,7 +760,7 @@ p {
 
 .editor {
   padding: 22px 0 26px;
-  background: var(--surface-1);
+  background: var(--paper-2);
   border-top: 1px solid var(--rule-strong);
   animation: expand 280ms var(--ease-ui) both;
 }
@@ -657,7 +779,7 @@ p {
 }
 
 .editor__f .field:disabled {
-  color: var(--bone-3);
+  color: var(--ink-3);
   border-color: var(--rule);
   cursor: not-allowed;
 }
@@ -676,7 +798,7 @@ p {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--surface-1);
+  background: var(--white);
   border-radius: var(--r-lg);
   box-shadow: var(--edge);
 }
@@ -706,7 +828,7 @@ p {
 
 .chat__greeting {
   margin: 0;
-  color: var(--bone-3);
+  color: var(--ink-3);
   max-width: 46ch;
 }
 
@@ -743,9 +865,8 @@ p {
 .bubble--you {
   align-self: flex-end;
   padding: 10px 14px;
-  background: var(--surface-3);
+  background: var(--paper-3);
   border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md);
-  box-shadow: var(--edge);
 }
 
 .bubble--you p {
@@ -753,7 +874,7 @@ p {
 }
 
 .bubble__tools {
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
@@ -766,7 +887,7 @@ p {
 .typing i {
   width: 4px;
   height: 4px;
-  background: var(--bone-3);
+  background: var(--ink-3);
   animation: pulse 1s var(--ease) infinite;
 }
 
@@ -824,7 +945,7 @@ p {
 }
 
 .tt__cell--free {
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-sm);
   padding: 12px 10px;
 }
@@ -835,11 +956,11 @@ p {
   gap: 3px;
   width: 100%;
   padding: 10px 11px;
-  background: var(--surface-1);
+  background: var(--white);
   border: none;
   border-radius: var(--r-sm);
-  box-shadow: var(--edge), inset 2px 0 0 var(--bone-3);
-  color: var(--bone);
+  box-shadow: var(--edge), inset 2px 0 0 var(--rule-strong);
+  color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -848,12 +969,12 @@ p {
 
 .sess:hover {
   background: var(--surface-2);
-  box-shadow: var(--edge-strong), inset 2px 0 0 var(--bone-2);
+  box-shadow: var(--edge-strong), inset 2px 0 0 var(--ink-2);
 }
 
 .sess--on {
-  background: var(--surface-2);
-  box-shadow: var(--edge-strong), inset 2px 0 0 var(--acid);
+  background: var(--white);
+  box-shadow: var(--edge-strong), inset 2px 0 0 var(--ink), var(--shadow-1);
 }
 
 .sess--dead {
@@ -863,7 +984,7 @@ p {
 
 .sess--dead .sess__name {
   text-decoration: line-through;
-  text-decoration-color: var(--bone-3);
+  text-decoration-color: var(--ink-3);
 }
 
 .sess__name {
@@ -871,7 +992,7 @@ p {
 }
 
 .sess__where {
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .tt__side {
@@ -888,7 +1009,7 @@ p {
 
 .panel {
   padding: 18px;
-  background: var(--surface-1);
+  background: var(--white);
   border-radius: var(--r-lg);
   box-shadow: var(--edge), var(--shadow-1);
 }
@@ -918,7 +1039,7 @@ p {
 }
 
 .check input {
-  accent-color: var(--bone);
+  accent-color: var(--ink);
   width: 14px;
   height: 14px;
 }
@@ -935,7 +1056,7 @@ p {
 .log li {
   padding-left: 11px;
   border-left: 1px solid var(--rule-strong);
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 @media (max-width: 1180px) {
@@ -1054,20 +1175,17 @@ p {
   align-items: center;
   gap: 18px;
   z-index: var(--z-bar);
-  padding: 13px clamp(16px, 3vw, 34px);
-  background: rgba(14, 18, 22, 0.78);
+  padding: 12px clamp(16px, 3vw, 34px);
+  background: rgba(252, 250, 248, 0.86);
   border-bottom: 1px solid var(--rule);
-  backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.1);
 }
 
-/* Over the photograph the bar is glass, not a band. */
+/* On the home page nothing sits under the bar — the lede carries the top. */
 .bar--over {
-  position: fixed;
-  left: 0;
-  right: 0;
   background: transparent;
   border-bottom-color: transparent;
-  backdrop-filter: blur(2px);
+  backdrop-filter: none;
 }
 
 .bar__menu {
@@ -1079,7 +1197,7 @@ p {
   border: none;
   border-radius: var(--r-pill);
   box-shadow: var(--edge);
-  color: var(--bone);
+  color: var(--ink);
   font-size: var(--t-sm);
   font-weight: 500;
   cursor: pointer;
@@ -1088,8 +1206,9 @@ p {
 }
 
 .bar__menu:hover {
-  background: var(--surface-3);
-  box-shadow: var(--edge-strong);
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--paper);
 }
 
 .bar__menu:active {
@@ -1098,7 +1217,7 @@ p {
 
 .bar__where {
   font-size: var(--t-sm);
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 .bar__right {
@@ -1114,7 +1233,7 @@ p {
   border: none;
   border-radius: var(--r-pill);
   box-shadow: var(--edge);
-  color: var(--bone-2);
+  color: var(--ink-2);
   font-size: var(--t-sm);
   cursor: pointer;
   transition: color 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
@@ -1122,7 +1241,7 @@ p {
 }
 
 .bar__count:hover {
-  color: var(--bone);
+  color: var(--ink);
   background: var(--surface-1);
   box-shadow: var(--edge-strong);
 }
@@ -1176,8 +1295,7 @@ p {
   display: flex;
   flex-direction: column;
   padding: 13px clamp(16px, 3vw, 34px) clamp(18px, 3vh, 30px);
-  background: rgba(14, 18, 22, 0.96);
-  backdrop-filter: blur(20px) saturate(1.2);
+  background: var(--paper);
   box-shadow: var(--shadow-3);
   animation: sheetin 380ms var(--ease) both;
   overflow-y: auto;
@@ -1204,8 +1322,8 @@ p {
   padding: 4px 2px;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--acid);
-  color: var(--acid);
+  border-bottom: 1px solid var(--ink);
+  color: var(--ink);
   font-size: var(--t-sm);
   cursor: pointer;
 }
@@ -1224,9 +1342,9 @@ p {
   padding: 2px 0;
   background: none;
   border: none;
-  color: var(--acid);
+  color: var(--ink);
   font-size: clamp(2.1rem, 5.4vw, 3.4rem);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.06;
   letter-spacing: -0.035em;
   cursor: pointer;
@@ -1261,7 +1379,7 @@ p {
 .sheet__count--critical {
   background: var(--oxide);
   border-color: var(--oxide);
-  color: var(--ink);
+  color: var(--paper);
 }
 
 .sheet__foot {
@@ -1274,11 +1392,11 @@ p {
 
 .sheet__cta {
   padding: 16px 22px;
-  background: var(--acid);
+  background: var(--ink);
   border: none;
   border-radius: var(--r-pill);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--shadow-1);
-  color: var(--ink);
+  box-shadow: var(--shadow-1);
+  color: var(--paper);
   font-size: var(--t-base);
   font-weight: 500;
   cursor: pointer;
@@ -1287,7 +1405,7 @@ p {
 }
 
 .sheet__cta:hover {
-  background: var(--acid-lift);
+  background: #3c0a1c;
   transform: translateY(-1px);
 }
 
@@ -1298,125 +1416,12 @@ p {
 .sheet__cta--quiet {
   background: transparent;
   box-shadow: var(--edge-strong);
-  color: var(--bone);
+  color: var(--ink);
 }
 
 .sheet__cta--quiet:hover {
   background: var(--surface-1);
   box-shadow: var(--edge-strong);
-}
-
-/* ── Hero furniture ───────────────────────────────────────────────────── */
-
-.hero__standfirst {
-  max-width: 46ch;
-  margin: 18px 0 0;
-  font-size: var(--t-md);
-  line-height: 1.45;
-  color: var(--bone);
-}
-
-.quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: clamp(26px, 4vh, 40px) 0 clamp(22px, 3vh, 32px);
-}
-
-.quick__pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 16px;
-  background: rgba(14, 18, 22, 0.5);
-  border: none;
-  border-radius: var(--r-pill);
-  box-shadow: var(--edge-strong);
-  color: var(--bone);
-  font-size: var(--t-sm);
-  font-weight: 500;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
-    color 180ms var(--ease-ui), transform 260ms var(--spring);
-}
-
-.quick__pill:hover {
-  background: var(--acid);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--shadow-2);
-  color: var(--ink);
-  transform: translateY(-2px);
-}
-
-.quick__pill:active {
-  transform: translateY(-1px) scale(0.985);
-}
-
-.quick__count {
-  padding: 1px 8px;
-  border: 1px solid currentColor;
-  border-radius: var(--r-pill);
-  font-size: 0.7rem;
-}
-
-.hero__grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.slab {
-  padding: 20px;
-  background: rgba(14, 18, 22, 0.7);
-  border-radius: var(--r-lg);
-  box-shadow: var(--edge), var(--shadow-2);
-  backdrop-filter: blur(14px) saturate(1.1);
-}
-
-.slab__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.slab__title {
-  font-size: var(--t-md);
-  font-weight: 600;
-}
-
-.slab__more {
-  margin: 12px 0 0;
-  color: var(--bone-3);
-}
-
-.slab--chat {
-  padding: 18px 18px 0;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Before a key is entered the panel has only a short gate in it. A fixed
-   height there leaves a void under the copy. */
-.slab--chat .chat:has(.chat__gate) {
-  height: auto;
-}
-
-.slab--chat .chat {
-  height: 372px;
-  margin: 0 -18px;
-  border: none;
-  border-top: 1px solid var(--rule);
-  border-radius: 0;
-  background: transparent;
-}
-
-@media (max-width: 1040px) {
-  .hero__grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* ── Reminders ────────────────────────────────────────────────────────── */
@@ -1457,7 +1462,7 @@ p {
 
 .rem__due {
   padding-top: 1px;
-  color: var(--bone-3);
+  color: var(--ink-3);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -1480,7 +1485,7 @@ p {
   padding: 0;
   background: none;
   border: none;
-  color: var(--bone);
+  color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -1504,14 +1509,14 @@ p {
 }
 
 .rem__meta {
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
 .rem__action {
   max-width: 74ch;
   margin-top: 2px;
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 .rem__controls {
@@ -1527,21 +1532,21 @@ p {
 .rem__complete {
   white-space: nowrap;
   background: transparent;
-  border-color: color-mix(in srgb, var(--acid) 46%, transparent);
-  color: var(--acid);
+  box-shadow: var(--edge-strong);
+  color: var(--ink);
 }
 
 .rem__complete:hover:not(:disabled),
 .rem__complete:focus-visible {
-  background: var(--acid);
-  border-color: var(--acid);
-  color: var(--ink);
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--paper);
 }
 
 .rem--done .rem__title {
-  color: var(--bone-3);
+  color: var(--ink-3);
   text-decoration: line-through;
-  text-decoration-color: var(--bone-3);
+  text-decoration-color: var(--ink-3);
 }
 
 .rem--done .rem__sev {
@@ -1577,11 +1582,11 @@ p {
   flex: 1;
   min-width: 220px;
   margin: 0;
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .task__where strong {
-  color: var(--bone);
+  color: var(--ink);
   font-weight: 500;
 }
 
@@ -1599,7 +1604,7 @@ p {
 
 .task__delete {
   margin-left: auto;
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .task__delete:hover {
@@ -1616,14 +1621,13 @@ p {
 
 .btn--danger {
   background: var(--oxide);
-  border-color: var(--oxide);
-  color: var(--ink);
-  font-weight: 600;
+  box-shadow: none;
+  color: var(--paper);
+  font-weight: 500;
 }
 
 .btn--danger:hover:not(:disabled) {
-  background: #ff6f4a;
-  border-color: #ff6f4a;
+  background: #9c2814;
 }
 
 /* ── Rooms ─────────────────────────────────────────────────────────────── */
@@ -1636,17 +1640,16 @@ p {
 
 .room {
   padding: 15px 16px 16px;
-  background: var(--surface-1);
+  background: var(--white);
   border-radius: var(--r-md);
-  box-shadow: var(--edge);
+  box-shadow: var(--edge), var(--shadow-1);
   animation: rise 260ms var(--ease-ui) both;
   transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
     transform 260ms var(--spring);
 }
 
 .room:hover {
-  background: var(--surface-2);
-  box-shadow: var(--edge-strong), var(--shadow-1);
+  box-shadow: var(--edge-strong), var(--shadow-2);
   transform: translateY(-2px);
 }
 
@@ -1663,7 +1666,7 @@ p {
   padding: 0 0 11px;
   background: none;
   border: none;
-  color: var(--bone);
+  color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -1678,12 +1681,12 @@ p {
 .room__block {
   align-self: baseline;
   font-size: var(--t-sm);
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 .room__band {
   grid-column: 1 / 3;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
@@ -1703,7 +1706,7 @@ p {
   background: none;
   border: none;
   border-bottom: 1px solid var(--rule-faint);
-  color: var(--bone);
+  color: var(--ink);
   font: inherit;
   font-size: var(--t-sm);
   text-align: left;
@@ -1718,7 +1721,7 @@ p {
 }
 
 .room__bedno {
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
@@ -1728,20 +1731,20 @@ p {
 
 .room__dates {
   grid-column: 2;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
 .room__free {
   padding: 8px 0 8px 25px;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
   border-bottom: 1px solid var(--rule-faint);
 }
 
 .room__warden {
   margin: 11px 0 0;
-  color: var(--bone-2);
+  color: var(--ink-2);
   font-size: var(--t-xs);
 }
 
@@ -1749,10 +1752,10 @@ p {
 
 .detail {
   margin: 0 0 26px;
-  padding: 22px;
-  background: var(--surface-2);
+  padding: 24px;
+  background: var(--white);
   border-radius: var(--r-lg);
-  box-shadow: var(--edge-strong), var(--shadow-2);
+  box-shadow: var(--edge), var(--shadow-2);
   animation: expand 300ms var(--ease-ui) both;
 }
 
@@ -1772,7 +1775,7 @@ p {
 
 .detail__sub {
   margin: 5px 0 0;
-  color: var(--bone-2);
+  color: var(--ink-2);
 }
 
 .detail__grid {
@@ -1799,7 +1802,7 @@ p {
 
 .pairs dt {
   font-size: var(--t-xs);
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .pairs dd {
@@ -1839,11 +1842,11 @@ p {
 }
 
 .day__when {
-  color: var(--bone-3);
+  color: var(--ink-3);
 }
 
 .section__lede strong {
-  color: var(--bone);
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -1853,7 +1856,7 @@ p {
   padding: 0;
   background: none;
   border: none;
-  color: var(--bone);
+  color: var(--ink);
   font: inherit;
   font-weight: 500;
   text-align: left;
@@ -1915,14 +1918,14 @@ p {
 
 .sched__dayh {
   display: block;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
 .sched__slot {
   width: 62px;
   padding-right: 12px !important;
-  color: var(--bone-2);
+  color: var(--ink-2);
   font-size: var(--t-sm);
   font-weight: 400;
   white-space: nowrap;
@@ -1930,7 +1933,7 @@ p {
 
 .sched__slot .meta {
   display: block;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
@@ -1938,8 +1941,8 @@ p {
   display: block;
   min-height: 44px;
   padding: 8px 10px;
-  background: var(--surface-2);
-  border-radius: var(--r-sm);
+  background: var(--white);
+  border-radius: var(--r-xs);
   box-shadow: var(--edge);
 }
 
@@ -1952,7 +1955,7 @@ p {
 
 .shift__who {
   display: block;
-  color: var(--bone-3);
+  color: var(--ink-3);
   font-size: var(--t-xs);
 }
 
@@ -1961,7 +1964,7 @@ p {
   background: repeating-linear-gradient(
     -45deg,
     transparent 0 5px,
-    rgba(230, 231, 217, 0.05) 5px 6px
+    rgba(40, 3, 15, 0.05) 5px 6px
   );
   box-shadow: none;
 }

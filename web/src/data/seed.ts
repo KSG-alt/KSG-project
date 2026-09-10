@@ -398,7 +398,15 @@ function buildStaff(): Staff[] {
       const q = qualPool[Math.floor(r() * qualPool.length)];
       if (!quals.includes(q)) quals.push(q);
     }
-    const issued = `202${5 + Math.floor(r() * 2)}-0${1 + Math.floor(r() * 9)}-1${Math.floor(r() * 9)}`;
+    /* Issued inside the last 18 months so the two-year expiry always lands
+       after the season. A generated record that expires before today reads as
+       cleared while actually being expired, which is the exact failure this
+       product exists to catch — it must not appear by accident. */
+    const issuedYear = 2026;
+    const issuedMonth = 1 + Math.floor(r() * 12);
+    const issuedDay = 1 + Math.floor(r() * 27);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const issued = `${issuedYear}-${pad(issuedMonth)}-${pad(issuedDay)}`;
     out.push({
       id: `st-${String(i + 9).padStart(2, '0')}`,
       forename,
@@ -412,7 +420,7 @@ function buildStaff(): Staff[] {
         state: 'cleared',
         certificate: `DBS ${String(Math.floor(r() * 9000) + 1000)} ${String(Math.floor(r() * 9000) + 1000)} ${String(Math.floor(r() * 9000) + 1000)}`,
         issued,
-        expires: issued.replace(/^202(\d)/, (_m, d) => `202${Number(d) + 2}`),
+        expires: `${issuedYear + 2}-${pad(issuedMonth)}-${pad(issuedDay)}`,
       },
       quals,
       bands: bandSets[Math.floor(r() * bandSets.length)],

@@ -22,7 +22,7 @@ export function SectionHead({
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 14 }}>
           <h1 style={{ fontSize: 'var(--t-xl)' }}>{title}</h1>
           {count && (
-            <span className="num meta" style={{ color: 'var(--bone-3)' }}>
+            <span className="num meta" style={{ color: 'var(--ink-3)' }}>
               {count}
             </span>
           )}

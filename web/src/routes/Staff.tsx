@@ -249,7 +249,7 @@ function Editor({
           <IconClose />
           Cancel
         </button>
-        <span className="meta" style={{ color: 'var(--bone-3)' }}>
+        <span className="meta" style={{ color: 'var(--ink-3)' }}>
           Every change to a DBS record is written to the safeguarding audit trail.
         </span>
       </div>
@@ -338,7 +338,7 @@ export function Staff() {
                     )}
                     <span
                       className="meta"
-                      style={{ display: 'block', color: 'var(--bone-3)' }}
+                      style={{ display: 'block', color: 'var(--ink-3)' }}
                     >
                       {s.email}
                     </span>
@@ -352,7 +352,7 @@ export function Staff() {
                     />
                     <span
                       className="meta"
-                      style={{ display: 'block', color: 'var(--bone-3)' }}
+                      style={{ display: 'block', color: 'var(--ink-3)' }}
                     >
                       {DUTY_ROLES.includes(s.role)
                         ? 'Duty role, not activity sessions'
@@ -364,7 +364,7 @@ export function Staff() {
                     <span className={`mark ${dbs.mark}`}>{dbs.label}</span>
                     <span
                       className="meta num"
-                      style={{ display: 'block', color: 'var(--bone-3)' }}
+                      style={{ display: 'block', color: 'var(--ink-3)' }}
                     >
                       {s.dbs.certificate ?? dbs.note}
                     </span>
@@ -373,11 +373,19 @@ export function Staff() {
                         className="meta num"
                         style={{
                           display: 'block',
-                          color: until !== null && until < 30 ? 'var(--ochre)' : 'var(--bone-3)',
+                          color:
+                            until !== null && until < 0
+                              ? 'var(--oxide)'
+                              : until !== null && until < 30
+                              ? 'var(--ochre)'
+                              : 'var(--ink-3)',
                         }}
                       >
-                        Expires {fmtDate(s.dbs.expires)}
-                        {until !== null && until < 60 ? ` · ${until} days` : ''}
+                        {until !== null && until < 0
+                          ? `Expired ${fmtDate(s.dbs.expires)} · ${Math.abs(until)} days ago`
+                          : `Expires ${fmtDate(s.dbs.expires)}${
+                              until !== null && until < 60 ? ` · ${until} days` : ''
+                            }`}
                       </span>
                     )}
                   </td>

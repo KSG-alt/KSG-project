@@ -24,35 +24,31 @@ material. This surface owns the ruled register a centre already runs its season
 on — dates, names, ratios, marks — and refuses both the SaaS card-grid of KPI
 tiles and the AI-product default of near-black plus one neon glow.
 
-OWN-WORLD: Ink, greige and acid, taken from getspot.com (pinned by the user
-10 Sep 2026, replacing the earlier slate-and-chalk world). Ground #111820,
-type #E6E7D9, one acid #F3FD00 that means interactive and nothing else —
-primary action, current section, focus ring. Informational blue #7FB2D9 is
-kept separate from acid so a status mark never reads as a control. Structure is
-ruled greige hairlines at 11-24%, never cards or drop shadows. One face: **Geist**
-(user-pinned 10 Sep 2026 from a neo-grotesque sample), carrying display, UI,
-labels and data. Tabular figures do the column alignment a mono would
-otherwise be hired for; the earlier Azeret Mono body voice is retired. Controls are fully-rounded
-pills; panels take a 6px corner. Display sets at line-height 0.94, tighter than
-its own size. State colour: oxide #F2542D reserved for safeguarding-critical
-and marked with a triangle rather than a square, ochre #C9922E for overdue
-admin, pulled well clear of acid, sage #7FB069 for clear.
+OWN-WORLD: Paper, plum ink and butter, taken from heidihealth.com (pinned by
+the user 11 Sep 2026, replacing the dark ink/acid world). Ground #FCFAF8, text
+#28030F — a near-black carrying a plum cast rather than neutral grey —
+secondary #755760, one butter accent #FBF582 and a deep green #194B22 for
+anything settled. Primary actions are ink pills; butter is the secondary.
+Surfaces are white, large-radius (6/12/18/24/36) and softly shadowed
+(0 5px 40px), never bordered slabs. Two faces: Geist for UI and data, and
+Instrument Serif italic at weight 400 for one display accent set at the same
+size as the sans beside it. State colour was retuned for a light ground —
+the dark values failed contrast on paper: oxide #C0341A stays reserved for
+safeguarding-critical, ochre #9A6A12 for overdue admin, forest for clear.
 
 STORY: An admin arrives, is greeted by name, and picks the one thing they came
 to do. Every screen answers who is here, who is cleared, what is scheduled, and
 what is missing — with the safeguarding-critical answer always the loudest thing
 on the rule.
 
-FIRST VIEWPORT: The photograph is the ground, not a decoration behind a card.
-A supplied blue circuit image fills the viewport, held by a two-stop scrim — a
-100deg wash from 96% to 60% opacity across, and a vertical wash landing the
-bottom edge on --ink so the menu column reads as one surface with the rest of
-the app. Over it: the season in mono caps, then the greeting set large and left
-at up to 4.5rem, line-height 0.94. Below, one ruled column of five menu
-entries; a drawn 20px icon at the left as identity, the label at 1.5rem, the
-blurb in mono, and the reference's circular arrow badge at the right edge
-filling acid on hover or focus. No tiles, no counts, no hero metric. The menu
-is the primary action.
+FIRST VIEWPORT: Centred lede on bare paper — the greeting with its first
+words in serif italic, the day's count beneath, an ink pill and a butter pill
+side by side, then the season and the demonstration note. Below it one large
+36px-radius stage carrying a painted wash (cool at top left, butter at top
+right, warm paper at the foot), holding the shortcut pills and the two white
+panels: what needs doing, and Ask Kadia. The blue circuit photograph is
+retired from this surface — a dark image cannot sit on a warm light ground
+without fighting it — and stays in public/ if the direction reverses.
 
 FORM: The ruled register / blackboard — candidate 1 of my grounded list. The
 brief pinned this direction (cerebrium restraint, dark, explicitly not

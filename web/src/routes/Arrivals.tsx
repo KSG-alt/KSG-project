@@ -126,7 +126,7 @@ export function Arrivals() {
                           </span>
                           <span
                             className="meta"
-                            style={{ display: 'block', color: 'var(--bone-3)' }}
+                            style={{ display: 'block', color: 'var(--ink-3)' }}
                           >
                             {s.country} · {s.band}
                           </span>
@@ -146,7 +146,7 @@ export function Arrivals() {
                           {s.guardian.name}
                           <span
                             className="meta"
-                            style={{ display: 'block', color: 'var(--bone-3)' }}
+                            style={{ display: 'block', color: 'var(--ink-3)' }}
                           >
                             {s.guardian.phone}
                           </span>

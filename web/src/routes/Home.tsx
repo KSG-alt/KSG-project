@@ -6,6 +6,11 @@ import { KADIA_SYSTEM, KADIA_TOOLS } from '../lib/kadiaAgent';
 import { useStore } from '../lib/store';
 import { DEMO_TODAY, SEASON_END, SEASON_START } from '../data/seed';
 
+/* Five shortcuts hold one line at desktop width. Everything else lives in the
+   menu — a wrapped second row of pills beside a menu button reads as
+   indecision about where navigation lives. */
+const QUICK: Route[] = ['reminders', 'arrivals', 'rooms', 'timetable', 'kadia'];
+
 const season = () => {
   const f = (d: Date) =>
     d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
@@ -18,11 +23,6 @@ const greeting = () => {
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
 };
-
-/* Five shortcuts hold one line at desktop width. Everything else lives in
-   the menu — a wrapped second row of pills beside a menu button reads as
-   indecision about where navigation lives. */
-const QUICK: Route[] = ['reminders', 'arrivals', 'rooms', 'timetable', 'kadia'];
 
 export function Home({
   operator,
@@ -37,25 +37,32 @@ export function Home({
 
   return (
     <main id="main" className="hero">
-      <div className="hero__bg" aria-hidden="true" />
+      <header className="lede">
+        <h1 className="lede__title">
+          <span className="serif">{greeting()}</span>, {operator}.
+        </h1>
+        <p className="lede__sub">
+          {open.length === 0
+            ? 'Nothing outstanding across the centre.'
+            : critical.length > 0
+            ? `${open.length} things need you today. ${critical.length} of them are safeguarding.`
+            : `${open.length} things need you today. None are safeguarding.`}
+        </p>
 
-      <div className="hero__inner">
-        <header className="hero__head">
-          <p className="label hero__season">
-            {season()} · Demonstration on seeded data
-          </p>
-          <h1 className="hero__title">
-            {greeting()}, {operator}.
-          </h1>
-          <p className="hero__standfirst">
-            {open.length === 0
-              ? 'Nothing outstanding across the centre.'
-              : critical.length > 0
-              ? `${open.length} things need you today. ${critical.length} of them are safeguarding.`
-              : `${open.length} things need you today. None are safeguarding.`}
-          </p>
-        </header>
+        <div className="lede__cta">
+          <button className="btn btn--primary btn--lg" onClick={() => onGo('reminders')}>
+            Open reminders
+            <IconArrow />
+          </button>
+          <button className="btn btn--butter btn--lg" onClick={() => onGo('kadia')}>
+            Ask Kadia
+          </button>
+        </div>
 
+        <p className="lede__season">{season()} · seeded demonstration data</p>
+      </header>
+
+      <div className="stage">
         <nav className="quick" aria-label="Shortcuts">
           {NAV.filter((n) => QUICK.includes(n.id)).map((item) => (
             <button

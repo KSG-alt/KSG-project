@@ -257,7 +257,7 @@ export function Timetable() {
             >
               <div className="tt__group">
                 <span style={{ fontWeight: 500 }}>{g.name}</span>
-                <span className="meta num" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
                   {g.band} · 1:{g.ratio}
                 </span>
               </div>
@@ -322,7 +322,7 @@ export function Timetable() {
               <h2 style={{ fontSize: 'var(--t-md)', marginBottom: 4 }}>
                 {activityById(sel.activityId).name}
               </h2>
-              <p className="meta" style={{ margin: '0 0 16px', color: 'var(--bone-3)' }}>
+              <p className="meta" style={{ margin: '0 0 16px', color: 'var(--ink-3)' }}>
                 {groupById(sel.groupId).name} · {activityById(sel.activityId).location}
                 {sel.origin === 'ai-draft' ? ' · drafted' : ' · edited by hand'}
               </p>
@@ -361,7 +361,7 @@ export function Timetable() {
                 );
               })()}
 
-              <p className="meta" style={{ color: 'var(--bone-3)', marginTop: 4 }}>
+              <p className="meta" style={{ color: 'var(--ink-3)', marginTop: 4 }}>
                 Ratio verdict comes from the rota engine, not from this screen.
               </p>
 
@@ -420,7 +420,7 @@ export function Timetable() {
           ) : (
             <div className="panel">
               <span className="label">Shape the day by chat</span>
-              <p className="meta" style={{ margin: '10px 0 0', color: 'var(--bone-3)' }}>
+              <p className="meta" style={{ margin: '10px 0 0', color: 'var(--ink-3)' }}>
                 Pick a session on the grid to edit it by hand, or tell Kadia what
                 the day should look like. It reads the real timetable and writes
                 real changes — a person still approves the day.

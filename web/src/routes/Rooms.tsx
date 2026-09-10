@@ -331,7 +331,7 @@ export function Rooms() {
                       <span style={{ fontWeight: 600 }}>
                         {s.forename} {s.surname}
                       </span>
-                      <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                      <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                         {s.country}
                       </span>
                     </td>
@@ -390,7 +390,7 @@ export function Rooms() {
                       <span style={{ fontWeight: 600 }}>
                         {s.forename} {s.surname}
                       </span>
-                      <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                      <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                         {s.country}
                       </span>
                     </td>
@@ -410,7 +410,7 @@ export function Rooms() {
                     </td>
                     <td>
                       {s.guardian.name}
-                      <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                      <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                         {s.guardian.relationship} · {s.guardian.phone}
                       </span>
                     </td>

@@ -61,7 +61,7 @@ export function Bookings() {
         count={`${bookings.length} activity bookings · ${fmtMoney(owed)} committed`}
       />
 
-      <p className="meta" style={{ maxWidth: '72ch', margin: '-8px 0 24px', color: 'var(--bone-2)' }}>
+      <p className="meta" style={{ maxWidth: '72ch', margin: '-8px 0 24px', color: 'var(--ink-2)' }}>
         A receipt is required on every activity booking. Confirmation is blocked
         until one is attached, so nothing reaches the season&rsquo;s accounts
         undocumented.
@@ -98,7 +98,7 @@ export function Bookings() {
                 <td className="num meta">{b.id.replace('bk-', '')}</td>
                 <td>
                   <span style={{ fontWeight: 500 }}>{a.name}</span>
-                  <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                  <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                     {b.supplier}
                   </span>
                 </td>
@@ -115,7 +115,7 @@ export function Bookings() {
                           className="meta num"
                           style={{
                             display: 'block',
-                            color: 'var(--bone-3)',
+                            color: 'var(--ink-3)',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
@@ -183,7 +183,7 @@ export function Bookings() {
                       {blocked && (
                         <span
                           className="meta"
-                          style={{ display: 'block', color: 'var(--bone-3)', marginTop: 5 }}
+                          style={{ display: 'block', color: 'var(--ink-3)', marginTop: 5 }}
                         >
                           Receipt required
                         </span>

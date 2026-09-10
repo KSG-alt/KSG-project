@@ -41,7 +41,7 @@ export function Kadia() {
               <span className="label">Google</span>
               <span className="mark mark--idle">Not connected</span>
             </div>
-            <p className="meta" style={{ margin: '0 0 14px', color: 'var(--bone-2)' }}>
+            <p className="meta" style={{ margin: '0 0 14px', color: 'var(--ink-2)' }}>
               Connecting Google lets Kadia send chases from the centre&rsquo;s own
               address, file receipts, and push an approved timetable to a calendar.
             </p>
@@ -62,7 +62,7 @@ export function Kadia() {
                     }}
                   >
                     <span style={{ fontWeight: 500, fontSize: 'var(--t-sm)' }}>{name}</span>
-                    <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                    <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                       {why}
                     </span>
                   </div>
@@ -73,7 +73,7 @@ export function Kadia() {
                 >
                   Not built yet
                 </p>
-                <p className="meta" style={{ margin: '6px 0 0', color: 'var(--bone-2)' }}>
+                <p className="meta" style={{ margin: '6px 0 0', color: 'var(--ink-2)' }}>
                   A real connection needs OAuth consent, a Google Cloud project
                   and a server to hold the refresh token. None of those exist
                   yet, so this panel is the shape of the feature, not the feature.
@@ -90,7 +90,7 @@ export function Kadia() {
               <li className="meta">{BOOKINGS.length} activity bookings and their receipts</li>
               <li className="meta">The day&rsquo;s timetable and every ratio verdict</li>
             </ul>
-            <p className="meta" style={{ margin: '14px 0 0', color: 'var(--bone-3)' }}>
+            <p className="meta" style={{ margin: '14px 0 0', color: 'var(--ink-3)' }}>
               Every answer is looked up in these records, not recalled.
             </p>
           </div>
