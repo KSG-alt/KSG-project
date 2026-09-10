@@ -105,6 +105,21 @@ two sections share an identical entrance. Killed under
 - Dates are formatted from local calendar components, never `toISOString()`.
   The UTC round-trip shifted every arrival and leaving date back a day under
   BST, which silently mislabelled the whole season by one day.
+- The rota runs Monday to Saturday, not one day. A session is 90 minutes, and
+  weekly hours are counted off that same rota, so the number on the staff
+  screen and the sessions on the timetable can never disagree. Sessions live
+  in the shared store for the same reason: cancelling one has to lower the
+  hours the staff screen reports.
+- Three rota rules the generator enforces, each of which was wrong first:
+  nobody is booked into two groups in the same slot; only cleared DBS staff
+  are drafted; and the safeguarding lead and welfare officer hold duty roles
+  rather than activity sessions. Without the first, weekly hours ran to 57h
+  and the schedule grid showed 14 shifts for 31 sessions.
+- Hours are rota'd, never paid — payroll is out of scope (DECISIONS 0001).
+  Anything past the 48h working-time limit is flagged as needing a signed
+  opt-out rather than silently scheduled.
+- The assistant section is called **Ask Kadia**; Kadia alone is the assistant's
+  name inside its own copy.
 - Guardian records are internally consistent by construction: language and
   address country both derive from the student's own country, and relationship
   labels are neutral (Parent, Guardian, Grandparent, Aunt or uncle) because the

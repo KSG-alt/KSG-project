@@ -12,7 +12,7 @@ const ROUTE_LABEL: Record<Route, string> = {
   staff: 'Staff',
   timetable: 'Timetable',
   bookings: 'Bookings',
-  kadia: 'Kadia',
+  kadia: 'Ask Kadia',
   reminders: 'Reminders',
 };
 

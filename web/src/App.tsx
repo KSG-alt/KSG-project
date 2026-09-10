@@ -33,7 +33,7 @@ export const NAV: {
   { id: 'staff', label: 'Staff', blurb: 'Details, qualifications and DBS status', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
   { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
-  { id: 'kadia', label: 'Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
+  { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
 ];
 
 const OPERATOR = 'Ismail';
@@ -47,7 +47,7 @@ const TITLE: Record<Route, string> = {
   staff: 'Staff',
   timetable: 'Timetable',
   bookings: 'Bookings',
-  kadia: 'Kadia',
+  kadia: 'Ask Kadia',
 };
 
 function Shell() {

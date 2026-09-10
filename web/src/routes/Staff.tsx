@@ -1,9 +1,130 @@
 import { Fragment, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { IconCheck, IconClose, IconEdit } from '../lib/icons';
+import { useStore } from '../lib/store';
 import {
-  DEMO_TODAY, STAFF, fmtDate, type DbsState, type Staff as StaffRec,
+  DEMO_TODAY, SLOTS, STAFF, WEEKLY_LIMIT, WEEK_DAYS, activityById, dayHours,
+  dayName, fmtDate, fmtHours, groupById, sessionsFor, weeklyHours,
+  type DbsState, type Session, type Staff as StaffRec,
 } from '../data/seed';
+
+const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
+
+/* Rota'd hours against the contract. Payroll is out of scope (DECISIONS 0001)
+   — this is the rota's own number, not pay. */
+function HoursMark({ hours, contracted }: { hours: number; contracted: number }) {
+  if (hours > WEEKLY_LIMIT) {
+    return (
+      <span className="mark mark--critical">
+        {fmtHours(hours)} · over {WEEKLY_LIMIT}h
+      </span>
+    );
+  }
+  if (hours > contracted) {
+    return (
+      <span className="mark mark--overdue">
+        {fmtHours(hours)} · over contract
+      </span>
+    );
+  }
+  if (hours === 0) return <span className="mark mark--idle">No sessions</span>;
+  return <span className="mark mark--clear">{fmtHours(hours)}</span>;
+}
+
+function Schedule({
+  rec,
+  sessions,
+  onClose,
+}: {
+  rec: StaffRec;
+  sessions: Session[];
+  onClose: () => void;
+}) {
+  const mine = sessionsFor(rec.id, sessions);
+  const hours = weeklyHours(rec.id, sessions);
+
+  return (
+    <div className="sched">
+      <div className="sched__head">
+        <div>
+          <h3 className="sched__title">
+            {rec.forename} {rec.surname} &mdash; this week
+          </h3>
+          <p className="meta sched__sub">
+            {mine.length} sessions &middot; {fmtHours(hours)} rota&rsquo;d of{' '}
+            {fmtHours(rec.contractedHours)} contracted
+            {hours > WEEKLY_LIMIT
+              ? ` · over the ${WEEKLY_LIMIT}h working-time limit, needs a signed opt-out`
+              : ''}
+          </p>
+        </div>
+        <button className="btn btn--quiet" onClick={onClose} aria-label="Close schedule">
+          <IconClose />
+        </button>
+      </div>
+
+      {mine.length === 0 ? (
+        <p className="meta">
+          {DUTY_ROLES.includes(rec.role)
+            ? 'A duty role — they hold safeguarding and welfare cover rather than running activity sessions, so they carry no session rota.'
+            : 'Not on the rota this week. '}
+          {DUTY_ROLES.includes(rec.role) ? '' : rec.dbs.state !== 'cleared'
+            ? 'Their DBS is not cleared, so they cannot be rota\u2019d with students.'
+            : 'Assign them from the timetable.'}
+        </p>
+      ) : (
+        <div className="tablewrap">
+          <table className="sched__grid">
+            <thead>
+              <tr>
+                <th />
+                {WEEK_DAYS.map((d) => (
+                  <th key={d} scope="col">
+                    <span className="sched__day">{dayName(d)}</span>
+                    <span className="meta sched__dayh">
+                      {fmtHours(dayHours(rec.id, d, sessions))}
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {SLOTS.map((slot) => (
+                <tr key={slot.start}>
+                  <th scope="row" className="sched__slot num">
+                    {slot.start}
+                    <span className="meta">{slot.end}</span>
+                  </th>
+                  {WEEK_DAYS.map((d) => {
+                    const on = mine.find(
+                      (x) => x.day === d && x.start === slot.start,
+                    );
+                    return (
+                      <td key={d}>
+                        {on ? (
+                          <span className="shift">
+                            <span className="shift__what">
+                              {activityById(on.activityId).name}
+                            </span>
+                            <span className="meta shift__who">
+                              {groupById(on.groupId).name}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="shift shift--off" aria-label="Off" />
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const DBS_COPY: Record<DbsState, { label: string; mark: string; note: string }> = {
   cleared: { label: 'Cleared', mark: 'mark--clear', note: 'Enhanced check on file' },
@@ -137,16 +258,36 @@ function Editor({
 }
 
 export function Staff() {
+  const { sessions } = useStore();
   const [staff, setStaff] = useState<StaffRec[]>(STAFF);
   const [editing, setEditing] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
 
   const blocked = staff.filter(
     (s) => s.dbs.state === 'missing' || s.dbs.state === 'pending',
   );
 
+  const totalHours = staff.reduce((n, s) => n + weeklyHours(s.id, sessions), 0);
+  const overLimit = staff.filter((s) => weeklyHours(s.id, sessions) > WEEKLY_LIMIT);
+
   return (
     <>
-      <SectionHead title="Staff" count={`${staff.length} on the season roster`} />
+      <SectionHead
+        title="Staff"
+        count={`${staff.length} on the roster · ${fmtHours(totalHours)} rota'd this week`}
+      />
+
+      <p className="meta section__lede">
+        Hours are what the rota schedules, not what anyone is paid — payroll
+        stays with the centre. Open a name for that person&rsquo;s week.
+      </p>
+
+      {overLimit.length > 0 && (
+        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+          {overLimit.length} staff rota&rsquo;d past the {WEEKLY_LIMIT}h
+          working-time limit
+        </p>
+      )}
 
       {blocked.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 22 }}>
@@ -162,7 +303,8 @@ export function Staff() {
             <th style={{ width: '20%' }}>Name</th>
             <th>Age</th>
             <th style={{ width: '17%' }}>Role</th>
-            <th style={{ width: '15%' }}>Age bands</th>
+            <th style={{ width: '12%' }}>Hours / week</th>
+            <th style={{ width: '12%' }}>Age bands</th>
             <th style={{ width: '22%' }}>DBS</th>
             <th>Qualifications</th>
             <th />
@@ -177,9 +319,15 @@ export function Staff() {
               <Fragment key={s.id}>
                 <tr style={{ animationDelay: `${i * 26}ms` }}>
                   <td>
-                    <span style={{ fontWeight: 500 }}>
+                    <button
+                      className="namebtn"
+                      onClick={() =>
+                        setViewing(viewing === s.id ? null : s.id)
+                      }
+                      aria-expanded={viewing === s.id}
+                    >
                       {s.forename} {s.surname}
-                    </span>
+                    </button>
                     {s.safeguardingLead && (
                       <span
                         className="meta"
@@ -197,6 +345,20 @@ export function Staff() {
                   </td>
                   <td className="num">{s.age}</td>
                   <td>{s.role}</td>
+                  <td>
+                    <HoursMark
+                      hours={weeklyHours(s.id, sessions)}
+                      contracted={s.contractedHours}
+                    />
+                    <span
+                      className="meta"
+                      style={{ display: 'block', color: 'var(--bone-3)' }}
+                    >
+                      {DUTY_ROLES.includes(s.role)
+                        ? 'Duty role, not activity sessions'
+                        : `of ${fmtHours(s.contractedHours)} contracted`}
+                    </span>
+                  </td>
                   <td className="num meta">{s.bands.join(', ')}</td>
                   <td>
                     <span className={`mark ${dbs.mark}`}>{dbs.label}</span>
@@ -231,9 +393,20 @@ export function Staff() {
                     </button>
                   </td>
                 </tr>
+                {viewing === s.id && (
+                  <tr>
+                    <td colSpan={8} style={{ padding: 0 }}>
+                      <Schedule
+                        rec={s}
+                        sessions={sessions}
+                        onClose={() => setViewing(null)}
+                      />
+                    </td>
+                  </tr>
+                )}
                 {isEditing && (
                   <tr>
-                    <td colSpan={7} style={{ padding: 0, borderBottom: '1px solid var(--rule-strong)' }}>
+                    <td colSpan={8} style={{ padding: 0, borderBottom: '1px solid var(--rule-strong)' }}>
                       <Editor
                         rec={s}
                         onCancel={() => setEditing(null)}

@@ -4,8 +4,9 @@
 import { checkRatio } from './ratio';
 import type { ToolSpec } from './anthropic';
 import {
-  BOOKINGS, DEMO_TODAY, GROUPS, SESSIONS, STAFF, STUDENTS, activityById,
-  fmtDateLong, fmtMoney, groupById, isOnSite, staffById,
+  BOOKINGS, DEMO_TODAY, GROUPS, SESSIONS, STAFF, STUDENTS, WEEKLY_LIMIT,
+  activityById, fmtDateLong, fmtMoney, groupById, isOnSite, sessionsFor,
+  staffById, weeklyHours,
 } from '../data/seed';
 
 export const KADIA_TOOLS: ToolSpec[] = [
@@ -92,15 +93,37 @@ export const KADIA_TOOLS: ToolSpec[] = [
   },
   {
     name: 'read_timetable',
-    description: 'Read the day’s sessions with their staffing and ratio verdict.',
-    input_schema: { type: 'object', properties: {} },
-    run: () =>
-      SESSIONS.map((s) => ({
+    description:
+      'Read scheduled sessions with their staffing and ratio verdict. Defaults to today; pass a day as YYYY-MM-DD for another day this week.',
+    input_schema: {
+      type: 'object',
+      properties: { day: { type: 'string', description: 'YYYY-MM-DD' } },
+    },
+    run: (i: { day?: string }) =>
+      SESSIONS.filter(
+        (s) => s.day === (i?.day ?? DEMO_TODAY.toISOString().slice(0, 10)),
+      ).map((s) => ({
+        day: s.day,
         group: groupById(s.groupId).name,
         activity: activityById(s.activityId).name,
         start: s.start,
         staff: s.staffIds.map((i) => `${staffById(i).forename} ${staffById(i).surname}`),
         ratio: checkRatio(s),
+      })),
+  },
+  {
+    name: 'staff_hours',
+    description:
+      'Rota\u2019d hours per staff member for the current week, against their contracted hours.',
+    input_schema: { type: 'object', properties: {} },
+    run: () =>
+      STAFF.map((s) => ({
+        name: `${s.forename} ${s.surname}`,
+        role: s.role,
+        rotaed_hours: weeklyHours(s.id),
+        contracted_hours: s.contractedHours,
+        sessions: sessionsFor(s.id).length,
+        over_working_time_limit: weeklyHours(s.id) > WEEKLY_LIMIT,
       })),
   },
   {

@@ -17,7 +17,7 @@ export function Kadia() {
 
   return (
     <>
-      <SectionHead title="Kadia" count="Assistant across the whole centre" />
+      <SectionHead title="Ask Kadia" count="Assistant across the whole centre" />
 
       <div className="kadia">
         <div className="kadia__main">

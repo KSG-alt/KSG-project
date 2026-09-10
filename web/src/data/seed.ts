@@ -307,6 +307,7 @@ export interface Staff {
   };
   quals: string[];
   bands: AgeBand[];
+  contractedHours: number;
   safeguardingLead?: boolean;
 }
 
@@ -316,56 +317,56 @@ const NAMED_STAFF: Staff[] = [
     dob: '1989-03-14', age: 38, phone: '07700 900081', email: 'k.sarr@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8827 3390', issued: '2026-11-02', expires: '2028-11-02' },
     quals: ['Designated Safeguarding Lead', 'Paediatric first aid', 'Prevent awareness'],
-    bands: ['8–11', '12–14', '15–17'], safeguardingLead: true,
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, safeguardingLead: true,
   },
   {
     id: 'st-02', forename: 'Tomas', surname: 'Halvorsen', role: 'Activity manager',
     dob: '1994-07-22', age: 33, phone: '07700 900117', email: 't.halvorsen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 9034 1182', issued: '2027-01-19', expires: '2029-01-19' },
     quals: ['Beach lifeguard', 'Paediatric first aid', 'Level 2 coaching'],
-    bands: ['12–14', '15–17'],
+    bands: ['12–14', '15–17'], contractedHours: 40,
   },
   {
     id: 'st-03', forename: 'Marta', surname: 'Salgado', role: 'Group leader',
     dob: '2001-11-08', age: 25, phone: '07700 900244', email: 'm.salgado@example-centre.test',
     dbs: { state: 'expiring', certificate: 'DBS 0041 7719 5540', issued: '2025-08-01', expires: '2027-07-31' },
     quals: ['Paediatric first aid', 'TEFL'],
-    bands: ['8–11', '12–14'],
+    bands: ['8–11', '12–14'], contractedHours: 37.5,
   },
   {
     id: 'st-04', forename: 'Idris', surname: 'Okonjo', role: 'Group leader',
     dob: '2003-02-27', age: 24, phone: '07700 900318', email: 'i.okonjo@example-centre.test',
     dbs: { state: 'pending', certificate: null, issued: null, expires: null },
     quals: ['Paediatric first aid'],
-    bands: ['12–14'],
+    bands: ['12–14'], contractedHours: 37.5,
   },
   {
     id: 'st-05', forename: 'Freya', surname: 'Lindqvist', role: 'Group leader',
     dob: '2002-05-30', age: 25, phone: '07700 900402', email: 'f.lindqvist@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8102 7741', issued: '2026-04-11', expires: '2028-04-11' },
     quals: ['Paediatric first aid', 'Duke of Edinburgh supervisor'],
-    bands: ['15–17'],
+    bands: ['15–17'], contractedHours: 37.5,
   },
   {
     id: 'st-06', forename: 'Ravi', surname: 'Iyer', role: 'Activity instructor',
     dob: '1998-09-12', age: 28, phone: '07700 900556', email: 'r.iyer@example-centre.test',
     dbs: { state: 'missing', certificate: null, issued: null, expires: null },
     quals: ['Level 2 archery'],
-    bands: ['12–14', '15–17'],
+    bands: ['12–14', '15–17'], contractedHours: 30,
   },
   {
     id: 'st-07', forename: 'Anouk', surname: 'Jansen', role: 'Welfare officer',
     dob: '1991-12-03', age: 35, phone: '07700 900613', email: 'a.jansen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8890 2214', issued: '2026-06-28', expires: '2028-06-28' },
     quals: ['Mental health first aid', 'Paediatric first aid'],
-    bands: ['8–11', '12–14', '15–17'],
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40,
   },
   {
     id: 'st-08', forename: 'Luca', surname: 'Moretti', role: 'Group leader',
     dob: '2000-04-18', age: 27, phone: '07700 900728', email: 'l.moretti@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 7994 6603', issued: '2026-09-15', expires: '2028-09-15' },
     quals: ['Paediatric first aid', 'Minibus D1'],
-    bands: ['8–11'],
+    bands: ['8–11'], contractedHours: 37.5,
   },
 ];
 
@@ -380,12 +381,14 @@ function buildStaff(): Staff[] {
     'Paediatric first aid', 'TEFL', 'Level 2 coaching', 'Beach lifeguard',
     'Level 2 archery', 'Minibus D1', 'Mental health first aid',
   ];
+  /* Weighted towards multi-band cover: a seasonal team that can only work one
+     age band cannot staff five groups in the same slot. */
   const bandSets: AgeBand[][] = [
-    ['8–11'], ['12–14'], ['15–17'], ['8–11', '12–14'], ['12–14', '15–17'],
-    ['8–11', '12–14', '15–17'],
+    ['8–11', '12–14'], ['12–14', '15–17'], ['8–11', '12–14', '15–17'],
+    ['8–11', '12–14', '15–17'], ['8–11'], ['12–14'], ['15–17'],
   ];
   const out: Staff[] = [...NAMED_STAFF];
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 42; i++) {
     const forename = FORENAMES[Math.floor(r() * FORENAMES.length)];
     const surname = SURNAMES[Math.floor(r() * SURNAMES.length)];
     const age = 21 + Math.floor(r() * 18);
@@ -413,6 +416,7 @@ function buildStaff(): Staff[] {
       },
       quals,
       bands: bandSets[Math.floor(r() * bandSets.length)],
+      contractedHours: [37.5, 37.5, 40, 30, 25][Math.floor(r() * 5)],
     });
   }
   return out;
@@ -465,53 +469,110 @@ export const SLOTS = [
   { start: '16:00', end: '17:30' },
 ];
 
+/* A session is 90 minutes. Weekly hours are counted off the rota, so the
+   number a staff screen shows is the same one the timetable produced. */
+export const SLOT_HOURS = 1.5;
+
+/* Monday to Saturday of the week DEMO_TODAY falls in. Sunday is changeover:
+   students arrive and leave, and no activity sessions run. */
+function weekOf(d: Date) {
+  const monday = new Date(d);
+  const shift = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - shift);
+  monday.setHours(0, 0, 0, 0);
+  return Array.from({ length: 6 }, (_, i) => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + i);
+    return day;
+  });
+}
+
+export const WEEK: Date[] = weekOf(DEMO_TODAY);
+export const WEEK_DAYS: string[] = WEEK.map(iso);
+
+export const dayName = (isoStr: string) =>
+  new Date(isoStr).toLocaleDateString('en-GB', { weekday: 'short' });
+
+const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
+
 function buildSessions(): Session[] {
   const r = rng(717);
   const out: Session[] = [];
-  const day = iso(DEMO_TODAY);
+  const today = iso(DEMO_TODAY);
   const pool = ACTIVITIES.map((a) => a.id);
-  GROUPS.forEach((g, gi) => {
-    SLOTS.forEach((slot, si) => {
-      const activityId = pool[(gi * 3 + si * 2) % pool.length];
-      const activity = ACTIVITIES.find((a) => a.id === activityId)!;
-      const needed = Math.ceil(
-        STUDENTS.filter((s) => s.groupId === g.id).length / g.ratio,
-      );
-      /* A draft only ever rota's cleared staff. An activity carrying a
-         qualification needs ONE staff member holding it — the instructor —
-         plus cleared cover to make the ratio, which is how a centre staffs
-         archery or kayaking in practice. */
-      const cleared = STAFF.filter(
-        (s) => s.dbs.state === 'cleared' && s.bands.includes(g.band),
-      );
-      const instructor = activity.requiresQual
-        ? cleared.find((s) => s.quals.includes(activity.requiresQual!))
-        : undefined;
 
-      /* Two deliberate failures, so the safeguarding gate has something real
-         to catch: one slot short-staffed, one staffed by an uncleared DBS. */
-      const shortStaffed = gi === 2 && si === 1;
-      const unclearedDbs = gi === 4 && si === 3;
-      const take = shortStaffed ? Math.max(1, needed - 2) : needed;
+  /* Nobody can be in two groups at once. Without this the same few names get
+     picked for every group in a slot, weekly hours run past the working-time
+     limit, and the rota is describing something impossible. */
+  const busy = new Map<string, Set<string>>();
+  const claim = (day: string, start: string) => {
+    const key = `${day}|${start}`;
+    let set = busy.get(key);
+    if (!set) busy.set(key, (set = new Set()));
+    return set;
+  };
 
-      const picked = instructor ? [instructor] : [];
-      for (const c of cleared) {
-        if (picked.length >= take) break;
-        if (!picked.includes(c)) picked.push(c);
-      }
-      const staffIds = picked.slice(0, Math.max(take, picked.length ? 1 : 0)).map((s) => s.id);
-      if (unclearedDbs) staffIds[staffIds.length - 1] = 'st-06';
+  WEEK_DAYS.forEach((day, di) => {
+    GROUPS.forEach((g, gi) => {
+      SLOTS.forEach((slot, si) => {
+        const activityId = pool[(di * 2 + gi * 3 + si * 2) % pool.length];
+        const activity = ACTIVITIES.find((a) => a.id === activityId)!;
+        const needed = Math.ceil(
+          STUDENTS.filter((s) => s.groupId === g.id).length / g.ratio,
+        );
 
-      out.push({
-        id: `sess-${g.id}-${si}`,
-        activityId,
-        groupId: g.id,
-        day,
-        start: slot.start,
-        end: slot.end,
-        staffIds,
-        status: 'scheduled',
-        origin: r() < 0.8 ? 'ai-draft' : 'manual',
+        /* A draft only ever rota's cleared staff. An activity carrying a
+           qualification needs ONE staff member holding it — the instructor —
+           plus cleared cover to make the ratio, which is how a centre staffs
+           archery or kayaking in practice. */
+        /* The safeguarding lead and the welfare officer hold the centre's
+           duty roles. Rota'ing them onto kayaking is the sort of detail a
+           centre director spots immediately. */
+        const cleared = STAFF.filter(
+          (s) =>
+            s.dbs.state === 'cleared' &&
+            s.bands.includes(g.band) &&
+            !DUTY_ROLES.includes(s.role),
+        );
+        const taken = claim(day, slot.start);
+        const free = cleared.filter((c) => !taken.has(c.id));
+        const instructor = activity.requiresQual
+          ? free.find((s) => s.quals.includes(activity.requiresQual!))
+          : undefined;
+
+        /* The two deliberate failures sit on the current day only, so the
+           safeguarding gate has something real to catch without the whole
+           week reading as broken. */
+        const shortStaffed = day === today && gi === 2 && si === 1;
+        const unclearedDbs = day === today && gi === 4 && si === 3;
+        const take = shortStaffed ? Math.max(1, needed - 2) : needed;
+
+        /* Rotate the pool, or the same few people carry every session all
+           week and the hours column is meaningless. */
+        const picked = instructor ? [instructor] : [];
+        const offset = (di * SLOTS.length * 2 + si * 3 + gi) % Math.max(free.length, 1);
+        for (let k = 0; k < free.length && picked.length < take; k++) {
+          const c = free[(offset + k) % free.length];
+          if (!picked.includes(c)) picked.push(c);
+        }
+
+        const staffIds = picked
+          .slice(0, Math.max(take, picked.length ? 1 : 0))
+          .map((x) => x.id);
+        if (unclearedDbs && staffIds.length) staffIds[staffIds.length - 1] = 'st-06';
+        staffIds.forEach((sid) => taken.add(sid));
+
+        out.push({
+          id: `sess-${day}-${g.id}-${si}`,
+          activityId,
+          groupId: g.id,
+          day,
+          start: slot.start,
+          end: slot.end,
+          staffIds,
+          status: 'scheduled',
+          origin: r() < 0.8 ? 'ai-draft' : 'manual',
+        });
       });
     });
   });
@@ -519,6 +580,38 @@ function buildSessions(): Session[] {
 }
 
 export const SESSIONS: Session[] = buildSessions();
+
+/* ── Rota hours ───────────────────────────────────────────────────────────
+   Hours rota'd, not hours paid. Payroll stays outside the platform
+   (DECISIONS.md 0001); this is the rota's own number.
+   ──────────────────────────────────────────────────────────────────────── */
+
+export const sessionsFor = (staffId: string, sessions: Session[] = SESSIONS) =>
+  sessions
+    .filter((s) => s.status !== 'cancelled' && s.staffIds.includes(staffId))
+    .sort(
+      (a, b) => a.day.localeCompare(b.day) || a.start.localeCompare(b.start),
+    );
+
+export const weeklyHours = (staffId: string, sessions: Session[] = SESSIONS) =>
+  sessionsFor(staffId, sessions).length * SLOT_HOURS;
+
+export const dayHours = (
+  staffId: string,
+  day: string,
+  sessions: Session[] = SESSIONS,
+) =>
+  sessions.filter(
+    (s) => s.day === day && s.status !== 'cancelled' && s.staffIds.includes(staffId),
+  ).length * SLOT_HOURS;
+
+export const fmtHours = (h: number) =>
+  Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+
+/* The Working Time Regulations opt-out threshold. A centre that rota's past
+   it needs a signed opt-out on file, so the screen flags it rather than
+   silently scheduling. */
+export const WEEKLY_LIMIT = 48;
 
 export interface Receipt {
   filename: string;

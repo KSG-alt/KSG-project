@@ -1846,3 +1846,122 @@ p {
   color: var(--bone);
   font-weight: 600;
 }
+
+/* ── Staff schedule: one person's week ─────────────────────────────────── */
+
+.namebtn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--bone);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: color 150ms var(--ease-ui);
+}
+
+.namebtn:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.sched {
+  padding: 20px 0 24px;
+  animation: expand 280ms var(--ease-ui) both;
+}
+
+.sched__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sched__title {
+  font-size: var(--t-md);
+  font-weight: 500;
+}
+
+.sched__sub {
+  margin: 5px 0 0;
+}
+
+.sched__grid {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.sched__grid th,
+.sched__grid td {
+  padding: 5px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.sched__grid thead th {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+
+.sched__day {
+  display: block;
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.sched__dayh {
+  display: block;
+  color: var(--bone-3);
+  font-size: var(--t-xs);
+}
+
+.sched__slot {
+  width: 62px;
+  padding-right: 12px !important;
+  color: var(--bone-2);
+  font-size: var(--t-sm);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.sched__slot .meta {
+  display: block;
+  color: var(--bone-3);
+  font-size: var(--t-xs);
+}
+
+.shift {
+  display: block;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  box-shadow: var(--edge);
+}
+
+.shift__what {
+  display: block;
+  font-size: var(--t-sm);
+  font-weight: 500;
+  letter-spacing: -0.008em;
+}
+
+.shift__who {
+  display: block;
+  color: var(--bone-3);
+  font-size: var(--t-xs);
+}
+
+/* An off slot is drawn, not left blank — the gap is information. */
+.shift--off {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 5px,
+    rgba(230, 231, 217, 0.05) 5px 6px
+  );
+  box-shadow: none;
+}

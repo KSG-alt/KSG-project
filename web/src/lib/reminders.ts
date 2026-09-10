@@ -81,8 +81,11 @@ export function buildReminders(): Reminder[] {
     });
   });
 
-  /* Sessions the rota engine says are not compliant. */
-  SESSIONS.filter((s) => s.status !== 'cancelled').forEach((s) => {
+  /* Sessions the rota engine says are not compliant, today only. The rota
+     runs all week; a queue of every future breach would bury today's. */
+  SESSIONS.filter(
+    (s) => s.status !== 'cancelled' && s.day === iso(DEMO_TODAY),
+  ).forEach((s) => {
     const v = checkRatio(s);
     if (v.compliant) return;
     out.push({

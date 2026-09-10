@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useStore } from '../lib/store';
 import { SectionHead } from '../components/SectionHead';
 import { Chat } from '../components/Chat';
 import { IconClose } from '../lib/icons';
@@ -9,6 +10,10 @@ import {
   fmtDateLong, groupById, staffById, type Session,
 } from '../data/seed';
 
+const TODAY_ISO = `${DEMO_TODAY.getFullYear()}-${String(
+  DEMO_TODAY.getMonth() + 1,
+).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
+
 const CANCEL_REASONS = [
   'Weather — unsafe',
   'Supplier cancelled',
@@ -17,12 +22,18 @@ const CANCEL_REASONS = [
 ];
 
 export function Timetable() {
-  const [sessions, setSessions] = useState<Session[]>(SESSIONS);
+  const { sessions: allSessions, updateSessions } = useStore();
+  /* One day on screen; the rota underneath runs the whole week. */
+  const sessions = useMemo(
+    () => allSessions.filter((s) => s.day === TODAY_ISO),
+    [allSessions],
+  );
+  const setSessions = updateSessions;
   const [selected, setSelected] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
   const [log, setLog] = useState<string[]>([]);
   const live = useRef(sessions);
-  live.current = sessions;
+  live.current = allSessions;
 
   const drafted = sessions.filter((s) => s.origin === 'ai-draft').length;
 
