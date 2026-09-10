@@ -17,32 +17,39 @@ DBS and ratio state, and a centre director being shown the tool.
 
 ## Direction contract
 
-THESIS: The season's register, kept honestly. This surface owns the ruled
-register a centre already runs its season on — dates, names, ratios, marks —
-and refuses both the SaaS card-grid of KPI tiles and the AI-product default of
-near-black plus one neon glow.
+THESIS: The season's register, kept honestly, in the reference site's
+material. This surface owns the ruled register a centre already runs its season
+on — dates, names, ratios, marks — and refuses both the SaaS card-grid of KPI
+tiles and the AI-product default of near-black plus one neon glow.
 
-OWN-WORLD: Slate and chalk. Warm chalk (#F2EFE6) on a cold slate ground
-(#0F1113); structure carried by chalk-tinted hairlines at 8-12% and a visibly
-ruled grid, never by cards or drop shadows. One family, Archivo, with tabular
-numerals doing the work a mono would otherwise cosplay. Colour is spent only on
-state: oxide #F2542D reserved for safeguarding-critical, amber #E3A33C for
-overdue admin, sage #7FB069 for clear, chalk-blue #8FA8C8 for current. Status
-reads as a mark on the rule, not a pill on a card.
+OWN-WORLD: Ink, greige and acid, taken from getspot.com (pinned by the user
+10 Sep 2026, replacing the earlier slate-and-chalk world). Ground #111820,
+type #E6E7D9, one acid #F3FD00 that means interactive and nothing else —
+primary action, current section, focus ring. Informational blue #7FB2D9 is
+kept separate from acid so a status mark never reads as a control. Structure is
+ruled greige hairlines at 11-24%, never cards or drop shadows. Two faces:
+Archivo for display and UI, Azeret Mono for labels, meta and all tabular data,
+because the reference sets its body voice in mono. Controls are fully-rounded
+pills; panels take a 6px corner. Display sets at line-height 0.94, tighter than
+its own size. State colour: oxide #F2542D reserved for safeguarding-critical
+and marked with a triangle rather than a square, ochre #C9922E for overdue
+admin, pulled well clear of acid, sage #7FB069 for clear.
 
 STORY: An admin arrives, is greeted by name, and picks the one thing they came
 to do. Every screen answers who is here, who is cleared, what is scheduled, and
 what is missing — with the safeguarding-critical answer always the loudest thing
 on the rule.
 
-FIRST VIEWPORT: Slate field, generous top margin. "Welcome, Ismail" set large
-and left, the season named quietly beneath it. Below it one ruled column of five
-menu entries, each full-width with a hairline above, label at 1.5rem. A drawn
-20px icon sits at the LEFT edge as the entry's identity, and a drawn arrow
-appears at the right edge on hover or focus as the affordance — corrected from
-this contract's first draft, which put the icon on the right and left the row
-with no arrival cue. No tiles, no counts, no hero metric. The menu is the
-primary action.
+FIRST VIEWPORT: The photograph is the ground, not a decoration behind a card.
+A supplied blue circuit image fills the viewport, held by a two-stop scrim — a
+100deg wash from 96% to 60% opacity across, and a vertical wash landing the
+bottom edge on --ink so the menu column reads as one surface with the rest of
+the app. Over it: the season in mono caps, then the greeting set large and left
+at up to 4.5rem, line-height 0.94. Below, one ruled column of five menu
+entries; a drawn 20px icon at the left as identity, the label at 1.5rem, the
+blurb in mono, and the reference's circular arrow badge at the right edge
+filling acid on hover or focus. No tiles, no counts, no hero metric. The menu
+is the primary action.
 
 FORM: The ruled register / blackboard — candidate 1 of my grounded list. The
 brief pinned this direction (cerebrium restraint, dark, explicitly not
@@ -65,6 +72,12 @@ two sections share an identical entrance. Killed under
 - The timetable chat and Kadia assistant call the **live Anthropic API** with a
   key entered in-UI and held only in `localStorage` — the pattern already
   proven in the Solone demo. No key in the repo.
+- Visual world replaced 10 Sep 2026 on a user pin to getspot.com, plus a
+  supplied hero image. The rail's home control reads **Home**, not Register.
+- Hero contrast is measured, not eyeballed: the text is hidden, the background
+  plate is captured, and the brightest pixel under each text box is compared to
+  its computed colour. Tightest measured ratio 4.58:1 on the first blurb.
+  Re-run that probe if the image or the scrim changes.
 - Home is a **pure menu, no counts**.
 - A receipt **blocks confirmation** of an activity booking. Hard gate.
 

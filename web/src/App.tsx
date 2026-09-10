@@ -57,9 +57,7 @@ export function App() {
           onClick={() => go('home')}
         >
           <IconHome />
-          <span style={{ letterSpacing: '-0.02em', fontWeight: 600 }}>
-            Register
-          </span>
+          <span>Home</span>
         </button>
 
         {NAV.map((item) => {

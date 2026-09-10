@@ -23,59 +23,43 @@ export function Home({
   onGo: (r: Route) => void;
 }) {
   return (
-    <div
-      style={{
-        minHeight: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: 'clamp(48px, 7vh, 96px) clamp(28px, 6vw, 108px)',
-        maxWidth: 1180,
-        margin: '0 auto',
-      }}
-    >
-      <div style={{ marginBottom: 'clamp(40px, 6vh, 72px)' }}>
-        <h1
-          style={{
-            fontSize: 'clamp(2.6rem, 6vw, var(--t-3xl))',
-            fontWeight: 600,
-            letterSpacing: '-0.035em',
-            lineHeight: 1.02,
-          }}
-        >
-          {greeting()}, {operator}.
-        </h1>
-        <p
-          className="meta"
-          style={{ margin: '16px 0 0', color: 'var(--chalk-3)' }}
-        >
-          {season()} · Demonstration on seeded data
-        </p>
-      </div>
+    <div className="hero">
+      <div className="hero__bg" aria-hidden="true" />
 
-      <div className="stagger">
-        {NAV.map((item, i) => (
-          <button
-            key={item.id}
-            onClick={() => onGo(item.id)}
-            className="home-row"
-            style={{ animationDelay: `${60 + i * 45}ms` }}
-          >
-            <span
-              className="home-row__rule"
-              style={{ animationDelay: `${i * 45}ms` }}
-            />
-            <span className="home-row__icon">
-              <item.icon />
-            </span>
-            <span className="home-row__label">{item.label}</span>
-            <span className="home-row__blurb meta">{item.blurb}</span>
-            <span className="home-row__go">
-              <IconArrow />
-            </span>
-          </button>
-        ))}
-        <span className="home-row__rule" style={{ animationDelay: '285ms' }} />
+      <div className="hero__inner">
+        <header className="hero__head">
+          <p className="label hero__season">
+            {season()} · Demonstration on seeded data
+          </p>
+          <h1 className="hero__title">
+            {greeting()}, {operator}.
+          </h1>
+        </header>
+
+        <nav className="menu stagger" aria-label="Sections">
+          {NAV.map((item, i) => (
+            <button
+              key={item.id}
+              onClick={() => onGo(item.id)}
+              className="menu__row"
+              style={{ animationDelay: `${70 + i * 45}ms` }}
+            >
+              <span
+                className="menu__rule"
+                style={{ animationDelay: `${i * 45}ms` }}
+              />
+              <span className="menu__icon">
+                <item.icon />
+              </span>
+              <span className="menu__label">{item.label}</span>
+              <span className="menu__blurb">{item.blurb}</span>
+              <span className="menu__go">
+                <IconArrow />
+              </span>
+            </button>
+          ))}
+          <span className="menu__rule" style={{ animationDelay: '295ms' }} />
+        </nav>
       </div>
     </div>
   );

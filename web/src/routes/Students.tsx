@@ -23,7 +23,7 @@ function StayBar({ s }: { s: Student }) {
         style={{
           left: `${left}%`,
           width: `${Math.max(width, 1.5)}%`,
-          background: here ? 'var(--chalk)' : 'var(--chalk-3)',
+          background: here ? 'var(--bone)' : 'var(--bone-3)',
         }}
       />
       <span className="stay__now" style={{ left: `${now}%` }} />
@@ -142,7 +142,7 @@ export function Students() {
                   <span style={{ fontWeight: 500 }}>
                     {s.forename} {s.surname}
                   </span>
-                  <span className="meta" style={{ display: 'block', color: 'var(--chalk-3)' }}>
+                  <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
                     {s.country}
                   </span>
                 </td>
@@ -150,7 +150,7 @@ export function Students() {
                 <td>{groupById(s.groupId).name}</td>
                 <td className="num">{fmtDate(s.arrival)}</td>
                 <td className="num">{fmtDate(s.leaving)}</td>
-                <td className="num" style={{ color: 'var(--chalk-2)' }}>{nights(s)}</td>
+                <td className="num" style={{ color: 'var(--bone-2)' }}>{nights(s)}</td>
                 <td><StayBar s={s} /></td>
                 <td><DocMark s={s} /></td>
               </tr>
@@ -161,7 +161,7 @@ export function Students() {
       )}
 
       {rows.length > 60 && (
-        <p className="meta" style={{ marginTop: 18, color: 'var(--chalk-3)' }}>
+        <p className="meta" style={{ marginTop: 18, color: 'var(--bone-3)' }}>
           Showing the first 60 of {rows.length}. Narrow with search or a view above.
         </p>
       )}

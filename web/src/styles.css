@@ -1,27 +1,38 @@
-/* ── Slate & chalk ─────────────────────────────────────────────────────────
-   The season's register. Structure is carried by ruled hairlines, never by
-   cards or drop shadows. Colour is spent only on state.
+/* ── Ink, greige, acid ─────────────────────────────────────────────────────
+   The season's register, in the reference site's material: ink ground,
+   greige type, one acid accent that means "interactive" and nothing else,
+   fully-rounded pills, and body copy set in mono. Structure is carried by
+   ruled hairlines, never by cards or drop shadows. Colour is spent only on
+   state, and oxide is reserved for safeguarding-critical.
    ────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --slate-0: #0f1113;
-  --slate-1: #14171a;
-  --slate-2: #1a1e22;
-  --slate-3: #21262b;
+  /* Ground and surfaces — Spot's ink, cooled to sit under a blue image. */
+  --ink: #111820;
+  --ink-1: #171f28;
+  --ink-2: #1e2831;
+  --ink-3: #26313b;
 
-  --chalk: #f2efe6;
-  --chalk-2: #b6b3aa;
-  --chalk-3: #848279;
+  /* Spot's greige, carrying every weight of text. */
+  --bone: #e6e7d9;
+  --bone-2: #a8ac9c;
+  --bone-3: #838877;
 
-  --rule: rgba(242, 239, 230, 0.1);
-  --rule-strong: rgba(242, 239, 230, 0.22);
-  --rule-faint: rgba(242, 239, 230, 0.05);
+  --rule: rgba(230, 231, 217, 0.11);
+  --rule-strong: rgba(230, 231, 217, 0.24);
+  --rule-faint: rgba(230, 231, 217, 0.05);
 
-  /* State only. Oxide is reserved for safeguarding-critical, nothing else. */
+  /* Acid is the interactive colour and nothing else: primary action, current
+     section, focus. Anything informational uses --info instead, or a yellow
+     square starts reading as a button. */
+  --acid: #f3fd00;
+  --info: #7fb2d9;
+
+  /* State. Oxide stays reserved for safeguarding-critical; ochre is pulled
+     well away from acid so overdue never reads as a live control. */
   --oxide: #f2542d;
-  --amber: #e3a33c;
+  --ochre: #c9922e;
   --sage: #7fb069;
-  --chalkblue: #8fa8c8;
 
   --t-xs: 0.6875rem;
   --t-sm: 0.8125rem;
@@ -30,10 +41,15 @@
   --t-lg: 1.5rem;
   --t-xl: 2rem;
   --t-2xl: 3rem;
-  --t-3xl: 4.25rem;
+  --t-3xl: 4.5rem;
+
+  --mono: "Azeret Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --r-pill: 1280px;
+  --r-sm: 6px;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --rail: 232px;
+  --rail: 236px;
 
   color-scheme: dark;
 }
@@ -52,8 +68,8 @@ body,
 
 body {
   margin: 0;
-  background: var(--slate-0);
-  color: var(--chalk);
+  background: var(--ink);
+  color: var(--bone);
   font-family: Archivo, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: var(--t-base);
   line-height: 1.45;
@@ -64,12 +80,19 @@ body {
 /* ── Browser surfaces: the parts we did not draw still carry the design ── */
 
 ::selection {
-  background: var(--chalkblue);
-  color: var(--slate-0);
+  background: var(--acid);
+  color: var(--ink);
+}
+
+.num,
+.reg td,
+.reg th,
+time {
+  font-family: var(--mono);
 }
 
 * {
-  caret-color: var(--chalk);
+  caret-color: var(--bone);
   scrollbar-color: var(--rule-strong) transparent;
   scrollbar-width: thin;
 }
@@ -83,7 +106,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--rule-strong);
-  border: 3px solid var(--slate-0);
+  border: 3px solid var(--ink);
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -91,9 +114,8 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--chalk);
-  outline-offset: 2px;
-  border-radius: 1px;
+  outline: 2px solid var(--acid);
+  outline-offset: 3px;
 }
 
 a {
@@ -124,10 +146,11 @@ h2,
 h3 {
   margin: 0;
   font-weight: 600;
-  letter-spacing: -0.028em;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
 }
 
-/* ── The rule: a chalk hairline that draws itself in ────────────────────── */
+/* ── The rule: a greige hairline that draws itself in ───────────────────── */
 
 .rule {
   height: 1px;
@@ -179,16 +202,19 @@ h3 {
 /* ── Label: the register's column head ─────────────────────────────────── */
 
 .label {
+  font-family: var(--mono);
   font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 
 .meta {
+  font-family: var(--mono);
   font-size: var(--t-sm);
-  color: var(--chalk-2);
+  line-height: 1.5;
+  color: var(--bone-2);
 }
 
 /* ── Marks: status reads as a mark on the rule, not a pill on a card ───── */
@@ -225,16 +251,16 @@ h3 {
   transform: translateY(0);
 }
 .mark--overdue {
-  color: var(--amber);
+  color: var(--ochre);
 }
 .mark--clear {
   color: var(--sage);
 }
 .mark--current {
-  color: var(--chalkblue);
+  color: var(--info);
 }
 .mark--idle {
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 .mark--idle::before {
   background: none;
@@ -247,85 +273,91 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 9px 18px;
   background: transparent;
   border: 1px solid var(--rule-strong);
-  color: var(--chalk);
-  font-size: var(--t-sm);
+  border-radius: var(--r-pill);
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
   font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background 160ms var(--ease), border-color 160ms var(--ease),
     color 160ms var(--ease);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--slate-2);
-  border-color: var(--chalk-3);
+  background: var(--ink-2);
+  border-color: var(--bone-3);
 }
 
 .btn:active:not(:disabled) {
-  background: var(--slate-3);
+  background: var(--ink-3);
 }
 
 .btn--primary {
-  background: var(--chalk);
-  border-color: var(--chalk);
-  color: var(--slate-0);
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #fff;
-  border-color: #fff;
-  color: var(--slate-0);
+  background: #fbff5c;
+  border-color: #fbff5c;
+  color: var(--ink);
 }
 
 .btn:disabled {
-  color: var(--chalk-3);
+  color: var(--bone-3);
   border-color: var(--rule);
   cursor: not-allowed;
 }
 
-/* A disabled primary is not a primary. Drop the chalk fill entirely, or the
+/* A disabled primary is not a primary. Drop the acid fill entirely, or the
    most emphatic thing on the page is the one control that does nothing. */
 .btn--primary:disabled {
   background: transparent;
   border-color: var(--rule);
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 
 .btn--quiet {
   border-color: transparent;
-  padding: 6px 8px;
-  color: var(--chalk-2);
+  padding: 7px 12px;
+  color: var(--bone-2);
 }
 
 .btn--quiet:hover:not(:disabled) {
-  color: var(--chalk);
-  background: var(--slate-2);
+  color: var(--bone);
+  background: var(--ink-2);
 }
 
 .field {
   display: block;
   width: 100%;
-  padding: 9px 11px;
-  background: var(--slate-0);
+  padding: 10px 13px;
+  background: var(--ink);
   border: 1px solid var(--rule-strong);
-  color: var(--chalk);
+  border-radius: var(--r-sm);
+  color: var(--bone);
   font-size: var(--t-base);
   transition: border-color 160ms var(--ease);
 }
 
 .field:hover {
-  border-color: var(--chalk-3);
+  border-color: var(--bone-3);
 }
 
 .field:focus {
   outline: none;
-  border-color: var(--chalk);
+  border-color: var(--acid);
 }
 
 .field::placeholder {
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 
 /* ── The register grid ─────────────────────────────────────────────────── */
@@ -342,7 +374,7 @@ h3 {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--chalk-3);
+  color: var(--bone-3);
   border-bottom: 1px solid var(--rule-strong);
   white-space: nowrap;
 }
@@ -358,7 +390,7 @@ h3 {
 }
 
 .reg tbody tr:hover {
-  background: var(--slate-1);
+  background: var(--ink-1);
 }
 
 .reg th:first-child,
@@ -371,25 +403,93 @@ h3 {
   padding-right: 0;
 }
 
-/* ── Home: the register's cover page ───────────────────────────────────── */
+/* ── Home: the photograph carries the first viewport ───────────────────────
+   The image is the ground, not a decoration behind a card. A two-stop scrim
+   holds text contrast over its bright centre and lands the bottom edge on
+   --ink so the menu column reads as one surface with the rest of the app.
+   ────────────────────────────────────────────────────────────────────────── */
 
-.home-row {
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(
+      100deg,
+      rgba(17, 24, 32, 0.96) 0%,
+      rgba(17, 24, 32, 0.88) 48%,
+      rgba(17, 24, 32, 0.6) 100%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(17, 24, 32, 0.4) 0%,
+      rgba(17, 24, 32, 0.22) 34%,
+      rgba(17, 24, 32, 0.84) 84%,
+      var(--ink) 100%
+    ),
+    url("/home-bg.jpeg");
+  background-size: cover, cover, cover;
+  background-position: center, center, center 38%;
+  background-repeat: no-repeat;
+}
+
+.hero__inner {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 104px) clamp(24px, 6vw, 76px);
+}
+
+.hero__head {
+  margin-bottom: clamp(38px, 6vh, 70px);
+}
+
+.hero__season {
+  margin: 0 0 20px;
+  color: var(--bone-2);
+}
+
+.hero__title {
+  font-size: clamp(2.6rem, 6.4vw, var(--t-3xl));
+  font-weight: 600;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  max-width: 18ch;
+}
+
+/* ── Menu ─────────────────────────────────────────────────────────────── */
+
+.menu {
+  position: relative;
+}
+
+.menu__row {
   position: relative;
   display: grid;
-  grid-template-columns: 28px minmax(0, 200px) 1fr 24px;
+  grid-template-columns: 26px minmax(0, 190px) 1fr 40px;
   align-items: center;
   gap: 20px;
   width: 100%;
-  padding: 22px 4px 22px 0;
+  padding: 20px 0;
   background: none;
   border: none;
-  color: var(--chalk);
+  color: var(--bone);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.home-row__rule {
+.menu__rule {
   position: absolute;
   inset: 0 0 auto 0;
   display: block;
@@ -399,58 +499,77 @@ h3 {
   animation: draw 220ms var(--ease) both;
 }
 
-.home-row__icon {
-  color: var(--chalk-3);
-  transition: color 200ms var(--ease), transform 260ms var(--ease);
-}
-
-.home-row__label {
-  font-size: var(--t-lg);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  transition: transform 260ms var(--ease);
-}
-
-.home-row__blurb {
-  color: var(--chalk-3);
+.menu__icon {
+  color: var(--bone-3);
   transition: color 200ms var(--ease);
 }
 
-.home-row__go {
-  color: transparent;
-  transform: translateX(-6px);
-  transition: color 200ms var(--ease), transform 260ms var(--ease);
+.menu__label {
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  transition: transform 240ms var(--ease);
 }
 
-.home-row:hover .home-row__icon,
-.home-row:focus-visible .home-row__icon {
-  color: var(--chalk);
+.menu__blurb {
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: var(--bone-2);
+  transition: color 200ms var(--ease);
 }
 
-.home-row:hover .home-row__label,
-.home-row:focus-visible .home-row__label {
+/* The reference's circular arrow badge, earning its acid on approach. */
+.menu__go {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-pill);
+  color: var(--bone-2);
+  transition: background 220ms var(--ease), color 220ms var(--ease),
+    border-color 220ms var(--ease), transform 240ms var(--ease);
+}
+
+.menu__row:hover .menu__icon,
+.menu__row:focus-visible .menu__icon {
+  color: var(--bone);
+}
+
+.menu__row:hover .menu__label,
+.menu__row:focus-visible .menu__label {
+  transform: translateX(5px);
+}
+
+.menu__row:hover .menu__blurb,
+.menu__row:focus-visible .menu__blurb {
+  color: var(--bone-2);
+}
+
+.menu__row:hover .menu__go,
+.menu__row:focus-visible .menu__go {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink);
   transform: translateX(4px);
 }
 
-.home-row:hover .home-row__blurb,
-.home-row:focus-visible .home-row__blurb {
-  color: var(--chalk-2);
-}
-
-.home-row:hover .home-row__go,
-.home-row:focus-visible .home-row__go {
-  color: var(--chalk);
-  transform: none;
-}
-
-@media (max-width: 720px) {
-  .home-row {
-    grid-template-columns: 24px 1fr 20px;
-    row-gap: 4px;
+@media (max-width: 760px) {
+  .menu__row {
+    grid-template-columns: 24px 1fr 34px;
+    row-gap: 5px;
+    padding: 17px 0;
   }
-  .home-row__blurb {
+  .menu__blurb {
     grid-column: 2 / 4;
-    font-size: var(--t-sm);
+  }
+  .menu__go {
+    width: 34px;
+    height: 34px;
+  }
+  .hero__title {
+    max-width: none;
   }
 }
 
@@ -458,31 +577,35 @@ h3 {
 
 .tabs {
   display: flex;
-  gap: 2px;
+  gap: 6px;
   margin: -8px 0 22px;
   flex-wrap: wrap;
 }
 
 .tab {
-  padding: 7px 13px;
+  padding: 8px 15px;
   background: none;
-  border: none;
-  border-bottom: 1px solid transparent;
-  color: var(--chalk-3);
-  font: inherit;
-  font-size: var(--t-sm);
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  color: var(--bone-3);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: color 160ms var(--ease), border-color 160ms var(--ease);
+  transition: color 160ms var(--ease), background 160ms var(--ease),
+    border-color 160ms var(--ease);
 }
 
 .tab:hover {
-  color: var(--chalk-2);
+  color: var(--bone);
+  border-color: var(--rule);
 }
 
 .tab--on {
-  color: var(--chalk);
+  background: var(--bone);
+  color: var(--ink);
   font-weight: 600;
-  border-bottom-color: var(--chalk);
 }
 
 /* ── Stay: the student's window across the season ──────────────────────── */
@@ -507,14 +630,14 @@ h3 {
   top: 1px;
   bottom: 1px;
   width: 1px;
-  background: var(--chalkblue);
+  background: var(--info);
 }
 
 /* ── Inline editor: a task that needs no interruption gets no modal ────── */
 
 .editor {
   padding: 22px 0 26px;
-  background: var(--slate-1);
+  background: var(--ink-1);
   border-top: 1px solid var(--rule-strong);
   animation: settle 200ms var(--ease) both;
 }
@@ -533,7 +656,7 @@ h3 {
 }
 
 .editor__f .field:disabled {
-  color: var(--chalk-3);
+  color: var(--bone-3);
   border-color: var(--rule);
   cursor: not-allowed;
 }
@@ -552,8 +675,9 @@ h3 {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--slate-1);
+  background: var(--ink-1);
   border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
 }
 
 .chat__gate {
@@ -581,7 +705,7 @@ h3 {
 
 .chat__greeting {
   margin: 0;
-  color: var(--chalk-3);
+  color: var(--bone-3);
   max-width: 46ch;
 }
 
@@ -617,9 +741,10 @@ h3 {
 
 .bubble--you {
   align-self: flex-end;
-  padding: 9px 12px;
-  background: var(--slate-3);
+  padding: 10px 14px;
+  background: var(--ink-3);
   border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
 }
 
 .bubble--you p {
@@ -627,7 +752,7 @@ h3 {
 }
 
 .bubble__tools {
-  color: var(--chalk-3);
+  color: var(--bone-3);
   font-size: var(--t-xs);
 }
 
@@ -640,7 +765,7 @@ h3 {
 .typing i {
   width: 4px;
   height: 4px;
-  background: var(--chalk-3);
+  background: var(--bone-3);
   animation: pulse 1s var(--ease) infinite;
 }
 
@@ -698,7 +823,7 @@ h3 {
 }
 
 .tt__cell--free {
-  color: var(--chalk-3);
+  color: var(--bone-3);
   font-size: var(--t-sm);
   padding: 12px 10px;
 }
@@ -708,11 +833,12 @@ h3 {
   flex-direction: column;
   gap: 3px;
   width: 100%;
-  padding: 9px 10px;
-  background: var(--slate-1);
+  padding: 10px 11px;
+  background: var(--ink-1);
   border: 1px solid var(--rule);
-  border-left: 1px solid var(--chalk-3);
-  color: var(--chalk);
+  border-radius: var(--r-sm);
+  border-left: 1px solid var(--bone-3);
+  color: var(--bone);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -720,12 +846,12 @@ h3 {
 }
 
 .sess:hover {
-  background: var(--slate-2);
+  background: var(--ink-2);
 }
 
 .sess--on {
-  background: var(--slate-2);
-  border-left-color: var(--chalk);
+  background: var(--ink-2);
+  border-left-color: var(--acid);
 }
 
 .sess--dead {
@@ -734,7 +860,7 @@ h3 {
 
 .sess--dead .sess__name {
   text-decoration: line-through;
-  text-decoration-color: var(--chalk-3);
+  text-decoration-color: var(--bone-3);
 }
 
 .sess__name {
@@ -742,7 +868,7 @@ h3 {
 }
 
 .sess__where {
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 
 .tt__side {
@@ -758,9 +884,10 @@ h3 {
 }
 
 .panel {
-  padding: 16px;
-  background: var(--slate-1);
+  padding: 18px;
+  background: var(--ink-1);
   border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
 }
 
 .panel__head {
@@ -788,7 +915,7 @@ h3 {
 }
 
 .check input {
-  accent-color: var(--chalk);
+  accent-color: var(--bone);
   width: 14px;
   height: 14px;
 }
@@ -805,7 +932,7 @@ h3 {
 .log li {
   padding-left: 11px;
   border-left: 1px solid var(--rule-strong);
-  color: var(--chalk-2);
+  color: var(--bone-2);
 }
 
 @media (max-width: 1180px) {
@@ -870,7 +997,7 @@ h3 {
 .rail {
   width: var(--rail);
   flex: none;
-  background: var(--slate-1);
+  background: var(--ink-1);
   border-right: 1px solid var(--rule);
   padding: 26px 0;
   display: flex;
@@ -892,27 +1019,34 @@ h3 {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 11px 18px;
+  margin: 1px 12px;
+  padding: 10px 14px;
   background: transparent;
   border: none;
-  border-left: 1px solid transparent;
-  color: var(--chalk-2);
-  font: inherit;
+  border-radius: var(--r-pill);
+  color: var(--bone-2);
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  letter-spacing: 0.02em;
   text-align: left;
   cursor: pointer;
   transition: color 160ms var(--ease), background 160ms var(--ease);
 }
 
 .rail__item:hover {
-  color: var(--chalk);
-  background: var(--slate-2);
+  color: var(--bone);
+  background: var(--ink-2);
 }
 
 .rail__item--on {
-  background: var(--slate-2);
-  border-left-color: var(--chalk);
-  color: var(--chalk);
+  background: var(--acid);
+  color: var(--ink);
   font-weight: 600;
+}
+
+.rail__item--on:hover {
+  background: var(--acid);
+  color: var(--ink);
 }
 
 .rail__foot {
@@ -926,7 +1060,7 @@ h3 {
 
 .rail__date {
   margin-top: 8px;
-  color: var(--chalk-3);
+  color: var(--bone-3);
 }
 
 .tablewrap {
@@ -966,15 +1100,10 @@ h3 {
   }
 
   .rail__item {
-    padding: 9px 12px;
-    border-left: none;
-    border-bottom: 1px solid transparent;
+    margin: 0;
+    padding: 8px 14px;
     white-space: nowrap;
     flex: none;
-  }
-
-  .rail__item--on {
-    border-bottom-color: var(--chalk);
   }
 
   .rail__foot {

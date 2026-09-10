@@ -128,7 +128,7 @@ function Editor({
           <IconClose />
           Cancel
         </button>
-        <span className="meta" style={{ color: 'var(--chalk-3)' }}>
+        <span className="meta" style={{ color: 'var(--bone-3)' }}>
           Every change to a DBS record is written to the safeguarding audit trail.
         </span>
       </div>
@@ -183,14 +183,14 @@ export function Staff() {
                     {s.safeguardingLead && (
                       <span
                         className="meta"
-                        style={{ display: 'block', color: 'var(--chalkblue)' }}
+                        style={{ display: 'block', color: 'var(--info)' }}
                       >
                         Safeguarding lead
                       </span>
                     )}
                     <span
                       className="meta"
-                      style={{ display: 'block', color: 'var(--chalk-3)' }}
+                      style={{ display: 'block', color: 'var(--bone-3)' }}
                     >
                       {s.email}
                     </span>
@@ -202,7 +202,7 @@ export function Staff() {
                     <span className={`mark ${dbs.mark}`}>{dbs.label}</span>
                     <span
                       className="meta num"
-                      style={{ display: 'block', color: 'var(--chalk-3)' }}
+                      style={{ display: 'block', color: 'var(--bone-3)' }}
                     >
                       {s.dbs.certificate ?? dbs.note}
                     </span>
@@ -211,7 +211,7 @@ export function Staff() {
                         className="meta num"
                         style={{
                           display: 'block',
-                          color: until !== null && until < 30 ? 'var(--amber)' : 'var(--chalk-3)',
+                          color: until !== null && until < 30 ? 'var(--ochre)' : 'var(--bone-3)',
                         }}
                       >
                         Expires {fmtDate(s.dbs.expires)}
