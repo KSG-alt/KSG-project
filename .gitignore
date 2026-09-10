@@ -36,3 +36,6 @@ build/
 
 # Build output
 web/dist/
+
+# Review captures — regenerate, do not review in diffs
+.impeccable/review/

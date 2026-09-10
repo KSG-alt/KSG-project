@@ -332,8 +332,33 @@ export function Timetable() {
                 </select>
               </label>
 
+              {(() => {
+                const v = checkRatio(sel);
+                return v.compliant ? (
+                  <p className="mark mark--clear">
+                    Compliant — {v.assigned} of {v.required} for {v.headcount} at 1:
+                    {v.ratio}
+                  </p>
+                ) : (
+                  <div>
+                    {v.reasons.map((r) => (
+                      <p key={r} className="mark mark--critical" style={{ marginBottom: 6 }}>
+                        {r}
+                      </p>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              <p className="meta" style={{ color: 'var(--chalk-3)', marginTop: 4 }}>
+                Ratio verdict comes from the rota engine, not from this screen.
+              </p>
+
               <div className="editor__f" style={{ marginBottom: 14 }}>
-                <span className="label">Staff assigned</span>
+                <span className="label">
+                  Staff assigned · {sel.staffIds.length} of {checkRatio(sel).required}
+                </span>
+                <div className="checklist">
                 {STAFF.filter((s) => s.bands.includes(groupById(sel.groupId).band)).map(
                   (s) => {
                     const on = sel.staffIds.includes(s.id);
@@ -363,29 +388,8 @@ export function Timetable() {
                     );
                   },
                 )}
+                </div>
               </div>
-
-              {(() => {
-                const v = checkRatio(sel);
-                return v.compliant ? (
-                  <p className="mark mark--clear">
-                    Compliant — {v.assigned} of {v.required} for {v.headcount} at 1:
-                    {v.ratio}
-                  </p>
-                ) : (
-                  <div>
-                    {v.reasons.map((r) => (
-                      <p key={r} className="mark mark--critical" style={{ marginBottom: 6 }}>
-                        {r}
-                      </p>
-                    ))}
-                  </div>
-                );
-              })()}
-
-              <p className="meta" style={{ color: 'var(--chalk-3)', marginTop: 4 }}>
-                Ratio verdict comes from the rota engine, not from this screen.
-              </p>
 
               {sel.status !== 'cancelled' && (
                 <div style={{ marginTop: 18 }}>

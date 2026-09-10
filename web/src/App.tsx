@@ -86,7 +86,7 @@ export function App() {
         </div>
       </nav>
 
-      <main key={tick} className="route shell__main">
+      <main key={tick} className="shell__main">
         {route === 'students' && <Students />}
         {route === 'staff' && <Staff />}
         {route === 'timetable' && <Timetable />}

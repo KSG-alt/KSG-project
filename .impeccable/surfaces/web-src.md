@@ -36,10 +36,13 @@ what is missing — with the safeguarding-critical answer always the loudest thi
 on the rule.
 
 FIRST VIEWPORT: Slate field, generous top margin. "Welcome, Ismail" set large
-and left, the season named quietly beneath it. Below it one ruled column of six
-menu entries, each full-width with a hairline above, label at 1.5rem, a drawn
-20px icon at the right edge. No tiles, no counts, no hero metric. The menu is
-the primary action.
+and left, the season named quietly beneath it. Below it one ruled column of five
+menu entries, each full-width with a hairline above, label at 1.5rem. A drawn
+20px icon sits at the LEFT edge as the entry's identity, and a drawn arrow
+appears at the right edge on hover or focus as the affordance — corrected from
+this contract's first draft, which put the icon on the right and left the row
+with no arrival cue. No tiles, no counts, no hero metric. The menu is the
+primary action.
 
 FORM: The ruled register / blackboard — candidate 1 of my grounded list. The
 brief pinned this direction (cerebrium restraint, dark, explicitly not
@@ -51,9 +54,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 ## Signature interaction and motion
 
 The register rule: on entering a section a chalk hairline draws across the
-head, and the rows stagger in beneath it, 180ms exponential ease-out, as if the
-page were being ruled. One authored moment, state-conveying, killed under
-`prefers-reduced-motion`. All other transitions 150-220ms.
+head (200ms, 220ms on the home column), and the rows stagger in beneath it at
+180ms exponential ease-out, as if the page were being ruled. This is the ONE
+authored moment — there is deliberately no page-level fade on top of it, so no
+two sections share an identical entrance. Killed under
+`prefers-reduced-motion`. All other transitions 140-200ms.
 
 ## Decisions taken with the user (10 Sep 2026)
 

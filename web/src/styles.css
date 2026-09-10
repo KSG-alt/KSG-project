@@ -133,7 +133,7 @@ h3 {
   height: 1px;
   background: var(--rule);
   transform-origin: left;
-  animation: draw 320ms var(--ease) both;
+  animation: draw 200ms var(--ease) both;
 }
 
 .rule--strong {
@@ -151,7 +151,7 @@ h3 {
 
 /* Rows settle in beneath the rule. */
 .stagger > * {
-  animation: settle 200ms var(--ease) both;
+  animation: settle 180ms var(--ease) both;
 }
 
 @keyframes settle {
@@ -165,23 +165,9 @@ h3 {
   }
 }
 
-.route {
-  animation: arrive 180ms var(--ease) both;
-}
-
-@keyframes arrive {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .rule,
   .stagger > *,
-  .route,
   .typing {
     animation: none !important;
   }
@@ -299,6 +285,14 @@ h3 {
   cursor: not-allowed;
 }
 
+/* A disabled primary is not a primary. Drop the chalk fill entirely, or the
+   most emphatic thing on the page is the one control that does nothing. */
+.btn--primary:disabled {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--chalk-3);
+}
+
 .btn--quiet {
   border-color: transparent;
   padding: 6px 8px;
@@ -402,7 +396,7 @@ h3 {
   height: 1px;
   background: var(--rule);
   transform-origin: left;
-  animation: draw 420ms var(--ease) both;
+  animation: draw 220ms var(--ease) both;
 }
 
 .home-row__icon {
@@ -774,6 +768,14 @@ h3 {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
+}
+
+.checklist {
+  max-height: 208px;
+  overflow-y: auto;
+  padding-right: 4px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 
 .check {

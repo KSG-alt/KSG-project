@@ -24,7 +24,6 @@ export function Home({
 }) {
   return (
     <div
-      className="route"
       style={{
         minHeight: '100%',
         display: 'flex',
