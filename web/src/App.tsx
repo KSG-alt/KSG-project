@@ -74,6 +74,10 @@ function Shell() {
 
   return (
     <>
+      <a className="skip" href="#main">
+        Skip to content
+      </a>
+
       <header className={`bar${route === 'home' ? ' bar--over' : ''}`}>
         <button
           className="bar__menu"
@@ -109,7 +113,7 @@ function Shell() {
       {route === 'home' ? (
         <Home key={tick} operator={OPERATOR} onGo={go} />
       ) : (
-        <main key={tick} className="page">
+        <main key={tick} id="main" className="page">
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
           {route === 'arrivals' && <Arrivals />}

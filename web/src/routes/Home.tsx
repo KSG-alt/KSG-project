@@ -19,6 +19,11 @@ const greeting = () => {
   return 'Good evening';
 };
 
+/* Five shortcuts hold one line at desktop width. Everything else lives in
+   the menu — a wrapped second row of pills beside a menu button reads as
+   indecision about where navigation lives. */
+const QUICK: Route[] = ['reminders', 'arrivals', 'rooms', 'timetable', 'kadia'];
+
 export function Home({
   operator,
   onGo,
@@ -31,7 +36,7 @@ export function Home({
   const top = open.slice(0, 5);
 
   return (
-    <div className="hero">
+    <main id="main" className="hero">
       <div className="hero__bg" aria-hidden="true" />
 
       <div className="hero__inner">
@@ -51,8 +56,8 @@ export function Home({
           </p>
         </header>
 
-        <nav className="quick" aria-label="Sections">
-          {NAV.map((item) => (
+        <nav className="quick" aria-label="Shortcuts">
+          {NAV.filter((n) => QUICK.includes(n.id)).map((item) => (
             <button
               key={item.id}
               className="quick__pill"
@@ -107,6 +112,6 @@ export function Home({
           </section>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

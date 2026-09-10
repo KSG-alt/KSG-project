@@ -155,7 +155,7 @@ export function ReminderList({
         const isOpen = openId === r.id;
         return (
           <li key={r.id} className={`rem${r.done ? ' rem--done' : ''}`}>
-            <div className="rem__row">
+            <div className={`rem__row${compact ? ' rem__row--compact' : ''}`}>
               <button
                 className="rem__body"
                 onClick={() => setOpenId(isOpen ? null : r.id)}
@@ -164,11 +164,14 @@ export function ReminderList({
                 <span className={`mark ${sev.mark} rem__sev`}>{sev.label}</span>
                 <span className="rem__title">{r.title}</span>
                 <span className="rem__meta meta">
-                  {r.source} · {dueLabel(r.due)}
+                  {r.source}
+                  {compact ? ` · ${dueLabel(r.due)}` : ''}
                   {r.edited ? ' · edited' : ''}
                 </span>
                 {!compact && <span className="rem__action meta">{r.action}</span>}
               </button>
+
+              {!compact && <span className="rem__due meta">{dueLabel(r.due)}</span>}
 
               <div className="rem__controls">
                 {r.done ? (

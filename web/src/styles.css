@@ -7,11 +7,26 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Ground and surfaces — Spot's ink, cooled to sit under a blue image. */
-  --ink: #111820;
-  --ink-1: #171f28;
-  --ink-2: #1e2831;
-  --ink-3: #26313b;
+  /* Ground. Surfaces above it are translucent greige, not opaque panels —
+     an opaque slab with a 1px border is the tell every generated dashboard
+     shares. Reference: linear.app, attio.com. */
+  --ink: #0e1216;
+  --ink-1: #141a20;
+  --ink-2: #1a222a;
+  --ink-3: #222c36;
+
+  --surface-1: rgba(230, 231, 217, 0.035);
+  --surface-2: rgba(230, 231, 217, 0.062);
+  --surface-3: rgba(230, 231, 217, 0.095);
+
+  /* Edges are a 1px inset ring, so a surface reads as lit rather than boxed. */
+  --edge: inset 0 0 0 1px rgba(230, 231, 217, 0.07);
+  --edge-strong: inset 0 0 0 1px rgba(230, 231, 217, 0.13);
+
+  /* Shadows carry the ground's hue. Pure black at low opacity reads muddy. */
+  --shadow-1: 0 1px 2px rgba(3, 6, 10, 0.5), 0 2px 8px -3px rgba(3, 6, 10, 0.6);
+  --shadow-2: 0 2px 6px rgba(3, 6, 10, 0.44), 0 12px 32px -12px rgba(3, 6, 10, 0.72);
+  --shadow-3: 0 24px 68px -20px rgba(3, 6, 10, 0.86);
 
   /* Spot's greige, carrying every weight of text. */
   --bone: #e6e7d9;
@@ -25,8 +40,11 @@
   /* Acid is the interactive colour and nothing else: primary action, current
      section, focus. Anything informational uses --info instead, or a yellow
      square starts reading as a button. */
-  --acid: #f3fd00;
-  --info: #7fb2d9;
+  /* Pulled from 100% saturation to 72%: a fully saturated neon on near-black
+     is the most common generated-UI fingerprint there is. */
+  --acid: #d7e24f;
+  --acid-lift: #e4ee6a;
+  --info: #8fb4d6;
 
   /* State. Oxide stays reserved for safeguarding-critical; ochre is pulled
      well away from acid so overdue never reads as a live control. */
@@ -47,10 +65,19 @@
      the column alignment a mono would otherwise be hired for. */
   --sans: Geist, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-  --r-pill: 1280px;
-  --r-sm: 6px;
+  /* One radius on everything is a tell. Tighter inside, softer outside. */
+  --r-xs: 4px;
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-ui: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --z-bar: 40;
+  --z-sheet: 60;
+  --z-grain: 80;
   --rail: 236px;
 
   color-scheme: dark;
@@ -62,10 +89,43 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
+}
+
+/* Grain. Breaks the flatness that makes a flat-vector UI feel synthetic. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-grain);
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 90;
+  padding: 10px 16px;
+  background: var(--acid);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  transition: top 180ms var(--ease-ui);
+}
+
+.skip:focus {
+  top: 12px;
 }
 
 body {
@@ -147,9 +207,14 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-weight: 600;
-  line-height: 0.94;
-  letter-spacing: -0.03em;
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 /* ── The rule: a greige hairline that draws itself in ───────────────────── */
@@ -190,10 +255,48 @@ h3 {
   }
 }
 
+/* Cards arrive with a little weight. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.988);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Panels that open in place unfold rather than slide. */
+@keyframes expand {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 22% 0);
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .rule,
   .stagger > *,
-  .typing {
+  .typing,
+  .room,
+  .detail,
+  .editor,
+  .sheet,
+  .sheet__item,
+  .task,
+  .day,
+  .bubble,
+  .confirmbar {
     animation: none !important;
   }
   * {
@@ -205,9 +308,8 @@ h3 {
 
 .label {
   font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.085em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--bone-3);
 }
 
@@ -273,45 +375,46 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 18px;
-  background: transparent;
-  border: 1px solid var(--rule-strong);
+  padding: 8px 15px;
+  background: var(--surface-1);
+  border: none;
   border-radius: var(--r-pill);
+  box-shadow: var(--edge);
   color: var(--bone);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: background 160ms var(--ease), border-color 160ms var(--ease),
-    color 160ms var(--ease);
+  transition: background 160ms var(--ease-ui), box-shadow 160ms var(--ease-ui),
+    color 160ms var(--ease-ui), transform 220ms var(--spring);
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--ink-2);
-  border-color: var(--bone-3);
+  background: var(--surface-2);
+  box-shadow: var(--edge-strong);
 }
 
 .btn:active:not(:disabled) {
-  background: var(--ink-3);
+  transform: scale(0.98);
 }
 
 .btn--primary {
   background: var(--acid);
-  border-color: var(--acid);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), var(--shadow-1);
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: #fbff5c;
-  border-color: #fbff5c;
+  background: var(--acid-lift);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), var(--shadow-2);
   color: var(--ink);
 }
 
 .btn:disabled {
+  background: transparent;
+  box-shadow: var(--edge);
   color: var(--bone-3);
-  border-color: var(--rule);
   cursor: not-allowed;
 }
 
@@ -319,40 +422,43 @@ h3 {
    most emphatic thing on the page is the one control that does nothing. */
 .btn--primary:disabled {
   background: transparent;
-  border-color: var(--rule);
+  box-shadow: var(--edge);
   color: var(--bone-3);
 }
 
 .btn--quiet {
-  border-color: transparent;
-  padding: 7px 12px;
+  padding: 7px 11px;
+  background: transparent;
+  box-shadow: none;
   color: var(--bone-2);
 }
 
 .btn--quiet:hover:not(:disabled) {
+  background: var(--surface-1);
+  box-shadow: var(--edge);
   color: var(--bone);
-  background: var(--ink-2);
 }
 
 .field {
   display: block;
   width: 100%;
   padding: 10px 13px;
-  background: var(--ink);
-  border: 1px solid var(--rule-strong);
+  background: rgba(3, 6, 10, 0.4);
+  border: none;
   border-radius: var(--r-sm);
+  box-shadow: var(--edge-strong);
   color: var(--bone);
   font-size: var(--t-base);
   transition: border-color 160ms var(--ease);
 }
 
 .field:hover {
-  border-color: var(--bone-3);
+  box-shadow: inset 0 0 0 1px rgba(230, 231, 217, 0.22);
 }
 
 .field:focus {
   outline: none;
-  border-color: var(--acid);
+  box-shadow: inset 0 0 0 1px var(--acid), 0 0 0 3px rgba(215, 226, 79, 0.14);
 }
 
 .field::placeholder {
@@ -367,12 +473,11 @@ h3 {
 }
 
 .reg th {
-  padding: 0 14px 8px;
+  padding: 0 14px 9px;
   text-align: left;
   font-size: var(--t-xs);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.015em;
   color: var(--bone-3);
   border-bottom: 1px solid var(--rule-strong);
   white-space: nowrap;
@@ -389,7 +494,7 @@ h3 {
 }
 
 .reg tbody tr:hover {
-  background: var(--ink-1);
+  background: var(--surface-1);
 }
 
 .reg th:first-child,
@@ -410,7 +515,7 @@ h3 {
 
 .hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -476,28 +581,32 @@ h3 {
 }
 
 .tab {
-  padding: 8px 15px;
+  padding: 7px 14px;
   background: none;
-  border: 1px solid transparent;
+  border: none;
   border-radius: var(--r-pill);
   color: var(--bone-3);
-  font-size: var(--t-xs);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
+  letter-spacing: -0.005em;
   cursor: pointer;
-  transition: color 160ms var(--ease), background 160ms var(--ease),
-    border-color 160ms var(--ease);
+  transition: color 160ms var(--ease-ui), background 160ms var(--ease-ui),
+    box-shadow 160ms var(--ease-ui);
 }
 
 .tab:hover {
   color: var(--bone);
-  border-color: var(--rule);
+  background: var(--surface-1);
 }
 
 .tab--on {
-  background: var(--bone);
-  color: var(--ink);
-  font-weight: 600;
+  background: var(--surface-3);
+  box-shadow: var(--edge-strong);
+  color: var(--bone);
+  font-weight: 500;
+}
+
+.tab--on:hover {
+  background: var(--surface-3);
 }
 
 /* ── Stay: the student's window across the season ──────────────────────── */
@@ -529,9 +638,9 @@ h3 {
 
 .editor {
   padding: 22px 0 26px;
-  background: var(--ink-1);
+  background: var(--surface-1);
   border-top: 1px solid var(--rule-strong);
-  animation: settle 200ms var(--ease) both;
+  animation: expand 280ms var(--ease-ui) both;
 }
 
 .editor__grid {
@@ -567,13 +676,13 @@ h3 {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--ink-1);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge);
 }
 
 .chat__gate {
-  padding: 22px;
+  padding: 20px 0 22px;
 }
 
 .chat__head {
@@ -634,9 +743,9 @@ h3 {
 .bubble--you {
   align-self: flex-end;
   padding: 10px 14px;
-  background: var(--ink-3);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
+  background: var(--surface-3);
+  border-radius: var(--r-md) var(--r-md) var(--r-xs) var(--r-md);
+  box-shadow: var(--edge);
 }
 
 .bubble--you p {
@@ -726,10 +835,10 @@ h3 {
   gap: 3px;
   width: 100%;
   padding: 10px 11px;
-  background: var(--ink-1);
-  border: 1px solid var(--rule);
+  background: var(--surface-1);
+  border: none;
   border-radius: var(--r-sm);
-  border-left: 1px solid var(--bone-3);
+  box-shadow: var(--edge), inset 2px 0 0 var(--bone-3);
   color: var(--bone);
   font: inherit;
   text-align: left;
@@ -738,16 +847,18 @@ h3 {
 }
 
 .sess:hover {
-  background: var(--ink-2);
+  background: var(--surface-2);
+  box-shadow: var(--edge-strong), inset 2px 0 0 var(--bone-2);
 }
 
 .sess--on {
-  background: var(--ink-2);
-  border-left-color: var(--acid);
+  background: var(--surface-2);
+  box-shadow: var(--edge-strong), inset 2px 0 0 var(--acid);
 }
 
 .sess--dead {
-  opacity: 0.5;
+  opacity: 0.44;
+  box-shadow: var(--edge);
 }
 
 .sess--dead .sess__name {
@@ -777,9 +888,9 @@ h3 {
 
 .panel {
   padding: 18px;
-  background: var(--ink-1);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-1);
 }
 
 .panel__head {
@@ -858,7 +969,7 @@ h3 {
 }
 
 .kadia__main .chat {
-  height: min(620px, calc(100vh - 220px));
+  height: min(620px, calc(100dvh - 220px));
 }
 
 .kadia__side {
@@ -942,9 +1053,11 @@ h3 {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 14px clamp(16px, 3vw, 34px);
-  background: var(--ink);
+  z-index: var(--z-bar);
+  padding: 13px clamp(16px, 3vw, 34px);
+  background: rgba(14, 18, 22, 0.78);
   border-bottom: 1px solid var(--rule);
+  backdrop-filter: blur(16px) saturate(1.15);
 }
 
 /* Over the photograph the bar is glass, not a band. */
@@ -961,23 +1074,26 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  padding: 8px 16px 8px 13px;
-  background: transparent;
-  border: 1px solid var(--rule-strong);
+  padding: 8px 15px 8px 12px;
+  background: var(--surface-1);
+  border: none;
   border-radius: var(--r-pill);
+  box-shadow: var(--edge);
   color: var(--bone);
-  font-size: var(--t-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 180ms var(--ease), border-color 180ms var(--ease),
-    color 180ms var(--ease);
+  transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
+    color 180ms var(--ease-ui), transform 240ms var(--spring);
 }
 
 .bar__menu:hover {
-  background: var(--acid);
-  border-color: var(--acid);
-  color: var(--ink);
+  background: var(--surface-3);
+  box-shadow: var(--edge-strong);
+}
+
+.bar__menu:active {
+  transform: scale(0.97);
 }
 
 .bar__where {
@@ -993,26 +1109,32 @@ h3 {
 }
 
 .bar__count {
-  padding: 7px 15px;
+  padding: 6px 14px;
   background: transparent;
-  border: 1px solid var(--rule-strong);
+  border: none;
   border-radius: var(--r-pill);
+  box-shadow: var(--edge);
   color: var(--bone-2);
-  font-size: var(--t-xs);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
   cursor: pointer;
-  transition: color 180ms var(--ease), border-color 180ms var(--ease);
+  transition: color 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
+    background 180ms var(--ease-ui);
 }
 
 .bar__count:hover {
   color: var(--bone);
-  border-color: var(--bone-3);
+  background: var(--surface-1);
+  box-shadow: var(--edge-strong);
 }
 
 .bar__count--critical {
   color: var(--oxide);
-  border-color: color-mix(in srgb, var(--oxide) 55%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oxide) 34%, transparent);
+}
+
+.bar__count--critical:hover {
+  background: color-mix(in srgb, var(--oxide) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oxide) 52%, transparent);
 }
 
 .bar__date {
@@ -1027,6 +1149,8 @@ h3 {
 }
 
 .page {
+  max-width: 1560px;
+  margin-inline: auto;
   padding: 34px clamp(16px, 3vw, 44px) 90px;
 }
 
@@ -1048,23 +1172,25 @@ h3 {
 .sheet {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--z-sheet);
   display: flex;
   flex-direction: column;
-  padding: 14px clamp(16px, 3vw, 34px) clamp(18px, 3vh, 30px);
-  background: var(--ink);
-  animation: sheetin 260ms var(--ease) both;
+  padding: 13px clamp(16px, 3vw, 34px) clamp(18px, 3vh, 30px);
+  background: rgba(14, 18, 22, 0.96);
+  backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow: var(--shadow-3);
+  animation: sheetin 380ms var(--ease) both;
   overflow-y: auto;
 }
 
 @keyframes sheetin {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    clip-path: inset(0 0 100% 0);
   }
   to {
     opacity: 1;
-    transform: none;
+    clip-path: inset(0 0 0 0);
   }
 }
 
@@ -1147,31 +1273,37 @@ h3 {
 }
 
 .sheet__cta {
-  padding: 17px 22px;
+  padding: 16px 22px;
   background: var(--acid);
-  border: 1px solid var(--acid);
+  border: none;
   border-radius: var(--r-pill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--shadow-1);
   color: var(--ink);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: var(--t-base);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 180ms var(--ease);
+  transition: background 180ms var(--ease-ui), transform 240ms var(--spring),
+    box-shadow 180ms var(--ease-ui);
 }
 
 .sheet__cta:hover {
-  background: #fbff5c;
+  background: var(--acid-lift);
+  transform: translateY(-1px);
+}
+
+.sheet__cta:active {
+  transform: scale(0.995);
 }
 
 .sheet__cta--quiet {
   background: transparent;
-  border-color: var(--rule-strong);
+  box-shadow: var(--edge-strong);
   color: var(--bone);
 }
 
 .sheet__cta--quiet:hover {
-  background: var(--ink-2);
+  background: var(--surface-1);
+  box-shadow: var(--edge-strong);
 }
 
 /* ── Hero furniture ───────────────────────────────────────────────────── */
@@ -1187,7 +1319,7 @@ h3 {
 .quick {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
   margin: clamp(26px, 4vh, 40px) 0 clamp(22px, 3vh, 32px);
 }
 
@@ -1195,25 +1327,29 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  padding: 9px 17px;
-  background: rgba(17, 24, 32, 0.55);
-  border: 1px solid var(--rule-strong);
+  padding: 9px 16px;
+  background: rgba(14, 18, 22, 0.5);
+  border: none;
   border-radius: var(--r-pill);
+  box-shadow: var(--edge-strong);
   color: var(--bone);
-  font-size: var(--t-xs);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: var(--t-sm);
+  font-weight: 500;
   cursor: pointer;
-  backdrop-filter: blur(3px);
-  transition: background 180ms var(--ease), border-color 180ms var(--ease),
-    color 180ms var(--ease), transform 200ms var(--ease);
+  backdrop-filter: blur(8px);
+  transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
+    color 180ms var(--ease-ui), transform 260ms var(--spring);
 }
 
 .quick__pill:hover {
   background: var(--acid);
-  border-color: var(--acid);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), var(--shadow-2);
   color: var(--ink);
   transform: translateY(-2px);
+}
+
+.quick__pill:active {
+  transform: translateY(-1px) scale(0.985);
 }
 
 .quick__count {
@@ -1231,11 +1367,11 @@ h3 {
 }
 
 .slab {
-  padding: 18px;
-  background: rgba(17, 24, 32, 0.82);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
-  backdrop-filter: blur(6px);
+  padding: 20px;
+  background: rgba(14, 18, 22, 0.7);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-2);
+  backdrop-filter: blur(14px) saturate(1.1);
 }
 
 .slab__head {
@@ -1260,6 +1396,12 @@ h3 {
   padding: 18px 18px 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Before a key is entered the panel has only a short gate in it. A fixed
+   height there leaves a void under the copy. */
+.slab--chat .chat:has(.chat__gate) {
+  height: auto;
 }
 
 .slab--chat .chat {
@@ -1298,18 +1440,43 @@ h3 {
   border-top: none;
 }
 
+/* Three columns, so the space between the task and its action is a column
+   rather than a gap. A queue this long also has to stay dense. */
 .rem__row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 14px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 118px auto;
+  align-items: start;
+  gap: 18px;
+  padding: 11px 0;
+}
+
+.rem__row--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.rem__due {
+  padding-top: 1px;
+  color: var(--bone-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .rem__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .rem__due {
+    grid-column: 1;
+    grid-row: 2;
+    text-align: left;
+  }
 }
 
 .rem__body {
-  flex: 1;
   min-width: 0;
   display: grid;
-  gap: 5px;
+  gap: 3px;
   padding: 0;
   background: none;
   border: none;
@@ -1321,12 +1488,13 @@ h3 {
 
 .rem__sev {
   justify-self: start;
+  font-size: var(--t-xs);
 }
 
 .rem__title {
   font-size: var(--t-base);
-  font-weight: 600;
-  letter-spacing: -0.012em;
+  font-weight: 500;
+  letter-spacing: -0.014em;
 }
 
 .rem__body:hover .rem__title {
@@ -1341,14 +1509,15 @@ h3 {
 }
 
 .rem__action {
-  max-width: 78ch;
+  max-width: 74ch;
+  margin-top: 2px;
   color: var(--bone-2);
 }
 
 .rem__controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex: none;
 }
 
@@ -1466,16 +1635,24 @@ h3 {
 }
 
 .room {
-  padding: 14px 15px 15px;
-  background: var(--ink-1);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-sm);
-  animation: settle 180ms var(--ease) both;
-  transition: border-color 160ms var(--ease);
+  padding: 15px 16px 16px;
+  background: var(--surface-1);
+  border-radius: var(--r-md);
+  box-shadow: var(--edge);
+  animation: rise 260ms var(--ease-ui) both;
+  transition: background 180ms var(--ease-ui), box-shadow 180ms var(--ease-ui),
+    transform 260ms var(--spring);
+}
+
+.room:hover {
+  background: var(--surface-2);
+  box-shadow: var(--edge-strong), var(--shadow-1);
+  transform: translateY(-2px);
 }
 
 .room--on {
-  border-color: var(--bone-3);
+  background: var(--surface-2);
+  box-shadow: var(--edge-strong), var(--shadow-2);
 }
 
 .room__head {
@@ -1572,11 +1749,11 @@ h3 {
 
 .detail {
   margin: 0 0 26px;
-  padding: 20px;
-  background: var(--ink-1);
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--r-sm);
-  animation: settle 200ms var(--ease) both;
+  padding: 22px;
+  background: var(--surface-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge-strong), var(--shadow-2);
+  animation: expand 300ms var(--ease-ui) both;
 }
 
 .detail__head {
