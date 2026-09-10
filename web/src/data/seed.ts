@@ -152,8 +152,11 @@ export const GROUPS: Group[] = [
   { id: 'g-peregrine', name: 'Peregrine', band: '15–17', ratio: 12, whatsapp: 'Peregrine · staff' },
 ];
 
+/* Local calendar date, not UTC. toISOString() shifts every date back a day
+   under BST, which moved every arrival and leaving date by one. */
 function iso(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
 function addDays(d: Date, n: number) {
@@ -591,6 +594,70 @@ export function fmtDateLong(isoStr: string) {
 
 export function fmtMoney(pence: number) {
   return `£${(pence / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+/* Arrivals still to come, today included, oldest date first. */
+export function upcomingArrivals(from: Date = DEMO_TODAY) {
+  const day = new Date(from);
+  day.setHours(0, 0, 0, 0);
+  return STUDENTS.filter((s) => new Date(s.arrival) >= day).sort(
+    (a, b) =>
+      a.arrival.localeCompare(b.arrival) || a.surname.localeCompare(b.surname),
+  );
+}
+
+export function groupByArrival(students: Student[]) {
+  const map = new Map<string, Student[]>();
+  students.forEach((s) => {
+    const list = map.get(s.arrival) ?? [];
+    list.push(s);
+    map.set(s.arrival, list);
+  });
+  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+export function daysFromToday(isoStr: string, from: Date = DEMO_TODAY) {
+  const a = new Date(isoStr);
+  a.setHours(0, 0, 0, 0);
+  const b = new Date(from);
+  b.setHours(0, 0, 0, 0);
+  return Math.round((a.getTime() - b.getTime()) / 86400000);
+}
+
+export function whenLabel(isoStr: string) {
+  const d = daysFromToday(isoStr);
+  if (d === 0) return 'today';
+  if (d === 1) return 'tomorrow';
+  if (d < 0) return `${Math.abs(d)} days ago`;
+  return `in ${d} days`;
+}
+
+/* What still has to be true before a student can walk in. */
+export interface Readiness {
+  ready: boolean;
+  blocking: string[];
+  watch: string[];
+}
+
+export function readiness(s: Student): Readiness {
+  const blocking: string[] = [];
+  const watch: string[] = [];
+
+  if (!s.roomId) blocking.push('No room allocated');
+
+  const docs = Object.entries(s.docs) as [string, DocState][];
+  const missing = docs.filter(([, v]) => v !== 'in').map(([k]) => k);
+  const safeguardingDocs = missing.filter(
+    (k) => k === 'medical' || k === 'consent',
+  );
+  if (safeguardingDocs.length) {
+    blocking.push(`${safeguardingDocs.join(' and ')} form outstanding`);
+  }
+  if (missing.includes('passport')) watch.push('Passport copy outstanding');
+  if (!s.guardian.consentToTravel) watch.push('No off-site travel consent');
+  if (s.paidPence < s.balancePence) watch.push('Balance outstanding');
+
+  return { ready: blocking.length === 0, blocking, watch };
 }
 
 export function nights(s: Student) {

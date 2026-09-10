@@ -8,8 +8,8 @@ related_targets: []
 ## Scope
 
 The web admin dashboard prototype (`web/`), React + Vite on seeded fake data.
-Visitor mode: **Operate**. Eight routes: Home, Reminders, Students, Room
-allocations, Staff, Timetable, Bookings, Kadia. Navigation is a single top-left control opening a
+Visitor mode: **Operate**. Nine routes: Home, Reminders, Students, New
+arrivals, Room allocations, Staff, Timetable, Bookings, Kadia. Navigation is a single top-left control opening a
 full-surface sheet (pinned to rudo.co.uk, 10 Sep 2026); the left rail is
 retired.
 
@@ -93,6 +93,18 @@ two sections share an identical entrance. Killed under
   student with no bed has something real to catch. Whether a centre also rooms
   by gender is a per-centre configuration Kebba specifies in October, so it is
   recorded as unmodelled rather than invented.
+- New arrivals groups everyone still to come by the day they land, and answers
+  one question per row: can this student be admitted? `readiness()` treats no
+  bed and a missing medical or consent form as BLOCKING (safeguarding); a
+  passport copy, missing travel consent and an outstanding balance are a WATCH.
+  Room allocations carries the same list as a "Still to arrive" view so the
+  residence can see which incoming students already have a bed.
+- Arrival reminders fire only for students who have NOT landed (1-7 days out).
+  A student arriving today is already on site, and their missing document is
+  raised once by the document rule rather than twice.
+- Dates are formatted from local calendar components, never `toISOString()`.
+  The UTC round-trip shifted every arrival and leaving date back a day under
+  BST, which silently mislabelled the whole season by one day.
 - Guardian records are internally consistent by construction: language and
   address country both derive from the student's own country, and relationship
   labels are neutral (Parent, Guardian, Grandparent, Aunt or uncle) because the

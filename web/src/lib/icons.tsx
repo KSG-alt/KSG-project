@@ -156,3 +156,12 @@ export function IconRooms() {
     </svg>
   );
 }
+
+export function IconArrivals() {
+  return (
+    <svg {...base}>
+      <path d="M10 2.6v9.4M6.2 8.4 10 12.2l3.8-3.8" />
+      <path d="M3 14.2v2.2c0 .6.5 1 1 1h12c.6 0 1-.4 1-1v-2.2" />
+    </svg>
+  );
+}

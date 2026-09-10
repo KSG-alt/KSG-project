@@ -5,8 +5,9 @@
    control opens. */
 
 import {
-  BOOKINGS, DEMO_TODAY, SESSIONS, STAFF, STUDENTS, activityById, fmtDate,
-  fmtMoney, groupById, isOnSite,
+  BOOKINGS, DEMO_TODAY, SESSIONS, STAFF, STUDENTS, activityById,
+  daysFromToday, fmtDate, fmtMoney, groupById, isOnSite, readiness,
+  upcomingArrivals, whenLabel,
 } from '../data/seed';
 import { checkRatio } from './ratio';
 import type { Route } from '../App';
@@ -37,7 +38,10 @@ export function dueLabel(iso: string) {
   return `Due in ${d} days`;
 }
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+const iso = (d: Date) => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
 const shift = (n: number) => {
   const d = new Date(DEMO_TODAY);
   d.setDate(d.getDate() + n);
@@ -138,6 +142,28 @@ export function buildReminders(): Reminder[] {
         due: shift(-1),
         route: 'rooms',
         source: `Room allocations · guardian ${s.guardian.phone}`,
+      });
+    });
+
+  /* Arriving inside a week and not admissible yet. */
+  /* Only students who have NOT landed yet. Someone arriving today is already
+     on site, and their missing document is raised once, by the document rule
+     below — not twice. */
+  upcomingArrivals()
+    .filter((s) => {
+      const d = daysFromToday(s.arrival);
+      return d >= 1 && d <= 7 && !readiness(s).ready;
+    })
+    .forEach((s) => {
+      const r = readiness(s);
+      out.push({
+        id: `arrival-${s.id}`,
+        severity: 'safeguarding',
+        title: `${s.forename} ${s.surname} arrives ${whenLabel(s.arrival)} and cannot be admitted`,
+        action: `${r.blocking.join('. ')}. Clear it before ${fmtDate(s.arrival)} or ${s.forename} cannot be taken in.`,
+        due: s.arrival,
+        route: 'arrivals',
+        source: `New arrivals · ${groupById(s.groupId).name}`,
       });
     });
 

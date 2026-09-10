@@ -7,17 +7,18 @@ import { Bookings } from './routes/Bookings';
 import { Kadia } from './routes/Kadia';
 import { Reminders } from './routes/Reminders';
 import { Rooms } from './routes/Rooms';
+import { Arrivals } from './routes/Arrivals';
 import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
-  IconRooms, IconTimetable,
+  IconArrivals, IconRooms, IconTimetable,
 } from './lib/icons';
 import { StoreProvider, useStore } from './lib/store';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
 
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
-  | 'reminders' | 'rooms';
+  | 'reminders' | 'rooms' | 'arrivals';
 
 export const NAV: {
   id: Route;
@@ -27,6 +28,7 @@ export const NAV: {
 }[] = [
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
+  { id: 'arrivals', label: 'New arrivals', blurb: 'Everyone still to come, and whether they can be admitted', icon: IconArrivals },
   { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
   { id: 'staff', label: 'Staff', blurb: 'Details, qualifications and DBS status', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
@@ -40,6 +42,7 @@ const TITLE: Record<Route, string> = {
   home: 'Home',
   reminders: 'Reminders',
   students: 'Students',
+  arrivals: 'New arrivals',
   rooms: 'Room allocations',
   staff: 'Staff',
   timetable: 'Timetable',
@@ -109,6 +112,7 @@ function Shell() {
         <main key={tick} className="page">
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
+          {route === 'arrivals' && <Arrivals />}
           {route === 'rooms' && <Rooms />}
           {route === 'staff' && <Staff />}
           {route === 'timetable' && <Timetable />}

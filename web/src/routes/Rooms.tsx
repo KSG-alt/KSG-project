@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { IconClose } from '../lib/icons';
+import { ReadinessMark } from '../components/StudentReadiness';
 import {
-  ROOMS, STUDENTS, fmtDate, fmtDateLong, fmtMoney, groupById, isOnSite,
-  nights, occupants, roomById, roomLabel, wardenFor, type Student,
+  ROOMS, STUDENTS, fmtDate, fmtDateLong, fmtMoney, groupById,
+  isOnSite, nights, occupants, roomById, roomLabel, upcomingArrivals,
+  wardenFor, whenLabel, type Student,
 } from '../data/seed';
 
-type View = 'rooms' | 'students' | 'unallocated';
+type View = 'rooms' | 'students' | 'unallocated' | 'arrivals';
 
 function DocLine({ s }: { s: Student }) {
   const late = (Object.entries(s.docs) as [string, string][]).filter(
@@ -166,6 +168,9 @@ export function Rooms() {
     [],
   );
 
+  /* The arrivals the residence has to have beds ready for. */
+  const incoming = useMemo(() => upcomingArrivals(), []);
+
   const used = ROOMS.filter((r) => occupants(r.id).length > 0);
   const beds = ROOMS.reduce((n, r) => n + r.beds, 0);
   const filled = STUDENTS.filter((s) => s.roomId).length;
@@ -191,6 +196,7 @@ export function Rooms() {
   const tabs: { id: View; label: string }[] = [
     { id: 'rooms', label: `By room ${used.length}` },
     { id: 'students', label: `By student ${STUDENTS.length}` },
+    { id: 'arrivals', label: `Still to arrive ${incoming.length}` },
     { id: 'unallocated', label: `Unallocated ${unallocated.length}` },
   ];
 
@@ -298,7 +304,68 @@ export function Rooms() {
         </div>
       )}
 
-      {view !== 'rooms' && (
+      {view === 'arrivals' && (
+        <div className="tablewrap">
+          <table className="reg">
+            <thead>
+              <tr>
+                <th style={{ width: '22%' }}>Student</th>
+                <th>Arrives</th>
+                <th>When</th>
+                <th>Band</th>
+                <th>Room</th>
+                <th>Bed</th>
+                <th>Sharing with</th>
+                <th style={{ width: '18%' }}>Admission</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody className="stagger">
+              {incoming.filter(matches).slice(0, 60).map((s, i) => {
+                const mates = s.roomId
+                  ? occupants(s.roomId).filter((o) => o.id !== s.id)
+                  : [];
+                return (
+                  <tr key={s.id} style={{ animationDelay: `${Math.min(i * 12, 240)}ms` }}>
+                    <td>
+                      <span style={{ fontWeight: 600 }}>
+                        {s.forename} {s.surname}
+                      </span>
+                      <span className="meta" style={{ display: 'block', color: 'var(--bone-3)' }}>
+                        {s.country}
+                      </span>
+                    </td>
+                    <td className="num">{fmtDate(s.arrival)}</td>
+                    <td className="meta">{whenLabel(s.arrival)}</td>
+                    <td className="num">{s.band}</td>
+                    <td>
+                      {s.roomId ? (
+                        roomLabel(s.roomId)
+                      ) : (
+                        <span className="mark mark--critical">None</span>
+                      )}
+                    </td>
+                    <td className="num">{s.bed || '—'}</td>
+                    <td className="meta">
+                      {mates.length
+                        ? mates.map((m) => `${m.forename} ${m.surname}`).join(', ')
+                        : 'Sole occupant'}
+                    </td>
+                    <td><ReadinessMark s={s} /></td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button className="btn" onClick={() => setOpenStudent(s.id)}>
+                        Open
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {(view === 'students' || view === 'unallocated') && (
         <div className="tablewrap">
           <table className="reg">
             <thead>

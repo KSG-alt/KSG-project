@@ -1633,3 +1633,39 @@ h3 {
 .pairs__wrap {
   overflow-wrap: anywhere;
 }
+
+/* ── Arrivals: the season lands in days, not rows ─────────────────────── */
+
+.arrivals {
+  display: grid;
+  gap: 34px;
+}
+
+.day {
+  animation: settle 190ms var(--ease) both;
+}
+
+.day__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--rule-strong);
+  flex-wrap: wrap;
+}
+
+.day__date {
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.day__when {
+  color: var(--bone-3);
+}
+
+.section__lede strong {
+  color: var(--bone);
+  font-weight: 600;
+}

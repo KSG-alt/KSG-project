@@ -2,9 +2,13 @@ import { useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { IconAttach, IconCheck, IconClose } from '../lib/icons';
 import {
-  BOOKINGS, activityById, fmtDate, fmtMoney, groupById,
+  BOOKINGS, DEMO_TODAY, activityById, fmtDate, fmtMoney, groupById,
   type Booking, type Receipt,
 } from '../data/seed';
+
+const DEMO_TODAY_ISO = `${DEMO_TODAY.getFullYear()}-${String(
+  DEMO_TODAY.getMonth() + 1,
+).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
 
 const ACCEPT = '.pdf,.png,.jpg,.jpeg,.heic';
 
@@ -24,7 +28,9 @@ export function Bookings() {
     const receipt: Receipt = {
       filename: file.name,
       bytes: file.size,
-      attachedAt: new Date().toISOString().slice(0, 10),
+      /* The demo's clock, not the wall clock — a receipt stamped 2026 inside
+         a 2027 season reads as broken data. */
+      attachedAt: DEMO_TODAY_ISO,
       attachedBy: 'Ismail',
     };
     setBookings((all) => all.map((b) => (b.id === id ? { ...b, receipt } : b)));
