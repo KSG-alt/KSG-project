@@ -8,8 +8,8 @@ related_targets: []
 ## Scope
 
 The web admin dashboard prototype (`web/`), React + Vite on seeded fake data.
-Visitor mode: **Operate**. Seven routes: Home, Reminders, Students, Staff,
-Timetable, Bookings, Kadia. Navigation is a single top-left control opening a
+Visitor mode: **Operate**. Eight routes: Home, Reminders, Students, Room
+allocations, Staff, Timetable, Bookings, Kadia. Navigation is a single top-left control opening a
 full-surface sheet (pinned to rudo.co.uk, 10 Sep 2026); the left rail is
 retired.
 
@@ -29,9 +29,10 @@ OWN-WORLD: Ink, greige and acid, taken from getspot.com (pinned by the user
 type #E6E7D9, one acid #F3FD00 that means interactive and nothing else —
 primary action, current section, focus ring. Informational blue #7FB2D9 is
 kept separate from acid so a status mark never reads as a control. Structure is
-ruled greige hairlines at 11-24%, never cards or drop shadows. Two faces:
-Archivo for display and UI, Azeret Mono for labels, meta and all tabular data,
-because the reference sets its body voice in mono. Controls are fully-rounded
+ruled greige hairlines at 11-24%, never cards or drop shadows. One face: **Geist**
+(user-pinned 10 Sep 2026 from a neo-grotesque sample), carrying display, UI,
+labels and data. Tabular figures do the column alignment a mono would
+otherwise be hired for; the earlier Azeret Mono body voice is retired. Controls are fully-rounded
 pills; panels take a 6px corner. Display sets at line-height 0.94, tighter than
 its own size. State colour: oxide #F2542D reserved for safeguarding-critical
 and marked with a triangle rather than a square, ochre #C9922E for overdue
@@ -86,6 +87,18 @@ two sections share an identical entrance. Killed under
 - The Complete pill is outlined, not filled. A column of filled acid buttons
   out-shouts the oxide severity marks, and safeguarding has to stay the
   loudest thing on the row.
+- Room allocations: three houses, one per age band, rooms sized to that
+  band's actual demand plus a spare, three beds each. Exactly two on-site
+  students are left unallocated on purpose so the safeguarding reminder for a
+  student with no bed has something real to catch. Whether a centre also rooms
+  by gender is a per-centre configuration Kebba specifies in October, so it is
+  recorded as unmodelled rather than invented.
+- Guardian records are internally consistent by construction: language and
+  address country both derive from the student's own country, and relationship
+  labels are neutral (Parent, Guardian, Grandparent, Aunt or uncle) because the
+  generated forenames carry no gender. Randomising these independently produced
+  records like "Kenji Berkmann · Grandmother, language Norwegian, address in
+  Poland" for an Italian student, which reads as broken data to a prospect.
 - Hero contrast is measured, not eyeballed: the text is hidden, the background
   plate is captured, and the brightest pixel under each text box is compared to
   its computed colour. Tightest measured ratio 4.58:1 on the first blurb.

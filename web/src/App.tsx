@@ -6,17 +6,18 @@ import { Timetable } from './routes/Timetable';
 import { Bookings } from './routes/Bookings';
 import { Kadia } from './routes/Kadia';
 import { Reminders } from './routes/Reminders';
+import { Rooms } from './routes/Rooms';
 import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
-  IconTimetable,
+  IconRooms, IconTimetable,
 } from './lib/icons';
 import { StoreProvider, useStore } from './lib/store';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
 
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
-  | 'reminders';
+  | 'reminders' | 'rooms';
 
 export const NAV: {
   id: Route;
@@ -26,6 +27,7 @@ export const NAV: {
 }[] = [
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
+  { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
   { id: 'staff', label: 'Staff', blurb: 'Details, qualifications and DBS status', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
   { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
@@ -38,6 +40,7 @@ const TITLE: Record<Route, string> = {
   home: 'Home',
   reminders: 'Reminders',
   students: 'Students',
+  rooms: 'Room allocations',
   staff: 'Staff',
   timetable: 'Timetable',
   bookings: 'Bookings',
@@ -106,6 +109,7 @@ function Shell() {
         <main key={tick} className="page">
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
+          {route === 'rooms' && <Rooms />}
           {route === 'staff' && <Staff />}
           {route === 'timetable' && <Timetable />}
           {route === 'bookings' && <Bookings />}

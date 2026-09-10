@@ -146,3 +146,13 @@ export function IconMenu() {
     </svg>
   );
 }
+
+export function IconRooms() {
+  return (
+    <svg {...base}>
+      <path d="M2.6 7.4 10 2.8l7.4 4.6v9.8H2.6Z" />
+      <path d="M7.6 17.2v-5.4h4.8v5.4" />
+      <path d="M2.6 11.8h5M12.4 11.8h5" />
+    </svg>
+  );
+}

@@ -113,6 +113,34 @@ export function buildReminders(): Reminder[] {
     });
   });
 
+  /* On site with no bed allocated. */
+  STUDENTS.filter((s) => isOnSite(s) && !s.roomId).forEach((s) => {
+    out.push({
+      id: `room-${s.id}`,
+      severity: 'safeguarding',
+      title: `${s.forename} ${s.surname} has no room allocated`,
+      action: `${s.forename} is on site without a bed. Allocate a room in the ${s.band} band and name the floor warden.`,
+      due: iso(DEMO_TODAY),
+      route: 'rooms',
+      source: `Room allocations · ${groupById(s.groupId).name}`,
+    });
+  });
+
+  /* Off-site travel with no consent on file. */
+  STUDENTS.filter((s) => isOnSite(s) && !s.guardian.consentToTravel)
+    .slice(0, 6)
+    .forEach((s) => {
+      out.push({
+        id: `travel-${s.id}`,
+        severity: 'safeguarding',
+        title: `${s.forename} ${s.surname} has no off-site travel consent`,
+        action: `Get written consent from ${s.guardian.name} (${s.guardian.relationship}) before ${s.forename} joins an excursion.`,
+        due: shift(-1),
+        route: 'rooms',
+        source: `Room allocations · guardian ${s.guardian.phone}`,
+      });
+    });
+
   /* Bookings that cannot be confirmed until a receipt lands. */
   BOOKINGS.filter((b) => !b.receipt).forEach((b) => {
     out.push({

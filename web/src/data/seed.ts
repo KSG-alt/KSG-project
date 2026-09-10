@@ -23,6 +23,29 @@ const SURNAMES = [
   'Moretti', 'Nakamura', 'Okonjo', 'Petrov', 'Quintana', 'Rossi',
   'Salgado', 'Toledano', 'Ueda', 'Vasquez', 'Weiss', 'Ximenes',
 ];
+/* Reminder copy has to work cold for a parent who may not read English
+   first — PRODUCT.md, Accessibility & Inclusion. Language and address follow
+   the student's own country, so a record never contradicts itself. */
+const LANGUAGE_BY_COUNTRY: Record<string, string> = {
+  Spain: 'Spanish',
+  Italy: 'Italian',
+  Japan: 'Japanese',
+  France: 'French',
+  Germany: 'German',
+  Poland: 'Polish',
+  Brazil: 'Portuguese',
+  'Türkiye': 'Turkish',
+  Norway: 'Norwegian',
+  Netherlands: 'Dutch',
+  Portugal: 'Portuguese',
+  Mexico: 'Spanish',
+};
+
+const STREETS = [
+  'Station Road', 'Park Avenue', 'Hill Street', 'Market Square',
+  'Garden Lane', 'Church Road', 'Mill Street', 'Orchard Way',
+];
+
 const COUNTRIES = [
   'Spain', 'Italy', 'Japan', 'France', 'Germany', 'Poland', 'Brazil',
   'Türkiye', 'Norway', 'Netherlands', 'Portugal', 'Mexico',
@@ -31,6 +54,19 @@ const COUNTRIES = [
 export type AgeBand = '8–11' | '12–14' | '15–17';
 
 export type DocState = 'in' | 'outstanding' | 'overdue';
+
+export interface Guardian {
+  name: string;
+  relationship: string;
+  phone: string;
+  altPhone: string;
+  email: string;
+  language: string;
+  address: string;
+  emergencyName: string;
+  emergencyPhone: string;
+  consentToTravel: boolean;
+}
 
 export interface Student {
   id: string;
@@ -46,6 +82,58 @@ export interface Student {
   docs: { medical: DocState; consent: DocState; passport: DocState };
   balancePence: number;
   paidPence: number;
+  roomId: string | null;
+  bed: number;
+  dietary: string | null;
+  medical: string | null;
+  guardian: Guardian;
+}
+
+/* ── Residence ─────────────────────────────────────────────────────────────
+   Rooms are allocated within a single age band. Whether a centre also rooms
+   by gender is a per-centre configuration Kebba specifies in October, so it
+   is deliberately not modelled here rather than invented.
+   ──────────────────────────────────────────────────────────────────────── */
+
+export interface Room {
+  id: string;
+  block: string;
+  floor: number;
+  number: string;
+  beds: number;
+  band: AgeBand;
+  wardenId: string | null;
+}
+
+const BLOCKS = ['Willow House', 'Cedar House', 'Rowan House'] as const;
+
+const BAND_HOUSE: Record<AgeBand, (typeof BLOCKS)[number]> = {
+  '8–11': 'Willow House',
+  '12–14': 'Cedar House',
+  '15–17': 'Rowan House',
+};
+
+/* Rooms are sized to the band that sleeps in them, plus one spare room, so a
+   house is not short of beds by construction. */
+function buildRooms(demand: Record<AgeBand, number>): Room[] {
+  const out: Room[] = [];
+  (Object.keys(BAND_HOUSE) as AgeBand[]).forEach((band) => {
+    const needed = Math.ceil(demand[band] / 3) + 1;
+    for (let i = 0; i < needed; i++) {
+      const floor = Math.floor(i / 8) + 1;
+      const n = (i % 8) + 1;
+      out.push({
+        id: `r-${band}-${floor}-${String(n).padStart(2, '0')}`,
+        block: BAND_HOUSE[band],
+        floor,
+        number: `${floor}.${String(n).padStart(2, '0')}`,
+        beds: 3,
+        band,
+        wardenId: null,
+      });
+    }
+  });
+  return out;
 }
 
 export interface Group {
@@ -105,6 +193,14 @@ function buildStudents(): Student[] {
       return arrival <= DEMO_TODAY && x < 0.9 ? 'overdue' : 'outstanding';
     };
 
+    /* Neutral relationship labels: the generated forenames carry no gender,
+       so "Mother" beside a name would be an invented detail. */
+    const country = COUNTRIES[Math.floor(r() * COUNTRIES.length)];
+    const RELATIONS = ['Parent', 'Parent', 'Guardian', 'Grandparent', 'Aunt or uncle'];
+    const DIETARY = [null, null, null, 'Vegetarian', 'No pork', 'Nut allergy — EpiPen carried', 'Coeliac'];
+    const MEDICAL = [null, null, null, null, 'Asthma — inhaler carried', 'Hay fever', 'Eczema — cream in room'];
+    const guardianSurname = surname;
+    const guardianForename = FORENAMES[Math.floor(r() * FORENAMES.length)];
     const balance = [95000, 128000, 164000, 210000][Math.floor(r() * 4)];
     const paidRatio = r();
     out.push({
@@ -117,16 +213,75 @@ function buildStudents(): Student[] {
       groupId: group.id,
       arrival: iso(arrival),
       leaving: iso(leaving),
-      country: COUNTRIES[Math.floor(r() * COUNTRIES.length)],
+      country,
       docs: { medical: docState(), consent: docState(), passport: docState() },
       balancePence: balance,
       paidPence: paidRatio < 0.7 ? balance : Math.round(balance * (0.3 + r() * 0.4)),
+      roomId: null,
+      bed: 0,
+      dietary: DIETARY[Math.floor(r() * DIETARY.length)],
+      medical: MEDICAL[Math.floor(r() * MEDICAL.length)],
+      guardian: {
+        name: `${guardianForename} ${guardianSurname}`,
+        relationship: RELATIONS[Math.floor(r() * RELATIONS.length)],
+        phone: `+44 7700 9${String(Math.floor(r() * 90000) + 10000)}`,
+        altPhone: `+44 20 7${String(Math.floor(r() * 900000) + 100000)}`,
+        email: `${guardianForename[0].toLowerCase()}.${guardianSurname.toLowerCase()}@example-family.test`,
+        language: LANGUAGE_BY_COUNTRY[country] ?? 'English',
+        address: `${Math.floor(r() * 180) + 1} ${STREETS[Math.floor(r() * STREETS.length)]}, ${country}`,
+        emergencyName: `${FORENAMES[Math.floor(r() * FORENAMES.length)]} ${SURNAMES[Math.floor(r() * SURNAMES.length)]}`,
+        emergencyPhone: `+44 7700 9${String(Math.floor(r() * 90000) + 10000)}`,
+        consentToTravel: r() < 0.86,
+      },
     });
   }
   return out;
 }
 
-export const STUDENTS: Student[] = buildStudents();
+export const isOnSite = (s: Student, on: Date = DEMO_TODAY) =>
+  new Date(s.arrival) <= on && new Date(s.leaving) >= on;
+
+/* Two students are deliberately left without a bed, so the safeguarding
+   reminder for an unallocated arrival has something real to catch. */
+const UNALLOCATED_ON_PURPOSE = 2;
+
+function allocate(students: Student[], rooms: Room[]) {
+  const byBand: Record<string, Room[]> = {};
+  rooms.forEach((room) => {
+    (byBand[room.band] ||= []).push(room);
+  });
+  const fill: Record<string, number> = {};
+  const onSiteFirst = [...students].sort(
+    (a, b) => Number(isOnSite(b)) - Number(isOnSite(a)),
+  );
+  const skip = new Set(
+    onSiteFirst.filter((s) => isOnSite(s)).slice(0, UNALLOCATED_ON_PURPOSE).map((s) => s.id),
+  );
+
+  students.forEach((s) => {
+    if (skip.has(s.id)) return;
+    const room = (byBand[s.band] ?? []).find((r) => (fill[r.id] ?? 0) < r.beds);
+    if (!room) return;
+    const bed = (fill[room.id] ?? 0) + 1;
+    fill[room.id] = bed;
+    s.roomId = room.id;
+    s.bed = bed;
+  });
+  return students;
+}
+
+const SEEDED_STUDENTS = buildStudents();
+
+const BAND_DEMAND = SEEDED_STUDENTS.reduce(
+  (acc, s) => {
+    acc[s.band] += 1;
+    return acc;
+  },
+  { '8–11': 0, '12–14': 0, '15–17': 0 } as Record<AgeBand, number>,
+);
+
+export const ROOMS: Room[] = buildRooms(BAND_DEMAND);
+export const STUDENTS: Student[] = allocate(SEEDED_STUDENTS, ROOMS);
 
 /* ── Staff ─────────────────────────────────────────────────────────────── */
 
@@ -395,12 +550,32 @@ export const BOOKINGS: Booking[] = [
 
 /* ── Derived helpers ─────────────────────────────────────────────────── */
 
+export const roomById = (id: string | null) =>
+  id ? ROOMS.find((r) => r.id === id) ?? null : null;
+
+export const occupants = (roomId: string) =>
+  STUDENTS.filter((s) => s.roomId === roomId).sort((a, b) => a.bed - b.bed);
+
+export const roomLabel = (id: string | null) => {
+  const r = roomById(id);
+  return r ? `${r.block} ${r.number}` : 'Not allocated';
+};
+
+/* One warden per floor of each block, drawn from cleared staff only. */
+export function wardenFor(room: Room) {
+  const cleared = STAFF.filter(
+    (s) => s.dbs.state === 'cleared' && s.bands.includes(room.band),
+  );
+  if (!cleared.length) return null;
+  const key = `${room.block}-${room.floor}`;
+  let h = 0;
+  for (const ch of key) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return cleared[h % cleared.length];
+}
+
 export const groupById = (id: string) => GROUPS.find((g) => g.id === id)!;
 export const activityById = (id: string) => ACTIVITIES.find((a) => a.id === id)!;
 export const staffById = (id: string) => STAFF.find((s) => s.id === id)!;
-
-export const isOnSite = (s: Student, on: Date = DEMO_TODAY) =>
-  new Date(s.arrival) <= on && new Date(s.leaving) >= on;
 
 export function fmtDate(isoStr: string) {
   return new Date(isoStr).toLocaleDateString('en-GB', {
