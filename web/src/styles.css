@@ -467,112 +467,6 @@ h3 {
   max-width: 18ch;
 }
 
-/* ── Menu ─────────────────────────────────────────────────────────────── */
-
-.menu {
-  position: relative;
-}
-
-.menu__row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 26px minmax(0, 190px) 1fr 40px;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-  padding: 20px 0;
-  background: none;
-  border: none;
-  color: var(--bone);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.menu__rule {
-  position: absolute;
-  inset: 0 0 auto 0;
-  display: block;
-  height: 1px;
-  background: var(--rule);
-  transform-origin: left;
-  animation: draw 220ms var(--ease) both;
-}
-
-.menu__icon {
-  color: var(--bone-3);
-  transition: color 200ms var(--ease);
-}
-
-.menu__label {
-  font-size: var(--t-lg);
-  font-weight: 600;
-  letter-spacing: -0.028em;
-  transition: transform 240ms var(--ease);
-}
-
-.menu__blurb {
-  font-family: var(--mono);
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: var(--bone-2);
-  transition: color 200ms var(--ease);
-}
-
-/* The reference's circular arrow badge, earning its acid on approach. */
-.menu__go {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--r-pill);
-  color: var(--bone-2);
-  transition: background 220ms var(--ease), color 220ms var(--ease),
-    border-color 220ms var(--ease), transform 240ms var(--ease);
-}
-
-.menu__row:hover .menu__icon,
-.menu__row:focus-visible .menu__icon {
-  color: var(--bone);
-}
-
-.menu__row:hover .menu__label,
-.menu__row:focus-visible .menu__label {
-  transform: translateX(5px);
-}
-
-.menu__row:hover .menu__blurb,
-.menu__row:focus-visible .menu__blurb {
-  color: var(--bone-2);
-}
-
-.menu__row:hover .menu__go,
-.menu__row:focus-visible .menu__go {
-  background: var(--acid);
-  border-color: var(--acid);
-  color: var(--ink);
-  transform: translateX(4px);
-}
-
-@media (max-width: 760px) {
-  .menu__row {
-    grid-template-columns: 24px 1fr 34px;
-    row-gap: 5px;
-    padding: 17px 0;
-  }
-  .menu__blurb {
-    grid-column: 2 / 4;
-  }
-  .menu__go {
-    width: 34px;
-    height: 34px;
-  }
-  .hero__title {
-    max-width: none;
-  }
-}
-
 /* ── Tabs: views on the same register ──────────────────────────────────── */
 
 .tabs {
@@ -981,88 +875,6 @@ h3 {
   }
 }
 
-/* ── Shell: rail beside content on desktop, a bar above it on narrow ───── */
-
-.shell {
-  display: flex;
-  min-height: 100%;
-}
-
-.shell__main {
-  flex: 1;
-  min-width: 0;
-  padding: 40px 44px 80px;
-}
-
-.rail {
-  width: var(--rail);
-  flex: none;
-  background: var(--ink-1);
-  border-right: 1px solid var(--rule);
-  padding: 26px 0;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-}
-
-.rail__home {
-  margin: 0 18px 22px;
-  justify-content: flex-start;
-  width: calc(100% - 36px);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.rail__item {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin: 1px 12px;
-  padding: 10px 14px;
-  background: transparent;
-  border: none;
-  border-radius: var(--r-pill);
-  color: var(--bone-2);
-  font-family: var(--mono);
-  font-size: var(--t-sm);
-  letter-spacing: 0.02em;
-  text-align: left;
-  cursor: pointer;
-  transition: color 160ms var(--ease), background 160ms var(--ease);
-}
-
-.rail__item:hover {
-  color: var(--bone);
-  background: var(--ink-2);
-}
-
-.rail__item--on {
-  background: var(--acid);
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.rail__item--on:hover {
-  background: var(--acid);
-  color: var(--ink);
-}
-
-.rail__foot {
-  margin-top: auto;
-  padding: 0 18px;
-}
-
-.rail__foot .label {
-  line-height: 1.7;
-}
-
-.rail__date {
-  margin-top: 8px;
-  color: var(--bone-3);
-}
-
 .tablewrap {
   overflow-x: auto;
   /* The scroll edge belongs to the palette, not the browser. */
@@ -1121,4 +933,536 @@ h3 {
   .shell__main {
     padding: 26px 18px 64px;
   }
+}
+
+/* ── Bar: one control opens everything ─────────────────────────────────── */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px clamp(16px, 3vw, 34px);
+  background: var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Over the photograph the bar is glass, not a band. */
+.bar--over {
+  position: fixed;
+  left: 0;
+  right: 0;
+  background: transparent;
+  border-bottom-color: transparent;
+  backdrop-filter: blur(2px);
+}
+
+.bar__menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 16px 8px 13px;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-pill);
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 180ms var(--ease), border-color 180ms var(--ease),
+    color 180ms var(--ease);
+}
+
+.bar__menu:hover {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink);
+}
+
+.bar__where {
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  color: var(--bone-2);
+}
+
+.bar__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.bar__count {
+  padding: 7px 15px;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-pill);
+  color: var(--bone-2);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.bar__count:hover {
+  color: var(--bone);
+  border-color: var(--bone-3);
+}
+
+.bar__count--critical {
+  color: var(--oxide);
+  border-color: color-mix(in srgb, var(--oxide) 55%, transparent);
+}
+
+.bar__date {
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .bar__date,
+  .bar__where {
+    display: none;
+  }
+}
+
+.page {
+  padding: 34px clamp(16px, 3vw, 44px) 90px;
+}
+
+.page__foot {
+  margin-top: 64px;
+}
+
+.page__foot .label {
+  margin: 14px 0 0;
+}
+
+.section__lede {
+  max-width: 74ch;
+  margin: -6px 0 24px;
+}
+
+/* ── Sheet: the menu drops the whole surface ───────────────────────────── */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  padding: 14px clamp(16px, 3vw, 34px) clamp(18px, 3vh, 30px);
+  background: var(--ink);
+  animation: sheetin 260ms var(--ease) both;
+  overflow-y: auto;
+}
+
+@keyframes sheetin {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sheet__top {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: clamp(18px, 5vh, 56px);
+}
+
+.sheet__close {
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--acid);
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.sheet__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(2px, 1vh, 10px);
+}
+
+.sheet__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 2px 0;
+  background: none;
+  border: none;
+  color: var(--acid);
+  font-size: clamp(2.1rem, 5.4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  cursor: pointer;
+  animation: settle 220ms var(--ease) both;
+  transition: opacity 180ms var(--ease), transform 220ms var(--ease);
+}
+
+.sheet__item:hover,
+.sheet__item:focus-visible {
+  transform: translateX(9px);
+}
+
+.sheet__nav:hover .sheet__item:not(:hover) {
+  opacity: 0.42;
+}
+
+.sheet__item--on span:first-child {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+
+.sheet__count {
+  padding: 3px 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.sheet__count--critical {
+  background: var(--oxide);
+  border-color: var(--oxide);
+  color: var(--ink);
+}
+
+.sheet__foot {
+  margin-top: auto;
+  padding-top: clamp(20px, 4vh, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.sheet__cta {
+  padding: 17px 22px;
+  background: var(--acid);
+  border: 1px solid var(--acid);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 180ms var(--ease);
+}
+
+.sheet__cta:hover {
+  background: #fbff5c;
+}
+
+.sheet__cta--quiet {
+  background: transparent;
+  border-color: var(--rule-strong);
+  color: var(--bone);
+}
+
+.sheet__cta--quiet:hover {
+  background: var(--ink-2);
+}
+
+/* ── Hero furniture ───────────────────────────────────────────────────── */
+
+.hero__standfirst {
+  max-width: 46ch;
+  margin: 18px 0 0;
+  font-family: var(--mono);
+  font-size: var(--t-md);
+  line-height: 1.45;
+  color: var(--bone);
+}
+
+.quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(26px, 4vh, 40px) 0 clamp(22px, 3vh, 32px);
+}
+
+.quick__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 17px;
+  background: rgba(17, 24, 32, 0.55);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-pill);
+  color: var(--bone);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  transition: background 180ms var(--ease), border-color 180ms var(--ease),
+    color 180ms var(--ease), transform 200ms var(--ease);
+}
+
+.quick__pill:hover {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.quick__count {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+}
+
+.hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.slab {
+  padding: 18px;
+  background: rgba(17, 24, 32, 0.82);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  backdrop-filter: blur(6px);
+}
+
+.slab__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.slab__title {
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.slab__more {
+  margin: 12px 0 0;
+  color: var(--bone-3);
+}
+
+.slab--chat {
+  padding: 18px 18px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.slab--chat .chat {
+  height: 372px;
+  margin: 0 -18px;
+  border: none;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 1040px) {
+  .hero__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Reminders ────────────────────────────────────────────────────────── */
+
+.reminders {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reminders__empty {
+  max-width: 62ch;
+  margin: 8px 0;
+}
+
+.rem {
+  border-top: 1px solid var(--rule);
+}
+
+.reminders--compact .rem:first-child {
+  border-top: none;
+}
+
+.rem__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+}
+
+.rem__body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--bone);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rem__sev {
+  justify-self: start;
+}
+
+.rem__title {
+  font-size: var(--t-base);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.rem__body:hover .rem__title {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-strong);
+  text-underline-offset: 3px;
+}
+
+.rem__meta {
+  color: var(--bone-3);
+  font-size: var(--t-xs);
+}
+
+.rem__action {
+  max-width: 78ch;
+  color: var(--bone-2);
+}
+
+.rem__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+/* Outlined, not filled. A column of acid buttons out-shouts the oxide
+   severity marks, and safeguarding has to stay the loudest thing on the row.
+   The fill arrives on approach instead. */
+.rem__complete {
+  white-space: nowrap;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--acid) 46%, transparent);
+  color: var(--acid);
+}
+
+.rem__complete:hover:not(:disabled),
+.rem__complete:focus-visible {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: var(--ink);
+}
+
+.rem--done .rem__title {
+  color: var(--bone-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--bone-3);
+}
+
+.rem--done .rem__sev {
+  opacity: 0.45;
+}
+
+/* ── Task: the reminder opened up ─────────────────────────────────────── */
+
+.task {
+  display: grid;
+  gap: 14px;
+  padding: 4px 0 20px;
+  animation: settle 200ms var(--ease) both;
+}
+
+.task__f {
+  display: grid;
+  gap: 7px;
+}
+
+.task__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.task__f--due {
+  width: 190px;
+}
+
+.task__where {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+  color: var(--bone-3);
+}
+
+.task__where strong {
+  color: var(--bone);
+  font-weight: 500;
+}
+
+.task textarea.field {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.task__actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.task__delete {
+  margin-left: auto;
+  color: var(--bone-3);
+}
+
+.task__delete:hover {
+  color: var(--oxide);
+}
+
+.task__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.btn--danger {
+  background: var(--oxide);
+  border-color: var(--oxide);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #ff6f4a;
+  border-color: #ff6f4a;
 }

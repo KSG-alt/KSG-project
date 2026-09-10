@@ -128,3 +128,21 @@ export function IconGoogle() {
     </svg>
   );
 }
+
+export function IconReminders() {
+  return (
+    <svg {...base}>
+      <path d="M3.2 5.4h7.2M3.2 10h7.2M3.2 14.6h5" />
+      <path d="M13.2 4.2l1.9 1.9 3.1-3.2" />
+      <path d="M13.4 12.6l1.9 1.9 3.1-3.2" />
+    </svg>
+  );
+}
+
+export function IconMenu() {
+  return (
+    <svg {...base}>
+      <path d="M2.8 6h14.4M2.8 10h14.4M2.8 14h9.6" />
+    </svg>
+  );
+}

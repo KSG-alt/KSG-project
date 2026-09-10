@@ -8,8 +8,10 @@ related_targets: []
 ## Scope
 
 The web admin dashboard prototype (`web/`), React + Vite on seeded fake data.
-Visitor mode: **Operate**. Six routes: Home, Students, Staff, Timetable,
-Bookings, Kadia.
+Visitor mode: **Operate**. Seven routes: Home, Reminders, Students, Staff,
+Timetable, Bookings, Kadia. Navigation is a single top-left control opening a
+full-surface sheet (pinned to rudo.co.uk, 10 Sep 2026); the left rail is
+retired.
 
 Audience: centre admin staff, in a centre office during a 4-8 week season,
 working a queue under time pressure. Secondary: the safeguarding lead reading
@@ -74,6 +76,16 @@ two sections share an identical entrance. Killed under
   proven in the Solone demo. No key in the repo.
 - Visual world replaced 10 Sep 2026 on a user pin to getspot.com, plus a
   supplied hero image. The rail's home control reads **Home**, not Register.
+- Reminders are **derived** from the seeded records, never authored: overdue
+  student documents, uncleared or expiring DBS, receiptless bookings, and
+  sessions the rota engine calls non-compliant. Medical and consent forms
+  count as safeguarding; passports are admin. 29 rows at the seeded date, 17
+  of them safeguarding. Complete marks the row done and opens the screen where
+  the work is actually done; the task panel carries Edit, Cancel and a
+  two-step Delete.
+- The Complete pill is outlined, not filled. A column of filled acid buttons
+  out-shouts the oxide severity marks, and safeguarding has to stay the
+  loudest thing on the row.
 - Hero contrast is measured, not eyeballed: the text is hidden, the background
   plate is captured, and the brightest pixel under each text box is compared to
   its computed colour. Tightest measured ratio 4.58:1 on the first blurb.
