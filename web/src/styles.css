@@ -1968,3 +1968,84 @@ p {
   );
   box-shadow: none;
 }
+
+/* ── The KSG mark in the chrome ────────────────────────────────────────── */
+
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+.lockup__name {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  transform: translateY(0.5px);
+}
+
+/* Visible to screen readers, not on screen: the mark reads as "KSG" but the
+   name it stands for should still be announced. */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bar__brand {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 6px;
+  margin-right: 2px;
+  background: none;
+  border: none;
+  border-radius: var(--r-xs);
+  color: var(--ink);
+  cursor: pointer;
+  transition: opacity 160ms var(--ease-ui), transform 220ms var(--spring);
+}
+
+.bar__brand:hover {
+  opacity: 0.72;
+}
+
+.bar__brand:active {
+  transform: scale(0.97);
+}
+
+.sheet__brand {
+  margin-right: auto;
+  color: var(--ink);
+}
+
+.sheet__top {
+  align-items: center;
+}
+
+.page__footrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.page__footrow .label {
+  margin: 0;
+}
+
+.page__by {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--t-sm);
+  color: var(--ink-3);
+}

@@ -13,6 +13,7 @@ import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
   IconArrivals, IconRooms, IconTimetable,
 } from './lib/icons';
+import { Lockup } from './lib/Logo';
 import { StoreProvider, useStore } from './lib/store';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
 
@@ -80,6 +81,14 @@ function Shell() {
 
       <header className={`bar${route === 'home' ? ' bar--over' : ''}`}>
         <button
+          className="bar__brand"
+          onClick={() => go('home')}
+          aria-label="Kadia Systems Group — home"
+        >
+          <Lockup />
+        </button>
+
+        <button
           className="bar__menu"
           onClick={() => setMenu(true)}
           aria-expanded={menu}
@@ -124,7 +133,13 @@ function Shell() {
           {route === 'kadia' && <Kadia />}
           <footer className="page__foot">
             <div className="rule" />
-            <p className="label">Demonstration · seeded data</p>
+            <div className="page__footrow">
+              <p className="label">Demonstration · seeded data</p>
+              <span className="page__by">
+                <Lockup size={18} showName={false} />
+                Built by Kadia Systems Group
+              </span>
+            </div>
           </footer>
         </main>
       )}

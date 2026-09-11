@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { NAV, type Route } from '../App';
+import { Lockup } from '../lib/Logo';
 import { useStore } from '../lib/store';
 
 export function MenuOverlay({
@@ -63,6 +64,9 @@ export function MenuOverlay({
       ref={panel}
     >
       <div className="sheet__top">
+        <span className="sheet__brand">
+          <Lockup size={20} />
+        </span>
         <button
           ref={first}
           className="sheet__close"
