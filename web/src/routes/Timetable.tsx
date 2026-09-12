@@ -3,8 +3,10 @@ import { useStore } from '../lib/store';
 import { SectionHead } from '../components/SectionHead';
 import { Chat } from '../components/Chat';
 import { StaffProfile } from '../components/StaffProfile';
+import { ActivityGuide } from '../components/ActivityGuide';
 import { IconClose } from '../lib/icons';
 import { checkRatio } from '../lib/ratio';
+import { generate, parseSpec, report, type Spec } from '../lib/schedule';
 import type { ToolSpec } from '../lib/anthropic';
 import {
   ACTIVITIES, DEMO_TODAY, GROUPS, SESSIONS, SLOTS, STAFF, activityById,
@@ -25,6 +27,7 @@ const CANCEL_REASONS = [
 export function Timetable() {
   const { sessions: allSessions, updateSessions } = useStore();
   const [openStaff, setOpenStaff] = useState<string | null>(null);
+  const [guide, setGuide] = useState<string | null>(null);
   /* One day on screen; the rota underneath runs the whole week. */
   const sessions = useMemo(
     () => allSessions.filter((s) => s.day === TODAY_ISO),
@@ -149,6 +152,103 @@ export function Timetable() {
       }),
     },
     {
+      name: 'generate_timetable',
+      description:
+        "Draft the day from scratch against a set of specifications. Use this when asked to generate, rebuild or redraft the timetable rather than to edit one session. It only ever drafts — it never approves. It returns what it made and, importantly, everything it could not satisfy and why. Report the unmet list to the user rather than implying the day is finished.",
+      input_schema: {
+        type: 'object',
+        properties: {
+          groups: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Group names to redraft. Omit for every group.',
+          },
+          slots: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Slot start times to fill, e.g. ["09:00","11:00"]. Omit for all four.',
+          },
+          only_activities: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Restrict the day to these activity names.',
+          },
+          avoid_activities: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Activity names not to schedule, e.g. after a weather call.',
+          },
+          require_per_group: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Activity names every group must get once, if it fits.',
+          },
+          no_repeat_per_group: {
+            type: 'boolean',
+            description: 'Default true. A group does not do the same activity twice in a day.',
+          },
+          max_off_site_per_group: {
+            type: 'number',
+            description: 'Default 1. Set 0 to keep the whole day on site.',
+          },
+          keep_manual: {
+            type: 'boolean',
+            description: 'Default true. Sessions a person edited by hand are left alone.',
+          },
+        },
+      },
+      run: (i: {
+        groups?: string[];
+        slots?: string[];
+        only_activities?: string[];
+        avoid_activities?: string[];
+        require_per_group?: string[];
+        no_repeat_per_group?: boolean;
+        max_off_site_per_group?: number;
+        keep_manual?: boolean;
+      }) => {
+        const byName = (names?: string[]) =>
+          names
+            ?.map(
+              (n) =>
+                ACTIVITIES.find(
+                  (a) => a.name.toLowerCase() === n.toLowerCase().trim(),
+                )?.id,
+            )
+            .filter((x): x is string => Boolean(x));
+
+        const spec: Spec = {
+          day: TODAY_ISO,
+          groupIds: i.groups
+            ?.map(
+              (n) =>
+                GROUPS.find((g) => g.name.toLowerCase() === n.toLowerCase().trim())?.id,
+            )
+            .filter((x): x is string => Boolean(x)),
+          slotStarts: i.slots,
+          onlyActivities: byName(i.only_activities),
+          avoidActivities: byName(i.avoid_activities),
+          requirePerGroup: byName(i.require_per_group),
+          noRepeatPerGroup: i.no_repeat_per_group ?? true,
+          maxOffSitePerGroup: i.max_off_site_per_group ?? 1,
+          keepManual: i.keep_manual ?? true,
+        };
+        const d = generate(spec, live.current);
+        setSessions(() => d.sessions);
+        setApproved(false);
+        note(`Redrafted the day — ${d.made} made, ${d.replaced} replaced.`);
+        return {
+          made: d.made,
+          replaced: d.replaced,
+          kept_hand_edited: d.keptManual,
+          untouched_outside_the_request: d.outOfScope,
+          could_not_do: d.unmet,
+          notes: d.notes,
+          approved: false,
+        };
+      },
+    },
+    {
       name: 'move_session',
       description: 'Move one session to a different start time on the same day.',
       input_schema: {
@@ -210,12 +310,46 @@ export function Timetable() {
     },
   ];
 
+  /* Drafting the day from a written instruction. The same builder serves the
+     model's tool and the keyless path, so a demo without an API key can still
+     generate a timetable rather than only describe one. */
+  function draft(spec: Spec, parsed?: ReturnType<typeof parseSpec>) {
+    const d = generate(spec, live.current);
+    setSessions(() => d.sessions);
+    setApproved(false);
+    note(
+      `Redrafted — ${d.made} sessions made, ${d.replaced} replaced, ` +
+        `${d.unmet.length} left unresolved.`,
+    );
+    return report(d, parsed);
+  }
+
+  function localTimetableCommand(q: string) {
+    const t = q.toLowerCase();
+    const asking =
+      /\b(generate|draft|redraft|rebuild|build|create|make|plan|schedule|redo|fill|sort out)\b/.test(
+        t,
+      );
+    /* "Rebuild Kestrel from scratch" never says "timetable". A named group, or
+       "from scratch", is the same instruction. */
+    const aboutTheDay =
+      /\b(timetable|day|rota|schedule|sessions?|slots?|from scratch)\b/.test(t) ||
+      GROUPS.some((g) => t.includes(g.name.toLowerCase()));
+    if (!asking || !aboutTheDay) return null;
+    const parsed = parseSpec(q, TODAY_ISO);
+    return { text: draft(parsed.spec, parsed), source: 'the rota builder' };
+  }
+
   const sel = sessions.find((s) => s.id === selected) ?? null;
+  const guideSession = sessions.find((s) => s.id === guide) ?? null;
 
   return (
     <>
       {openStaff && (
         <StaffProfile id={openStaff} onClose={() => setOpenStaff(null)} />
+      )}
+      {guideSession && (
+        <ActivityGuide session={guideSession} onClose={() => setGuide(null)} />
       )}
 
       <SectionHead title="Timetable" count={fmtDateLong(DEMO_TODAY.toISOString())}>
@@ -281,31 +415,78 @@ export function Timetable() {
                       const a = activityById(s.activityId);
                       const v = checkRatio(s);
                       const dead = s.status === 'cancelled';
+                      /* Who is actually on it. The rota is only useful to the
+                         person reading it if it names them. */
+                      const crew = s.staffIds
+                        .map((id) => STAFF.find((x) => x.id === id))
+                        .filter((x): x is (typeof STAFF)[number] => Boolean(x));
                       return (
-                        <button
+                        <div
                           key={s.id}
                           className={`sess${dead ? ' sess--dead' : ''}${
                             selected === s.id ? ' sess--on' : ''
                           }`}
-                          onClick={() => setSelected(selected === s.id ? null : s.id)}
                         >
-                          <span className="sess__name">{a.name}</span>
-                          <span className="sess__where meta">{a.location}</span>
-                          {dead ? (
-                            <span className="mark mark--idle">Cancelled</span>
-                          ) : (
-                            <span
-                              className={`mark ${v.compliant ? 'mark--clear' : 'mark--critical'}`}
-                            >
-                              {v.assigned}/{v.required} staff
-                            </span>
-                          )}
-                          {s.status === 'reslotted' && (
-                            <span className="meta num" style={{ color: 'var(--info)' }}>
-                              Re-slotted from {s.reslotFrom}
-                            </span>
-                          )}
-                        </button>
+                          <button
+                            className="sess__open"
+                            onClick={() => setGuide(s.id)}
+                            title={`Open the ${a.name} guide`}
+                          >
+                            <span className="sess__name">{a.name}</span>
+                            <span className="sess__where meta">{a.location}</span>
+                            {dead ? (
+                              <span className="mark mark--idle">Cancelled</span>
+                            ) : (
+                              <span
+                                className={`mark ${v.compliant ? 'mark--clear' : 'mark--critical'}`}
+                              >
+                                {v.assigned}/{v.required} staff
+                              </span>
+                            )}
+                            {!dead && (
+                              <span className="sess__crew">
+                                {crew.length === 0 ? (
+                                  <span className="meta sess__nobody">
+                                    Nobody assigned
+                                  </span>
+                                ) : (
+                                  crew.map((c) => {
+                                    const bad =
+                                      c.dbs.state !== 'cleared' || isAway(c, s.day);
+                                    return (
+                                      <span
+                                        key={c.id}
+                                        className={`sess__who${bad ? ' sess__who--bad' : ''}`}
+                                      >
+                                        {c.forename} {c.surname[0]}
+                                        {a.requiresQual &&
+                                        c.quals.includes(a.requiresQual)
+                                          ? ' ·'
+                                          : ''}
+                                      </span>
+                                    );
+                                  })
+                                )}
+                              </span>
+                            )}
+                            {s.status === 'reslotted' && (
+                              <span className="meta num" style={{ color: 'var(--info)' }}>
+                                Re-slotted from {s.reslotFrom}
+                              </span>
+                            )}
+                          </button>
+
+                          <button
+                            className="sess__edit"
+                            onClick={() =>
+                              setSelected(selected === s.id ? null : s.id)
+                            }
+                            aria-pressed={selected === s.id}
+                            title="Change the slot or the staffing"
+                          >
+                            edit
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -455,20 +636,25 @@ export function Timetable() {
 
 Always call read_timetable before you change anything, and call list_options when you need valid slots, staff or activities. Use session ids exactly as read_timetable gives them.
 
+To build a whole day, call generate_timetable with the specifications the user gave — which groups, which slots, what to avoid, what every group must get, how much can be off site. It returns a could_not_do list: always report that list. A day with unmet constraints is not a finished day, and saying so is the point.
+
 Rules you must respect:
 - Never assign a staff member whose DBS is not "cleared".
 - An activity with a requiresQual needs a staff member holding that qualification.
+- Never assign somebody who is away that day, and never book one person into two groups in the same slot.
 - Cancelling re-slots that one group only. Never move other groups.
 - You draft; a human approves. Say plainly what you changed and what still needs a person's decision.
 Keep replies to a few short sentences. Use British English.`}
             tools={tools}
-            greeting="Tell me how the day should change — move a session, cover a shortage, or cancel for weather."
-            placeholder="e.g. Kayaking is off, wind. Sort Harrier out."
+            greeting="Ask me to draft the day, with whatever the centre needs — no kayaking, English for every group, nothing off site. I build it and tell you what I could not do."
+            placeholder="e.g. Redraft the day, no kayaking, English for every group"
             suggestions={[
+              'Generate the timetable with no off-site sessions',
+              'Redraft the day — no kayaking, and English for every group',
+              'Rebuild Kestrel’s day, mornings only',
               'Which sessions are below ratio, and who could cover?',
-              'Kayaking is cancelled for wind — re-slot Harrier.',
-              'Move Peregrine’s English lesson to the morning.',
             ]}
+            localCommands={localTimetableCommand}
           />
 
           {log.length > 0 && (

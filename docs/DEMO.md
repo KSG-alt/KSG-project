@@ -18,6 +18,15 @@ build, not a slideshow of it.
 - Edit a reminder, complete it, delete it. Draft a chase and watch it land in
   the outbox as queued, not sent.
 - Cancel a timetable session and watch only the affected group re-slot.
+- Click any session on the timetable for its activity guide: how to run it
+  step by step, who is on it today with their phone numbers, the group roll
+  with anything outstanding flagged, the booking and its receipt, and the
+  hazards, stop conditions and emergency contacts.
+- Ask the timetable chat to draft the day — "no kayaking, and English for
+  every group", "nothing off site", "rebuild Kestrel, mornings only". It
+  builds it against cleared DBS, qualifications, availability, venue clashes
+  and the working-time limit, then tells you everything it could not do. This
+  works without an API key.
 - Try to confirm a booking with no receipt and be blocked.
 - Match a payment that arrived with no reference, and watch the student's
   balance and the audit trail both move.

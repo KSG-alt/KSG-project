@@ -951,25 +951,95 @@ p.mark::before {
 }
 
 .sess {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  position: relative;
   width: 100%;
-  padding: 10px 11px;
   background: var(--white);
-  border: none;
   border-radius: var(--r-sm);
   box-shadow: var(--edge), inset 2px 0 0 var(--rule-strong);
   color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background 160ms var(--ease), border-color 160ms var(--ease);
+  transition: background 160ms var(--ease), box-shadow 160ms var(--ease);
 }
 
 .sess:hover {
   background: var(--surface-2);
   box-shadow: var(--edge-strong), inset 2px 0 0 var(--ink-2);
+}
+
+/* The card opens the guide; a small control beside it opens the editor. Two
+   different jobs, so two different targets rather than one button that has to
+   guess which the leader meant. */
+.sess__open {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 10px 46px 10px 11px;
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sess__edit {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 3px 8px;
+  background: var(--surface-1);
+  border: none;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  font: inherit;
+  font-size: var(--t-xs);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms var(--ease-ui), background 150ms var(--ease-ui),
+    color 150ms var(--ease-ui);
+}
+
+.sess:hover .sess__edit,
+.sess__edit:focus-visible,
+.sess--on .sess__edit {
+  opacity: 1;
+}
+
+.sess__edit:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Who is on it. Truncating a name is worse than wrapping the card, so the
+   names wrap. */
+.sess__crew {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+  margin-top: 2px;
+  padding-top: 5px;
+  border-top: 1px solid var(--rule);
+  width: 100%;
+}
+
+.sess__who {
+  color: var(--ink-2);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.sess__who--bad {
+  color: var(--oxide);
+  text-decoration: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: rgba(192, 52, 26, 0.5);
+  text-underline-offset: 3px;
+}
+
+.sess__nobody {
+  color: var(--oxide);
 }
 
 .sess--on {
@@ -3301,4 +3371,101 @@ p.mark::before {
 .reg td.num,
 .reg th.num {
   white-space: nowrap;
+}
+
+
+/* ── Activity guide ────────────────────────────────────────────────────── */
+
+.guide__lede {
+  margin: 0 0 22px;
+  font-size: var(--t-md);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.steps {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  counter-reset: step;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  line-height: 1.55;
+}
+
+.steps__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+  box-shadow: var(--edge-strong);
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+}
+
+/* Stop conditions read as stop conditions. */
+.log--stop li {
+  border-left-color: var(--oxide);
+  color: var(--ink);
+}
+
+.crew {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.crew__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  background: var(--paper);
+}
+
+.crew__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.crew__role,
+.crew__phone {
+  color: var(--ink-3);
+}
+
+.crew__marks {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .crew__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .crew__marks {
+    justify-content: flex-start;
+  }
+  .sess__edit {
+    opacity: 1;
+  }
 }

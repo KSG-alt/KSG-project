@@ -23,6 +23,7 @@ export function Chat({
   onApplied,
   variant = 'panel',
   opener,
+  localCommands,
 }: {
   system: string;
   tools: ToolSpec[];
@@ -32,6 +33,9 @@ export function Chat({
   onApplied?: () => void;
   variant?: 'panel' | 'full';
   opener?: string;
+  /* Things this surface can do without a model. Tried before the read-only
+     answers, so the keyless demo can act and not only report. */
+  localCommands?: (q: string) => { text: string; source: string } | null;
 }) {
   const { sessions, students, staff, payments, incidents, reminders } = useStore();
   const [keyed, setKeyed] = useState(hasKey());
@@ -73,6 +77,15 @@ export function Chat({
     /* No key: answer from the records on this device. Same data the live
        assistant reads through its tools, without a model in the loop. */
     if (!keyed) {
+      const done = localCommands?.(clean);
+      if (done) {
+        setTurns((t) => [
+          ...t,
+          { who: 'kadia', text: done.text, tools: [done.source], local: true },
+        ]);
+        onApplied?.();
+        return;
+      }
       const local = answerLocally(clean, {
         sessions, students, staff, payments, incidents, reminders,
       });
