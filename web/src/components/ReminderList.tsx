@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { IconArrow, IconCheck, IconClose, IconEdit } from '../lib/icons';
+import { Compose } from './Compose';
+import { IconArrow, IconCheck, IconClose, IconEdit, IconSend } from '../lib/icons';
 import {
   SEVERITY_COPY, dueLabel, escalationLabel, needsEscalation, type Channel,
   type Reminder,
@@ -9,6 +10,9 @@ import type { Route } from '../App';
 
 const ROUTE_LABEL: Record<Route, string> = {
   home: 'Home',
+  finance: 'Payments',
+  incidents: 'Incidents',
+  setup: 'Centre setup',
   students: 'Students',
   arrivals: 'New arrivals',
   rooms: 'Room allocations',
@@ -34,6 +38,7 @@ function Task({
   const [action, setAction] = useState(r.action);
   const [due, setDue] = useState(r.due);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [composing, setComposing] = useState(false);
 
   const dirty = title !== r.title || action !== r.action || due !== r.due;
   const invalid = title.trim().length === 0;
@@ -109,10 +114,22 @@ function Task({
           </ol>
         )}
 
+        {composing ? (
+          <Compose r={r} onClose={() => setComposing(false)} />
+        ) : (
         <div className="task__chaseactions">
+          <button className="btn btn--primary" onClick={() => setComposing(true)}>
+            <IconSend />
+            Write the chase
+          </button>
           {(['email', 'WhatsApp', 'phone'] as Channel[]).map((c) => (
-            <button key={c} className="btn" onClick={() => chase(r.id, c)}>
-              Chase by {c}
+            <button
+              key={c}
+              className="btn"
+              onClick={() => chase(r.id, c)}
+              title={`Log a ${c} chase you have already made, without drafting one`}
+            >
+              Log {c}
             </button>
           ))}
           {!r.escalated && (
@@ -125,6 +142,7 @@ function Task({
             </button>
           )}
         </div>
+        )}
       </div>
 
       <div className="task__actions">

@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
+import { StudentProfile } from '../components/StudentProfile';
+import { useStore } from '../lib/store';
 import {
-  DEMO_TODAY, SEASON_END, SEASON_START, STUDENTS, fmtDate, groupById,
-  isOnSite, nights, type DocState, type Student,
+  DEMO_TODAY, SEASON_END, SEASON_START, fmtDate, groupById,
+  isOnSite, nights, roomLabel, type DocState, type Student,
 } from '../data/seed';
 
 type Filter = 'onsite' | 'arriving' | 'leaving' | 'all';
@@ -55,6 +57,7 @@ function DocMark({ s }: { s: Student }) {
 }
 
 export function Students() {
+  const { students: STUDENTS, reminders } = useStore();
   const [filter, setFilter] = useState<Filter>('onsite');
   const [q, setQ] = useState('');
   const [open, setOpen] = useState<string | null>(null);
@@ -74,7 +77,7 @@ export function Students() {
         return isOnSite(s) && new Date(s.leaving) <= soon;
       return true;
     }).sort((a, b) => a.arrival.localeCompare(b.arrival) || a.surname.localeCompare(b.surname));
-  }, [filter, q]);
+  }, [filter, q, STUDENTS]);
 
   const tabs: { id: Filter; label: string }[] = [
     { id: 'onsite', label: 'On site now' },
@@ -85,7 +88,12 @@ export function Students() {
 
   return (
     <>
-      <SectionHead title="Students" count={`${rows.length} shown · ${STUDENTS.length} in season`}>
+      <SectionHead
+        title="Students"
+        count={`${rows.length} shown · ${STUDENTS.length} in season · ${
+          reminders.filter((r) => !r.done && r.route === 'students').length
+        } outstanding against a student`}
+      >
         <input
           className="field"
           style={{ width: 210 }}
@@ -95,6 +103,13 @@ export function Students() {
           aria-label="Search students"
         />
       </SectionHead>
+
+      <p className="meta section__lede">
+        Open any name for the whole record — stay, room, guardian, their week on
+        the rota, money, and everything logged against them.
+      </p>
+
+      {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
 
       <div className="tabs" role="tablist" aria-label="Student view">
         {tabs.map((t) => (
@@ -127,7 +142,9 @@ export function Students() {
               <th>Leaving</th>
               <th>Nights</th>
               <th style={{ width: '16%' }}>Stay</th>
+              <th>Room</th>
               <th>Documents</th>
+              <th />
             </tr>
           </thead>
           <tbody className="stagger">
@@ -135,13 +152,11 @@ export function Students() {
               <tr
                 key={s.id}
                 style={{ animationDelay: `${Math.min(i * 12, 260)}ms` }}
-                onClick={() => setOpen(open === s.id ? null : s.id)}
-                aria-expanded={open === s.id}
               >
                 <td>
-                  <span style={{ fontWeight: 500 }}>
+                  <button className="namebtn" onClick={() => setOpen(s.id)}>
                     {s.forename} {s.surname}
-                  </span>
+                  </button>
                   <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                     {s.country}
                   </span>
@@ -152,7 +167,17 @@ export function Students() {
                 <td className="num">{fmtDate(s.leaving)}</td>
                 <td className="num" style={{ color: 'var(--ink-2)' }}>{nights(s)}</td>
                 <td><StayBar s={s} /></td>
+                <td className="meta">
+                  {s.roomId ? roomLabel(s.roomId) : (
+                    <span className="mark mark--overdue">None</span>
+                  )}
+                </td>
                 <td><DocMark s={s} /></td>
+                <td style={{ textAlign: 'right' }}>
+                  <button className="btn" onClick={() => setOpen(s.id)}>
+                    Open
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

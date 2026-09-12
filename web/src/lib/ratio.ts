@@ -6,7 +6,7 @@
    See docs/interface-contract.md §2.
    ──────────────────────────────────────────────────────────────────────── */
 
-import { GROUPS, STAFF, STUDENTS, activityById, type Session } from '../data/seed';
+import { GROUPS, STAFF, STUDENTS, activityById, isAway, type Session } from '../data/seed';
 
 export interface RatioVerdict {
   compliant: boolean;
@@ -37,6 +37,15 @@ export function checkRatio(session: Session): RatioVerdict {
   uncleared.forEach((s) => {
     reasons.push(`${s.forename} ${s.surname} — DBS ${s.dbs.state}`);
   });
+
+  /* Somebody who has told the centre they are away is not cover, however
+     cleared they are. The draft was generated before they said so. */
+  session.staffIds
+    .map((id) => STAFF.find((s) => s.id === id)!)
+    .filter((s) => s && isAway(s, session.day))
+    .forEach((s) => {
+      reasons.push(`${s.forename} ${s.surname} is away on this day`);
+    });
 
   /* One qualified instructor is enough; the rest are cleared cover. */
   const activity = activityById(session.activityId);

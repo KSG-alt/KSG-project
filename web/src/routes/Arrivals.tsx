@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { ReadinessMark } from '../components/StudentReadiness';
+import { StudentProfile } from '../components/StudentProfile';
 import {
   daysFromToday, fmtDate, groupByArrival, groupById, readiness, roomLabel,
   upcomingArrivals, whenLabel,
@@ -11,6 +12,7 @@ type Window = 0 | 7 | -1;
 export function Arrivals() {
   const [win, setWin] = useState<Window>(7);
   const [q, setQ] = useState('');
+  const [open, setOpen] = useState<string | null>(null);
 
   const all = useMemo(() => upcomingArrivals(), []);
 
@@ -71,6 +73,8 @@ export function Arrivals() {
         ))}
       </div>
 
+      {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
+
       {blocked.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 22 }}>
           {blocked.length} of {rows.length} arriving in this window cannot be
@@ -121,9 +125,9 @@ export function Arrivals() {
                     {list.map((s) => (
                       <tr key={s.id}>
                         <td>
-                          <span style={{ fontWeight: 600 }}>
+                          <button className="namebtn" onClick={() => setOpen(s.id)}>
                             {s.forename} {s.surname}
-                          </span>
+                          </button>
                           <span
                             className="meta"
                             style={{ display: 'block', color: 'var(--ink-3)' }}

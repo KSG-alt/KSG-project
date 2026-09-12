@@ -176,3 +176,32 @@ export function IconAudit() {
     </svg>
   );
 }
+
+export function IconFinance() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+      <path d="M3 7.5h18v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z" />
+      <path d="M3 7.5 6.2 4h11.6L21 7.5" />
+      <path d="M9.5 12.2h5M9.5 15.2h5M12 10.6v6.2" />
+    </svg>
+  );
+}
+
+export function IconIncidents() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+      <path d="M12 3.4 2.9 19.2a1.2 1.2 0 0 0 1 1.8h16.2a1.2 1.2 0 0 0 1-1.8z" />
+      <path d="M12 9.4v4.4" strokeLinecap="round" />
+      <path d="M12 17.2h.01" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconSetup() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden="true">
+      <circle cx="12" cy="12" r="3.1" />
+      <path d="M12 2.6v3M12 18.4v3M2.6 12h3M18.4 12h3M5.4 5.4l2.1 2.1M16.5 16.5l2.1 2.1M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1" strokeLinecap="round" />
+    </svg>
+  );
+}

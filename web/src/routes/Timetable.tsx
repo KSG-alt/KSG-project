@@ -2,12 +2,13 @@ import { useMemo, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import { SectionHead } from '../components/SectionHead';
 import { Chat } from '../components/Chat';
+import { StaffProfile } from '../components/StaffProfile';
 import { IconClose } from '../lib/icons';
 import { checkRatio } from '../lib/ratio';
 import type { ToolSpec } from '../lib/anthropic';
 import {
   ACTIVITIES, DEMO_TODAY, GROUPS, SESSIONS, SLOTS, STAFF, activityById,
-  fmtDateLong, groupById, staffById, type Session,
+  fmtDateLong, groupById, isAway, staffById, type Session,
 } from '../data/seed';
 
 const TODAY_ISO = `${DEMO_TODAY.getFullYear()}-${String(
@@ -23,6 +24,7 @@ const CANCEL_REASONS = [
 
 export function Timetable() {
   const { sessions: allSessions, updateSessions } = useStore();
+  const [openStaff, setOpenStaff] = useState<string | null>(null);
   /* One day on screen; the rota underneath runs the whole week. */
   const sessions = useMemo(
     () => allSessions.filter((s) => s.day === TODAY_ISO),
@@ -212,6 +214,10 @@ export function Timetable() {
 
   return (
     <>
+      {openStaff && (
+        <StaffProfile id={openStaff} onClose={() => setOpenStaff(null)} />
+      )}
+
       <SectionHead title="Timetable" count={fmtDateLong(DEMO_TODAY.toISOString())}>
         <span className={`mark ${approved ? 'mark--clear' : 'mark--current'}`}>
           {approved ? 'Approved by Ismail' : `${drafted} sessions drafted, not approved`}
@@ -392,8 +398,22 @@ export function Timetable() {
                         <span>
                           {s.forename} {s.surname}
                         </span>
+                        <button
+                          type="button"
+                          className="btn btn--quiet check__open"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setOpenStaff(s.id);
+                          }}
+                          aria-label={`Open ${s.forename} ${s.surname}'s record`}
+                        >
+                          open
+                        </button>
                         {!cleared && (
                           <span className="mark mark--critical">DBS {s.dbs.state}</span>
+                        )}
+                        {isAway(s, sel.day) && (
+                          <span className="mark mark--critical">away this day</span>
                         )}
                       </label>
                     );

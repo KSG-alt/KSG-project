@@ -1,171 +1,27 @@
 import { useMemo, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
-import { IconClose } from '../lib/icons';
 import { ReadinessMark } from '../components/StudentReadiness';
+import { StudentProfile } from '../components/StudentProfile';
+import { StaffProfile } from '../components/StaffProfile';
+import { useStore } from '../lib/store';
 import {
-  ROOMS, STUDENTS, fmtDate, fmtDateLong, fmtMoney, groupById,
-  isOnSite, nights, occupants, roomById, roomLabel, upcomingArrivals,
-  wardenFor, whenLabel, type Student,
+  ROOMS, STUDENTS, fmtDate, groupById, occupants, roomLabel, upcomingArrivals,
+  wardenFor, whenLabel,
 } from '../data/seed';
 
 type View = 'rooms' | 'students' | 'unallocated' | 'arrivals';
 
-function DocLine({ s }: { s: Student }) {
-  const late = (Object.entries(s.docs) as [string, string][]).filter(
-    ([, v]) => v !== 'in',
-  );
-  if (!late.length) return <span className="mark mark--clear">All documents in</span>;
-  return (
-    <span className={`mark ${late.some(([, v]) => v === 'overdue') ? 'mark--critical' : 'mark--overdue'}`}>
-      {late.map(([k]) => k).join(', ')} outstanding
-    </span>
-  );
-}
-
-function Detail({ s, onClose }: { s: Student; onClose: () => void }) {
-  const room = roomById(s.roomId);
-  const mates = s.roomId
-    ? occupants(s.roomId).filter((o) => o.id !== s.id)
-    : [];
-  const warden = room ? wardenFor(room) : null;
-  const g = s.guardian;
-  const owed = s.balancePence - s.paidPence;
-
-  return (
-    <div className="detail">
-      <div className="detail__head">
-        <div>
-          <h3 className="detail__name">
-            {s.forename} {s.surname}
-          </h3>
-          <p className="meta detail__sub">
-            {s.age} · {s.band} · {groupById(s.groupId).name} · {s.country}
-            {isOnSite(s) ? ' · on site' : ' · not yet arrived'}
-          </p>
-        </div>
-        <button className="btn btn--quiet" onClick={onClose} aria-label="Close details">
-          <IconClose />
-        </button>
-      </div>
-
-      <div className="detail__grid">
-        <section className="detail__col">
-          <p className="label">Residence</p>
-          <dl className="pairs">
-            <dt>Room</dt>
-            <dd>{roomLabel(s.roomId)}</dd>
-            <dt>Floor</dt>
-            <dd>{room ? room.floor : '—'}</dd>
-            <dt>Bed</dt>
-            <dd>{s.bed || '—'}</dd>
-            <dt>Warden</dt>
-            <dd>
-              {warden ? `${warden.forename} ${warden.surname}` : 'Not assigned'}
-            </dd>
-            <dt>Sharing with</dt>
-            <dd>
-              {mates.length
-                ? mates.map((m) => `${m.forename} ${m.surname}`).join(', ')
-                : 'Sole occupant'}
-            </dd>
-          </dl>
-
-          <p className="label">Stay</p>
-          <dl className="pairs">
-            <dt>Arrives</dt>
-            <dd>{fmtDateLong(s.arrival)}</dd>
-            <dt>Leaves</dt>
-            <dd>{fmtDateLong(s.leaving)}</dd>
-            <dt>Nights</dt>
-            <dd>{nights(s)}</dd>
-            <dt>Date of birth</dt>
-            <dd>{fmtDateLong(s.dob)}</dd>
-          </dl>
-        </section>
-
-        <section className="detail__col">
-          <p className="label">Parent or guardian</p>
-          <dl className="pairs">
-            <dt>Name</dt>
-            <dd>
-              {g.name}
-              <span className="meta"> · {g.relationship}</span>
-            </dd>
-            <dt>Phone</dt>
-            <dd>{g.phone}</dd>
-            <dt>Alternate</dt>
-            <dd>{g.altPhone}</dd>
-            <dt>Email</dt>
-            <dd className="pairs__wrap">{g.email}</dd>
-            <dt>Address</dt>
-            <dd className="pairs__wrap">{g.address}</dd>
-            <dt>Language</dt>
-            <dd>
-              {g.language}
-              {g.language !== 'English' && (
-                <span className="meta"> · send reminders in plain English</span>
-              )}
-            </dd>
-          </dl>
-
-          <p className="label">Emergency contact</p>
-          <dl className="pairs">
-            <dt>Name</dt>
-            <dd>{g.emergencyName}</dd>
-            <dt>Phone</dt>
-            <dd>{g.emergencyPhone}</dd>
-          </dl>
-        </section>
-
-        <section className="detail__col">
-          <p className="label">Welfare</p>
-          <dl className="pairs">
-            <dt>Dietary</dt>
-            <dd>{s.dietary ?? 'None recorded'}</dd>
-            <dt>Medical</dt>
-            <dd>{s.medical ?? 'None recorded'}</dd>
-            <dt>Off-site travel</dt>
-            <dd>
-              {g.consentToTravel ? (
-                <span className="mark mark--clear">Consented</span>
-              ) : (
-                <span className="mark mark--critical">No consent on file</span>
-              )}
-            </dd>
-          </dl>
-
-          <p className="label">Documents and payment</p>
-          <dl className="pairs">
-            <dt>Documents</dt>
-            <dd>
-              <DocLine s={s} />
-            </dd>
-            <dt>Invoiced</dt>
-            <dd>{fmtMoney(s.balancePence)}</dd>
-            <dt>Outstanding</dt>
-            <dd>
-              {owed > 0 ? (
-                <span className="mark mark--overdue">{fmtMoney(owed)}</span>
-              ) : (
-                <span className="mark mark--clear">Paid in full</span>
-              )}
-            </dd>
-          </dl>
-        </section>
-      </div>
-    </div>
-  );
-}
-
 export function Rooms() {
+  const { students } = useStore();
   const [view, setView] = useState<View>('rooms');
+  const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [openStudent, setOpenStudent] = useState<string | null>(null);
   const [openRoom, setOpenRoom] = useState<string | null>(null);
 
   const unallocated = useMemo(
-    () => STUDENTS.filter((s) => !s.roomId),
-    [],
+    () => students.filter((s) => !s.roomId),
+    [students],
   );
 
   /* The arrivals the residence has to have beds ready for. */
@@ -189,9 +45,7 @@ export function Rooms() {
   );
 
   const studentRows = STUDENTS.filter(matches);
-  const detail = openStudent
-    ? STUDENTS.find((s) => s.id === openStudent) ?? null
-    : null;
+
 
   const tabs: { id: View; label: string }[] = [
     { id: 'rooms', label: `By room ${used.length}` },
@@ -237,7 +91,12 @@ export function Rooms() {
         ))}
       </div>
 
-      {detail && <Detail s={detail} onClose={() => setOpenStudent(null)} />}
+      {openStudent && (
+        <StudentProfile id={openStudent} onClose={() => setOpenStudent(null)} />
+      )}
+      {openStaff && (
+        <StaffProfile id={openStaff} onClose={() => setOpenStaff(null)} />
+      )}
 
       {view === 'rooms' && (
         <div className="rooms stagger">
@@ -290,7 +149,13 @@ export function Rooms() {
                 {isOpen && (
                   <p className="meta room__warden">
                     Floor warden:{' '}
-                    {warden ? `${warden.forename} ${warden.surname}` : 'Not assigned'}
+                    {warden ? (
+                      <button className="namebtn" onClick={() => setOpenStaff(warden.id)}>
+                        {warden.forename} {warden.surname}
+                      </button>
+                    ) : (
+                      'Not assigned'
+                    )}
                   </p>
                 )}
               </div>
@@ -328,9 +193,9 @@ export function Rooms() {
                 return (
                   <tr key={s.id} style={{ animationDelay: `${Math.min(i * 12, 240)}ms` }}>
                     <td>
-                      <span style={{ fontWeight: 600 }}>
+                      <button className="namebtn" onClick={() => setOpenStudent(s.id)}>
                         {s.forename} {s.surname}
-                      </span>
+                      </button>
                       <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                         {s.country}
                       </span>
@@ -387,9 +252,9 @@ export function Rooms() {
                 .map((s, i) => (
                   <tr key={s.id} style={{ animationDelay: `${Math.min(i * 12, 240)}ms` }}>
                     <td>
-                      <span style={{ fontWeight: 600 }}>
+                      <button className="namebtn" onClick={() => setOpenStudent(s.id)}>
                         {s.forename} {s.surname}
-                      </span>
+                      </button>
                       <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
                         {s.country}
                       </span>

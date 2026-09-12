@@ -10,16 +10,33 @@ build, not a slideshow of it.
 
 - Read the day's outstanding work on the home screen, safeguarding first.
 - Open the menu and move through Reminders, Students, New arrivals, Room
-  allocations, Staff, Timetable, Bookings and Kadia.
-- Open any student for their full record and their parent or guardian's
-  contact details.
-- Edit a reminder, complete it, delete it.
+  allocations, Staff, Timetable, Bookings, Payments, Incidents, the Audit
+  trail, Centre setup and Ask Kadia.
+- Open any student or staff member, from any screen that names them, for the
+  whole record — stay, room, guardian, their week on the rota, money, DBS,
+  availability, incidents and audit entries.
+- Edit a reminder, complete it, delete it. Draft a chase and watch it land in
+  the outbox as queued, not sent.
 - Cancel a timetable session and watch only the affected group re-slot.
 - Try to confirm a booking with no receipt and be blocked.
+- Match a payment that arrived with no reference, and watch the student's
+  balance and the audit trail both move.
+- Record an incident, and find you cannot close it until the safeguarding lead
+  has been told.
+- Change the ratio for an age band in Centre setup and watch the timetable's
+  compliance verdict change with it. Change the escalation thresholds and watch
+  the reminder queue re-rank.
+- Switch to Activity staff in Centre setup: sections disappear from the menu,
+  and dietary and medical notes stop being shown.
+- Paste a spreadsheet into the importer — or use the sample — and get a row-by
+  -row report of what would land and what would fail, before anything is
+  written.
 
-Two things need the viewer's own Anthropic API key, entered in the panel and
-held only in their browser: the timetable chat and the Kadia assistant. Without
-a key the rest of the demo is unaffected — the panels simply ask for one.
+**Ask Kadia works without an API key.** It answers from the same records the
+live assistant reads through its tools, on about fifteen topics, and declines
+anything outside them rather than guessing. A key switches it to open
+conversation, is entered in the panel, and is held only in that browser. The
+timetable chat still needs a key to edit the rota by conversation.
 
 ## What it is not
 
@@ -30,6 +47,11 @@ no benchmark. Do not describe it as anything else.
 The blocked-arrival and outstanding-document counts come from the seed's
 generated rates. They demonstrate that the checks work; they are not a claim
 about what a real centre's numbers look like.
+
+Three things are deliberately shown as unbuilt rather than faked: the Google
+connection, sending a queued chase, and writing an imported spreadsheet to the
+roll. Each says so on the screen. The ratio verdict is a stand-in for the rota
+engine David owns, and `web/src/lib/ratio.ts` says so at the top.
 
 ## Regenerating it
 

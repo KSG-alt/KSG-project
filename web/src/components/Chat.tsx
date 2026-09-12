@@ -11,6 +11,9 @@ interface Turn {
   local?: boolean;
 }
 
+/* `full` is the Ask Kadia page: one centred column, the conversation carrying
+   the surface and the composer holding the bottom. `panel` is the same engine
+   inside the timetable's sidebar, where it is a tool beside a task. */
 export function Chat({
   system,
   tools,
@@ -18,6 +21,8 @@ export function Chat({
   placeholder,
   suggestions = [],
   onApplied,
+  variant = 'panel',
+  opener,
 }: {
   system: string;
   tools: ToolSpec[];
@@ -25,8 +30,10 @@ export function Chat({
   placeholder: string;
   suggestions?: string[];
   onApplied?: () => void;
+  variant?: 'panel' | 'full';
+  opener?: string;
 }) {
-  const { sessions } = useStore();
+  const { sessions, students, staff, payments, incidents, reminders } = useStore();
   const [keyed, setKeyed] = useState(hasKey());
   const [showKeyEntry, setShowKeyEntry] = useState(false);
   const [draftKey, setDraftKey] = useState('');
@@ -36,10 +43,25 @@ export function Chat({
   const [error, setError] = useState<string | null>(null);
   const history = useRef<Msg[]>([]);
   const scroller = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+
+  const full = variant === 'full';
+  const started = turns.length > 0;
 
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
+    scroller.current?.scrollTo({
+      top: scroller.current.scrollHeight,
+      behavior: 'smooth',
+    });
   }, [turns, busy]);
+
+  /* Grow with the message rather than scrolling a two-line box. */
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 190)}px`;
+  }, [input]);
 
   async function send(text: string) {
     const clean = text.trim();
@@ -51,7 +73,9 @@ export function Chat({
     /* No key: answer from the records on this device. Same data the live
        assistant reads through its tools, without a model in the loop. */
     if (!keyed) {
-      const local = answerLocally(clean, sessions);
+      const local = answerLocally(clean, {
+        sessions, students, staff, payments, incidents, reminders,
+      });
       setTurns((t) => [
         ...t,
         local
@@ -85,144 +109,215 @@ export function Chat({
     }
   }
 
-  if (!keyed && showKeyEntry) {
-    return (
-      <div className="chat">
-        <div className="chat__gate">
-          <p className="label" style={{ marginBottom: 12 }}>API key needed</p>
-          <p className="meta" style={{ margin: '0 0 16px', maxWidth: '62ch' }}>
-            This panel calls the Anthropic API straight from the browser. The key
-            is held in this browser&rsquo;s <code>localStorage</code> only — it is
-            never written into the repository and never sent anywhere but
-            api.anthropic.com.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <input
-              className="field"
-              style={{ maxWidth: 340 }}
-              type="password"
-              placeholder="sk-ant-..."
-              value={draftKey}
-              onChange={(e) => setDraftKey(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && draftKey.trim()) {
-                  setKey(draftKey);
-                  setKeyed(true);
-                }
-              }}
-            />
+  const keyForm = (
+    <div className="keygate">
+      <p className="label" style={{ marginBottom: 12 }}>API key</p>
+      <p className="meta" style={{ margin: '0 0 16px', maxWidth: '62ch' }}>
+        This panel calls the Anthropic API straight from the browser. The key is
+        held in this browser&rsquo;s <code>localStorage</code> only — never
+        written into the repository, never sent anywhere but api.anthropic.com.
+      </p>
+      <div className="keygate__row">
+        <input
+          className="field"
+          style={{ maxWidth: 340 }}
+          type="password"
+          placeholder="sk-ant-..."
+          value={draftKey}
+          onChange={(e) => setDraftKey(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && draftKey.trim()) {
+              setKey(draftKey);
+              setKeyed(true);
+              setShowKeyEntry(false);
+            }
+          }}
+        />
+        <button
+          className="btn btn--primary"
+          disabled={!draftKey.trim()}
+          onClick={() => {
+            setKey(draftKey);
+            setKeyed(true);
+            setShowKeyEntry(false);
+          }}
+        >
+          Use this key
+        </button>
+        <button className="btn" onClick={() => setShowKeyEntry(false)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+
+  const composer = (
+    <form
+      className="ask__composer"
+      onSubmit={(e) => {
+        e.preventDefault();
+        send(input);
+      }}
+    >
+      <div className="ask__box">
+        <textarea
+          ref={box}
+          className="ask__input"
+          rows={1}
+          placeholder={placeholder}
+          value={input}
+          disabled={busy}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              send(input);
+            }
+          }}
+          aria-label="Ask Kadia"
+        />
+        <div className="ask__tools">
+          <span className={`ask__mode${keyed ? ' ask__mode--live' : ''}`}>
+            <i />
+            {keyed ? 'Live model' : 'Reading the records'}
+          </span>
+          <div className="ask__toolsright">
+            {keyed ? (
+              <button
+                type="button"
+                className="btn btn--quiet"
+                title={`Key ending ${getKey().slice(-4)}`}
+                onClick={() => {
+                  clearKey();
+                  setKeyed(false);
+                  setTurns([]);
+                  history.current = [];
+                }}
+              >
+                <IconClose />
+                Forget key
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--quiet"
+                onClick={() => setShowKeyEntry(true)}
+              >
+                Add a key
+              </button>
+            )}
             <button
-              className="btn btn--primary"
-              disabled={!draftKey.trim()}
-              onClick={() => {
-                setKey(draftKey);
-                setKeyed(true);
-                setShowKeyEntry(false);
-              }}
+              className="ask__send"
+              disabled={busy || !input.trim()}
+              aria-label="Send"
             >
-              Use this key
-            </button>
-            <button className="btn" onClick={() => setShowKeyEntry(false)}>
-              Cancel
+              <IconSend />
             </button>
           </div>
         </div>
+      </div>
+      {full && (
+        <p className="meta ask__hint">
+          Enter to send, Shift+Enter for a new line.
+        </p>
+      )}
+    </form>
+  );
+
+  const chips =
+    suggestions.length > 0 ? (
+      <div className="ask__chips">
+        {suggestions.map((s) => (
+          <button key={s} className="ask__chip" onClick={() => send(s)}>
+            {s}
+          </button>
+        ))}
+      </div>
+    ) : null;
+
+  const stream = (
+    <div className="ask__stream" ref={scroller}>
+      {turns.map((t, i) =>
+        t.who === 'you' ? (
+          <div key={i} className="said">
+            <p>{t.text}</p>
+          </div>
+        ) : (
+          <div key={i} className="reply">
+            <span className="reply__who label">Kadia</span>
+            <div className="reply__text">
+              {t.text.split('\n').map((line, k) => (
+                <p key={k}>{line || ' '}</p>
+              ))}
+            </div>
+            {t.tools && t.tools.length > 0 && (
+              <p className="reply__src meta">
+                {t.local ? 'Read from ' : 'Looked up '}
+                {Array.from(new Set(t.tools)).join(', ')}
+              </p>
+            )}
+          </div>
+        ),
+      )}
+
+      {busy && (
+        <div className="reply">
+          <span className="reply__who label">Kadia</span>
+          <span className="typing" aria-label="Thinking">
+            <i />
+            <i />
+            <i />
+          </span>
+        </div>
+      )}
+
+      {error && (
+        <p className="mark mark--critical" style={{ margin: '10px 0' }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+
+  if (!full) {
+    return (
+      <div className="chat">
+        {showKeyEntry && !keyed ? (
+          keyForm
+        ) : (
+          <>
+            {!started && <p className="chat__greeting meta">{keyed ? greeting : 'No key needed — I read the records on this device. Add a key for open conversation.'}</p>}
+            {stream}
+            {!started && chips}
+            {composer}
+          </>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="chat">
-      <div className="chat__head">
-        <span className="label">
-          {keyed ? 'Live' : 'Answering from the records'}
-        </span>
-        {keyed ? (
-          <button
-            className="btn btn--quiet"
-            onClick={() => {
-              clearKey();
-              setKeyed(false);
-              setTurns([]);
-              history.current = [];
-            }}
-            title={`Key ending ${getKey().slice(-4)}`}
-          >
-            <IconClose />
-            Forget key
-          </button>
-        ) : (
-          <button className="btn btn--quiet" onClick={() => setShowKeyEntry(true)}>
-            Add a key
-          </button>
-        )}
-      </div>
-
-      <div className="chat__scroll" ref={scroller}>
-        <p className="chat__greeting meta">
-          {keyed
-            ? greeting
-            : 'No API key needed — I read the records on this device and answer from them. Add a key for open conversation.'}
-        </p>
-
-        {turns.map((t, i) => (
-          <div key={i} className={`bubble bubble--${t.who}`}>
-            {t.who === 'kadia' && <span className="label">Kadia</span>}
-            <p>{t.text}</p>
-            {t.tools && t.tools.length > 0 && (
-              <p className="bubble__tools meta">
-                {t.local ? 'From ' : 'Read '}
-                {Array.from(new Set(t.tools)).join(', ')}
+    <div className={`ask${started ? ' ask--going' : ''}`}>
+      {showKeyEntry && !keyed ? (
+        keyForm
+      ) : (
+        <>
+          {!started && (
+            <div className="ask__open">
+              <h2 className="ask__hello">{opener ?? 'What do you need?'}</h2>
+              <p className="ask__lede">
+                {keyed
+                  ? greeting
+                  : 'No API key needed. I read this centre’s records on your device and answer from them — nothing is recalled and nothing is sent anywhere.'}
               </p>
-            )}
-          </div>
-        ))}
+            </div>
+          )}
 
-        {busy && (
-          <div className="bubble bubble--kadia">
-            <span className="label">Kadia</span>
-            <span className="typing" aria-label="Thinking">
-              <i /><i /><i />
-            </span>
-          </div>
-        )}
-
-        {error && (
-          <p className="mark mark--critical" style={{ margin: '10px 0' }}>
-            {error}
-          </p>
-        )}
-
-        {turns.length === 0 && suggestions.length > 0 && (
-          <div className="chat__suggest">
-            {suggestions.map((s) => (
-              <button key={s} className="btn" onClick={() => send(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <form
-        className="chat__compose"
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-      >
-        <input
-          className="field"
-          placeholder={placeholder}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={busy}
-        />
-        <button className="btn btn--primary" disabled={busy || !input.trim()}>
-          <IconSend />
-          Send
-        </button>
-      </form>
+          {started && stream}
+          {composer}
+          {!started && chips}
+        </>
+      )}
     </div>
   );
 }

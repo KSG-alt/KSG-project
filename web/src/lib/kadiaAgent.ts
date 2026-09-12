@@ -6,8 +6,12 @@ import type { ToolSpec } from './anthropic';
 import {
   BOOKINGS, DEMO_TODAY, GROUPS, SESSIONS, STAFF, STUDENTS, WEEKLY_LIMIT,
   activityById, fmtDateLong, fmtMoney, groupById, isOnSite, sessionsFor,
-  staffById, weeklyHours,
+  staffById, weeklyHours, availabilityClashes,
 } from '../data/seed';
+import { buildIncidents, minutesToDsl } from '../data/incidents';
+import { buildPayments, invoiceRef, owed, suggestMatches } from '../data/finance';
+import { BAND_RULES, ROLES, SITES } from './../data/centre';
+import { ESCALATION_DAYS } from './reminders';
 
 export const KADIA_TOOLS: ToolSpec[] = [
   {
@@ -152,6 +156,122 @@ export const KADIA_TOOLS: ToolSpec[] = [
       };
     },
   },
+  {
+    name: 'find_incidents',
+    description:
+      'Read the incident log: what happened, at what level, who was told and how long it took.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        open_only: { type: 'boolean' },
+        level: { type: 'string', enum: ['logged', 'significant', 'notifiable'] },
+      },
+    },
+    run: (i: { open_only?: boolean; level?: string }) =>
+      buildIncidents()
+        .filter((x) => (i.open_only ? x.status === 'open' : true))
+        .filter((x) => (i.level ? x.level === i.level : true))
+        .map((x) => ({
+          at: x.at,
+          kind: x.kind,
+          level: x.level,
+          where: x.where,
+          what: x.what,
+          action: x.action,
+          status: x.status,
+          safeguarding_lead_told: x.dslInformedAt,
+          minutes_to_safeguarding_lead: minutesToDsl(x),
+          parents_told: x.parentsInformedAt,
+          follow_up: x.followUp,
+        })),
+  },
+  {
+    name: 'find_payments',
+    description:
+      'Payments received and what they are matched to. Use unmatched_only for the reconciliation queue, with the best guess for each.',
+    input_schema: {
+      type: 'object',
+      properties: { unmatched_only: { type: 'boolean' }, limit: { type: 'number' } },
+    },
+    run: (i: { unmatched_only?: boolean; limit?: number }) =>
+      buildPayments()
+        .filter((p) => (i.unmatched_only ? !p.studentId : true))
+        .slice(0, i.limit ?? 25)
+        .map((p) => {
+          const best = p.studentId ? null : suggestMatches(p)[0];
+          return {
+            received: p.at,
+            amount: fmtMoney(p.amountPence),
+            payer: p.payer,
+            method: p.method,
+            reference: p.reference || null,
+            matched_to: p.studentId
+              ? `${STUDENTS.find((s) => s.id === p.studentId)?.forename} ${STUDENTS.find((s) => s.id === p.studentId)?.surname}`
+              : null,
+            best_guess: best
+              ? `${best.student.forename} ${best.student.surname} (${invoiceRef(best.student)}) — ${best.why.join(', ')}`
+              : null,
+          };
+        }),
+  },
+  {
+    name: 'outstanding_balances',
+    description: 'Students who still owe money, largest first, with their invoice reference and guardian.',
+    input_schema: { type: 'object', properties: { limit: { type: 'number' } } },
+    run: (i: { limit?: number }) =>
+      STUDENTS.filter((s) => owed(s) > 0)
+        .sort((a, b) => owed(b) - owed(a))
+        .slice(0, i.limit ?? 15)
+        .map((s) => ({
+          name: `${s.forename} ${s.surname}`,
+          invoice: invoiceRef(s),
+          invoiced: fmtMoney(s.balancePence),
+          received: fmtMoney(s.paidPence),
+          outstanding: fmtMoney(owed(s)),
+          guardian: `${s.guardian.name}, ${s.guardian.phone}`,
+        })),
+  },
+  {
+    name: 'staff_availability',
+    description:
+      'Days staff have said they cannot work, and any rota\u2019d session that clashes with one.',
+    input_schema: { type: 'object', properties: {} },
+    run: () => ({
+      away: STAFF.filter((s) => s.away.length > 0).map((s) => ({
+        name: `${s.forename} ${s.surname}`,
+        away: s.away,
+      })),
+      clashes: availabilityClashes().map((c) => ({
+        name: `${c.staff.forename} ${c.staff.surname}`,
+        day: c.session.day,
+        start: c.session.start,
+        activity: activityById(c.session.activityId).name,
+        group: groupById(c.session.groupId).name,
+      })),
+    }),
+  },
+  {
+    name: 'centre_config',
+    description:
+      'How this centre is configured: sites, age bands and ratios, escalation thresholds, roles and access.',
+    input_schema: { type: 'object', properties: {} },
+    run: () => ({
+      sites: SITES.map((s) => ({
+        name: s.name,
+        town: s.town,
+        beds: s.capacity,
+        onboarded: s.onboarded,
+      })),
+      band_rules: BAND_RULES,
+      escalation_days: ESCALATION_DAYS,
+      roles: ROLES.map((r) => ({
+        name: r.name,
+        sections: r.sections.length,
+        sees_welfare_notes: r.welfareDetail,
+        can_edit: r.canEditRecords,
+      })),
+    }),
+  },
 ];
 
 
@@ -159,11 +279,13 @@ export const KADIA_SYSTEM = `You are Kadia, the assistant inside a summer-school
   DEMO_TODAY.toISOString(),
 )}.
 
-You can search the whole system with your tools: students, staff, bookings, the timetable, and a counts summary. Always look the answer up rather than guessing, and say which numbers you read.
+You can search the whole system with your tools: students, staff, bookings, the timetable, incidents, payments, staff availability, the centre's configuration, and a counts summary. Always look the answer up rather than guessing, and say which numbers you read.
 
 House rules:
 - Safeguarding outranks admin. If a DBS problem or a ratio breach is anywhere near the question, lead with it.
 - You automate the chase, never the judgement. Draft the reminder, name the breach, propose the rota — a person decides.
 - This is a demonstration running on seeded fake data. Never imply it is a live centre, and never invent a customer, price or benchmark.
+- An unmatched payment gets a suggestion, never a decision. Say who you think it belongs to and why, and leave the match to a person.
+- A chase you draft is queued, not sent. Never say a parent has been contacted.
 - Use British English and centre terminology: centre, season, age band, group, ratio, DBS, safeguarding lead.
 Keep replies short and concrete.`;

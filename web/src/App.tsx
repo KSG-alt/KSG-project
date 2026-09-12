@@ -9,18 +9,24 @@ import { Reminders } from './routes/Reminders';
 import { Rooms } from './routes/Rooms';
 import { Audit } from './routes/Audit';
 import { Arrivals } from './routes/Arrivals';
+import { Finance } from './routes/Finance';
+import { Incidents } from './routes/Incidents';
+import { Setup } from './routes/Setup';
 import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
-  IconArrivals, IconAudit, IconRooms, IconTimetable,
+  IconArrivals, IconAudit, IconRooms, IconTimetable, IconFinance,
+  IconIncidents, IconSetup,
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { StoreProvider, useStore } from './lib/store';
+import { ROLES } from './data/centre';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
 
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
-  | 'reminders' | 'rooms' | 'arrivals' | 'audit';
+  | 'reminders' | 'rooms' | 'arrivals' | 'audit' | 'finance' | 'incidents'
+  | 'setup';
 
 export const NAV: {
   id: Route;
@@ -32,10 +38,13 @@ export const NAV: {
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
   { id: 'arrivals', label: 'New arrivals', blurb: 'Everyone still to come, and whether they can be admitted', icon: IconArrivals },
   { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
-  { id: 'staff', label: 'Staff', blurb: 'Details, qualifications and DBS status', icon: IconStaff },
+  { id: 'staff', label: 'Staff', blurb: 'Details, qualifications, DBS and availability', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
   { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
+  { id: 'finance', label: 'Payments', blurb: 'What landed, who it belongs to, what is still owed', icon: IconFinance },
+  { id: 'incidents', label: 'Incidents', blurb: 'What happened, who was told, and how fast', icon: IconIncidents },
   { id: 'audit', label: 'Audit trail', blurb: 'Every action, timestamped and attributed, for inspection', icon: IconAudit },
+  { id: 'setup', label: 'Centre setup', blurb: 'Sites, ratios, escalation, access and import', icon: IconSetup },
   { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
 ];
 
@@ -50,21 +59,30 @@ const TITLE: Record<Route, string> = {
   staff: 'Staff',
   timetable: 'Timetable',
   bookings: 'Bookings',
+  finance: 'Payments',
+  incidents: 'Incidents',
   kadia: 'Ask Kadia',
   audit: 'Audit trail',
+  setup: 'Centre setup',
 };
 
 function Shell() {
   const [route, setRoute] = useState<Route>('home');
   const [menu, setMenu] = useState(false);
   const [tick, setTick] = useState(0);
-  const { open } = useStore();
+  const { open, role, setRole, site, incidents } = useStore();
 
   const go = (r: Route) => {
     setRoute(r);
     setTick((t) => t + 1);
     window.scrollTo({ top: 0 });
   };
+
+  /* A role that loses its current section lands back on home rather than on a
+     screen it may not read. */
+  useEffect(() => {
+    if (!role.sections.includes(route)) go('home');
+  }, [role, route]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -75,6 +93,10 @@ function Shell() {
   }, [route, menu]);
 
   const critical = open.filter((r) => r.severity === 'safeguarding').length;
+  const allowed = (r: Route) => role.sections.includes(r);
+  const untold = incidents.filter(
+    (i) => i.level !== 'logged' && !i.dslInformedAt,
+  ).length;
 
   return (
     <>
@@ -104,7 +126,24 @@ function Shell() {
         {route !== 'home' && <span className="bar__where">{TITLE[route]}</span>}
 
         <div className="bar__right">
-          {open.length > 0 && (
+          {role.id !== 'admin' && (
+            <button
+              className="bar__role"
+              onClick={() => setRole(ROLES[0])}
+              title="Demonstration control — return to the administrator view. In the real system nobody changes their own role."
+            >
+              as {role.name.toLowerCase()} · leave
+            </button>
+          )}
+          {untold > 0 && allowed('incidents') && (
+            <button
+              className="bar__count bar__count--critical"
+              onClick={() => go('incidents')}
+            >
+              {untold} untold
+            </button>
+          )}
+          {open.length > 0 && allowed('reminders') && (
             <button
               className={`bar__count${critical ? ' bar__count--critical' : ''}`}
               onClick={() => go('reminders')}
@@ -113,7 +152,7 @@ function Shell() {
             </button>
           )}
           <span className="label bar__date">
-            {fmtDateLong(DEMO_TODAY.toISOString())}
+            {site.name} · {fmtDateLong(DEMO_TODAY.toISOString())}
           </span>
         </div>
       </header>
@@ -133,7 +172,10 @@ function Shell() {
           {route === 'staff' && <Staff />}
           {route === 'timetable' && <Timetable />}
           {route === 'bookings' && <Bookings />}
+          {route === 'finance' && <Finance />}
+          {route === 'incidents' && <Incidents />}
           {route === 'audit' && <Audit />}
+          {route === 'setup' && <Setup />}
           {route === 'kadia' && <Kadia />}
           <footer className="page__foot">
             <div className="rule" />

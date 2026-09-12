@@ -4,8 +4,25 @@
     {
       "name": "kadia-web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "web"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "web"
+      ],
       "port": 5273
+    },
+    {
+      "name": "kadia-demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5299",
+        "--directory",
+        "docs"
+      ],
+      "port": 5299
     }
   ]
 }

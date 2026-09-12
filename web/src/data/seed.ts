@@ -3,6 +3,23 @@
 
 export const DEMO_TODAY = new Date('2027-07-12T09:00:00');
 export const SEASON_START = new Date('2027-06-21T00:00:00');
+
+/* The demo runs on its own clock. Anything the user does has to be stamped on
+   the demo day, not on the real one, or an action taken now reads as having
+   happened months before the record it attaches to. The clock starts at
+   DEMO_TODAY and runs forward in real time from there. */
+const BOOT = Date.now();
+export const demoNow = () => new Date(DEMO_TODAY.getTime() + (Date.now() - BOOT));
+export const demoIso = () => {
+  const d = demoNow();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+export const demoStamp = () => {
+  const d = demoNow();
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${demoIso()}T${p(d.getHours())}:${p(d.getMinutes())}`;
+};
 export const SEASON_END = new Date('2027-08-15T00:00:00');
 
 /* Small LCG so the set is stable without committing a fixture file. */
@@ -309,6 +326,16 @@ export interface Staff {
   bands: AgeBand[];
   contractedHours: number;
   safeguardingLead?: boolean;
+  /* Days this person told the centre they cannot work. The rota builder is
+     specced to flag against availability as well as qualifications and
+     ratios — interface-contract.md §2. */
+  away: Away[];
+}
+
+export interface Away {
+  from: string;
+  to: string;
+  reason: string;
 }
 
 const NAMED_STAFF: Staff[] = [
@@ -317,56 +344,56 @@ const NAMED_STAFF: Staff[] = [
     dob: '1989-03-14', age: 38, phone: '07700 900081', email: 'k.sarr@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8827 3390', issued: '2026-11-02', expires: '2028-11-02' },
     quals: ['Designated Safeguarding Lead', 'Paediatric first aid', 'Prevent awareness'],
-    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, safeguardingLead: true,
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [], safeguardingLead: true,
   },
   {
     id: 'st-02', forename: 'Tomas', surname: 'Halvorsen', role: 'Activity manager',
     dob: '1994-07-22', age: 33, phone: '07700 900117', email: 't.halvorsen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 9034 1182', issued: '2027-01-19', expires: '2029-01-19' },
     quals: ['Beach lifeguard', 'Paediatric first aid', 'Level 2 coaching'],
-    bands: ['12–14', '15–17'], contractedHours: 40,
+    bands: ['12–14', '15–17'], contractedHours: 40, away: [],
   },
   {
     id: 'st-03', forename: 'Marta', surname: 'Salgado', role: 'Group leader',
     dob: '2001-11-08', age: 25, phone: '07700 900244', email: 'm.salgado@example-centre.test',
     dbs: { state: 'expiring', certificate: 'DBS 0041 7719 5540', issued: '2025-08-01', expires: '2027-07-31' },
     quals: ['Paediatric first aid', 'TEFL'],
-    bands: ['8–11', '12–14'], contractedHours: 37.5,
+    bands: ['8–11', '12–14'], contractedHours: 37.5, away: [],
   },
   {
     id: 'st-04', forename: 'Idris', surname: 'Okonjo', role: 'Group leader',
     dob: '2003-02-27', age: 24, phone: '07700 900318', email: 'i.okonjo@example-centre.test',
     dbs: { state: 'pending', certificate: null, issued: null, expires: null },
     quals: ['Paediatric first aid'],
-    bands: ['12–14'], contractedHours: 37.5,
+    bands: ['12–14'], contractedHours: 37.5, away: [],
   },
   {
     id: 'st-05', forename: 'Freya', surname: 'Lindqvist', role: 'Group leader',
     dob: '2002-05-30', age: 25, phone: '07700 900402', email: 'f.lindqvist@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8102 7741', issued: '2026-04-11', expires: '2028-04-11' },
     quals: ['Paediatric first aid', 'Duke of Edinburgh supervisor'],
-    bands: ['15–17'], contractedHours: 37.5,
+    bands: ['15–17'], contractedHours: 37.5, away: [],
   },
   {
     id: 'st-06', forename: 'Ravi', surname: 'Iyer', role: 'Activity instructor',
     dob: '1998-09-12', age: 28, phone: '07700 900556', email: 'r.iyer@example-centre.test',
     dbs: { state: 'missing', certificate: null, issued: null, expires: null },
     quals: ['Level 2 archery'],
-    bands: ['12–14', '15–17'], contractedHours: 30,
+    bands: ['12–14', '15–17'], contractedHours: 30, away: [],
   },
   {
     id: 'st-07', forename: 'Anouk', surname: 'Jansen', role: 'Welfare officer',
     dob: '1991-12-03', age: 35, phone: '07700 900613', email: 'a.jansen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8890 2214', issued: '2026-06-28', expires: '2028-06-28' },
     quals: ['Mental health first aid', 'Paediatric first aid'],
-    bands: ['8–11', '12–14', '15–17'], contractedHours: 40,
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [],
   },
   {
     id: 'st-08', forename: 'Luca', surname: 'Moretti', role: 'Group leader',
     dob: '2000-04-18', age: 27, phone: '07700 900728', email: 'l.moretti@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 7994 6603', issued: '2026-09-15', expires: '2028-09-15' },
     quals: ['Paediatric first aid', 'Minibus D1'],
-    bands: ['8–11'], contractedHours: 37.5,
+    bands: ['8–11'], contractedHours: 37.5, away: [],
   },
 ];
 
@@ -425,6 +452,7 @@ function buildStaff(): Staff[] {
       quals,
       bands: bandSets[Math.floor(r() * bandSets.length)],
       contractedHours: [37.5, 37.5, 40, 30, 25][Math.floor(r() * 5)],
+      away: [],
     });
   }
   return out;
@@ -588,6 +616,65 @@ function buildSessions(): Session[] {
 }
 
 export const SESSIONS: Session[] = buildSessions();
+
+/* ── Availability ─────────────────────────────────────────────────────────
+   Staff tell the centre when they cannot work, and they do it late. These
+   periods are recorded AFTER the draft rota was generated, which is why some
+   of them collide with a session the draft already assigned — that collision
+   is the thing the screen has to catch, not a bug in the seed.
+   ──────────────────────────────────────────────────────────────────────── */
+
+const AWAY_REASONS = [
+  'Sitting a resit',
+  'Family wedding abroad',
+  'Hospital appointment',
+  'Booked leave',
+  'Driving test',
+  'Second job shift',
+];
+
+function seedAway() {
+  const r = rng(9032);
+  /* Only people the rota actually uses, or an availability clash can never
+     be demonstrated. */
+  const rotad = Array.from(new Set(SESSIONS.flatMap((s) => s.staffIds)));
+  rotad.forEach((id, i) => {
+    if (i % 7 !== 3) return;
+    const staff = STAFF.find((s) => s.id === id);
+    if (!staff) return;
+    const dayIndex = Math.floor(r() * WEEK_DAYS.length);
+    const span = r() < 0.4 ? 1 : 0;
+    const from = WEEK_DAYS[dayIndex];
+    const to = WEEK_DAYS[Math.min(dayIndex + span, WEEK_DAYS.length - 1)];
+    staff.away.push({
+      from,
+      to,
+      reason: AWAY_REASONS[Math.floor(r() * AWAY_REASONS.length)],
+    });
+  });
+}
+seedAway();
+
+export const isAway = (s: Staff, day: string) =>
+  s.away.some((a) => day >= a.from && day <= a.to);
+
+/* Sessions the draft assigned to somebody who has since said they are away.
+   Returned in rota order so the timetable and the staff screen agree. */
+export function availabilityClashes(sessions: Session[] = SESSIONS) {
+  const out: { session: Session; staff: Staff }[] = [];
+  sessions.forEach((sess) => {
+    if (sess.status === 'cancelled') return;
+    sess.staffIds.forEach((id) => {
+      const staff = STAFF.find((s) => s.id === id);
+      if (staff && isAway(staff, sess.day)) out.push({ session: sess, staff });
+    });
+  });
+  return out.sort(
+    (a, b) =>
+      a.session.day.localeCompare(b.session.day) ||
+      a.session.start.localeCompare(b.session.start),
+  );
+}
 
 /* ── Rota hours ───────────────────────────────────────────────────────────
    Hours rota'd, not hours paid. Payroll stays outside the platform

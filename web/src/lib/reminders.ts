@@ -43,11 +43,20 @@ export interface Reminder {
 /* Days overdue before an item escalates to management. Safeguarding-critical
    escalates faster than admin — PRODUCT.md principle 2. Thresholds are per
    centre in the real system; these are this centre's. */
-export const ESCALATION_DAYS: Record<Severity, number> = {
+export const ESCALATION_DEFAULTS: Record<Severity, number> = {
   safeguarding: 1,
   overdue: 3,
   admin: 7,
 };
+
+/* Configurable per centre, not hardcoded — interface-contract.md §1. Held as
+   module state so the Setup screen can change it without every reader of it
+   taking a parameter it would never vary. */
+export let ESCALATION_DAYS: Record<Severity, number> = { ...ESCALATION_DEFAULTS };
+
+export function setEscalationDays(next: Record<Severity, number>) {
+  ESCALATION_DAYS = { ...next };
+}
 
 export const ESCALATES_TO: Record<Severity, string> = {
   safeguarding: 'Safeguarding lead and centre director',

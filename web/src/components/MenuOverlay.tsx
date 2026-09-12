@@ -12,7 +12,7 @@ export function MenuOverlay({
   onGo: (r: Route) => void;
   onClose: () => void;
 }) {
-  const { open } = useStore();
+  const { open, role, incidents } = useStore();
   const panel = useRef<HTMLDivElement>(null);
   const first = useRef<HTMLButtonElement>(null);
 
@@ -48,10 +48,19 @@ export function MenuOverlay({
     };
   }, [onClose]);
 
+  /* The menu shows what this role may open, not what exists. A section it
+     cannot reach is not greyed out, it is absent. */
   const items: { id: Route; label: string }[] = [
     { id: 'home', label: 'home' },
-    ...NAV.map((n) => ({ id: n.id, label: n.label.toLowerCase() })),
+    ...NAV.filter((n) => role.sections.includes(n.id)).map((n) => ({
+      id: n.id,
+      label: n.label.toLowerCase(),
+    })),
   ];
+
+  const untold = incidents.filter(
+    (i) => i.level !== 'logged' && !i.dslInformedAt,
+  ).length;
 
   const critical = open.filter((r) => r.severity === 'safeguarding').length;
 
@@ -95,6 +104,9 @@ export function MenuOverlay({
               >
                 {open.length}
               </span>
+            )}
+            {item.id === 'incidents' && untold > 0 && (
+              <span className="sheet__count sheet__count--critical">{untold}</span>
             )}
           </button>
         ))}

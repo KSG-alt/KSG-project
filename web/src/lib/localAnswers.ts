@@ -8,13 +8,30 @@
    than guessing. */
 
 import {
-  BOOKINGS, DEMO_TODAY, STAFF, STUDENTS, WEEKLY_LIMIT, activityById, fmtDate,
+  BOOKINGS, DEMO_TODAY, WEEKLY_LIMIT, activityById, fmtDate,
   fmtMoney, groupById, isOnSite, readiness, roomLabel, upcomingArrivals,
   daysFromToday, fmtHours, sessionsFor, weeklyHours, whenLabel,
 } from '../data/seed';
 import { checkRatio } from './ratio';
-import { buildReminders, SEVERITY_COPY } from './reminders';
-import type { Session } from '../data/seed';
+import { ESCALATION_DAYS, type Reminder } from './reminders';
+import { isAway } from '../data/seed';
+import { minutesToDsl, type Incident } from '../data/incidents';
+import { owed, suggestMatches, type Payment } from '../data/finance';
+import { BAND_RULES, ROLES, SITES } from '../data/centre';
+import type { Session, Staff, Student } from '../data/seed';
+
+/* The live records, handed in rather than imported, so an answer reflects
+   what the operator has already changed in this session. An assistant that
+   reports the seed while the screen shows something else is worse than one
+   that declines. */
+export interface Records {
+  sessions: Session[];
+  students: Student[];
+  staff: Staff[];
+  payments: Payment[];
+  incidents: Incident[];
+  reminders: Reminder[];
+}
 
 export interface LocalAnswer {
   text: string;
@@ -32,14 +49,15 @@ const list = (items: string[], max = 6) => {
 
 export function answerLocally(
   question: string,
-  sessions: Session[],
+  records: Records,
 ): LocalAnswer | null {
+  const { sessions, students: STUDENTS, staff: STAFF, payments, incidents } = records;
   const q = question.toLowerCase().trim();
   if (!q) return null;
 
   /* Attention / today / summary */
   if (has(q, 'attention', 'today', 'what needs', 'priority', 'urgent', 'summary')) {
-    const rs = buildReminders();
+    const rs = records.reminders.filter((r) => !r.done);
     const by = (s: 'safeguarding' | 'overdue' | 'admin') =>
       rs.filter((r) => r.severity === s).length;
     const top = rs.slice(0, 4).map((r) => `${r.title} — ${r.source}`);
@@ -212,6 +230,112 @@ export function answerLocally(
     };
   }
 
+  /* Incidents */
+  if (has(q, 'incident', 'accident', 'injur', 'disclosure', 'safeguarding concern', 'happened')) {
+    const all = incidents;
+    const open = all.filter((i) => i.status === 'open');
+    const untold = all.filter((i) => i.level !== 'logged' && !i.dslInformedAt);
+    const told = all.filter((i) => minutesToDsl(i) !== null);
+    const avg = told.length
+      ? Math.round(told.reduce((n, i) => n + (minutesToDsl(i) ?? 0), 0) / told.length)
+      : null;
+    return {
+      text:
+        `${all.length} incidents this season. ${open.length} still open, ` +
+        `${all.filter((i) => i.level === 'notifiable').length} notifiable.\n\n` +
+        list(
+          all
+            .slice(0, 5)
+            .map(
+              (i) =>
+                `${i.kind} (${i.level}) — ${i.where}, ${i.at.replace('T', ' ')} — ${i.status}`,
+            ),
+        ) +
+        (avg !== null
+          ? `\n\nThe safeguarding lead was told within ${avg} minutes on average.`
+          : '') +
+        (untold.length
+          ? `\n${untold.length} above the logging threshold have no record of the lead being told.`
+          : ''),
+      source: 'Incidents',
+    };
+  }
+
+  /* Unmatched payments */
+  if (has(q, 'unmatched', 'reconcil', 'bank', 'payment', 'who paid', 'statement')) {
+    const orphans = payments.filter((p) => !p.studentId);
+    return {
+      text:
+        `${orphans.length} payments have landed that nobody has matched to a student, ` +
+        `worth ${fmtMoney(orphans.reduce((n, p) => n + p.amountPence, 0))}.\n\n` +
+        list(
+          orphans.map((p) => {
+            const best = suggestMatches(p, STUDENTS)[0];
+            return (
+              `${fmtMoney(p.amountPence)} from ${p.payer}` +
+              `${p.reference ? ` (ref “${p.reference}”)` : ' (no reference)'}` +
+              (best
+                ? ` — best guess ${best.student.forename} ${best.student.surname}, ${best.why[0]}`
+                : ' — nothing matches')
+            );
+          }),
+        ) +
+        `\n\nThe platform suggests. A person decides, and the decision is signed.`,
+      source: 'Payments',
+    };
+  }
+
+  /* Availability */
+  if (has(q, 'away', 'availab', 'unavailab', 'leave', 'off this week', 'clash')) {
+    const clashes = sessions
+      .filter((x) => x.status !== 'cancelled')
+      .flatMap((x) =>
+        x.staffIds
+          .map((id) => STAFF.find((y) => y.id === id))
+          .filter((y): y is Staff => Boolean(y) && isAway(y!, x.day))
+          .map((y) => ({ session: x, staff: y })),
+      )
+      .sort(
+        (a, b) =>
+          a.session.day.localeCompare(b.session.day) ||
+          a.session.start.localeCompare(b.session.start),
+      );
+    const away = STAFF.filter((s) => s.away.length > 0);
+    return {
+      text:
+        `${away.length} staff have told us about days they cannot work. ` +
+        `${clashes.length} rota'd sessions clash with those days.\n\n` +
+        (clashes.length
+          ? list(
+              clashes.map(
+                (c) =>
+                  `${c.staff.forename} ${c.staff.surname} — ${fmtDate(c.session.day)} ${c.session.start}, ` +
+                  `${activityById(c.session.activityId).name}, ${groupById(c.session.groupId).name}`,
+              ),
+            )
+          : 'Nothing on the rota clashes.') +
+        `\n\nThe draft was built before they told us. Nothing is reassigned automatically — a person re-slots it.`,
+      source: 'Staff',
+    };
+  }
+
+  /* Centre configuration */
+  if (has(q, 'setup', 'configur', 'threshold', 'escalat', 'ratio rule', 'site', 'centre', 'role', 'access', 'permission')) {
+    return {
+      text:
+        `${SITES.length} sites are configured: ` +
+        SITES.map((x) => `${x.name} (${x.onboarded ? 'live' : 'not onboarded'})`).join(', ') +
+        `.\n\nRatios: ` +
+        BAND_RULES.map((b) => `${b.band} at 1:${b.ratio}`).join(', ') +
+        `.\nEscalation: safeguarding after ${ESCALATION_DAYS.safeguarding} day, ` +
+        `overdue after ${ESCALATION_DAYS.overdue}, admin after ${ESCALATION_DAYS.admin}.` +
+        `\nRoles: ` +
+        ROLES.map((r) => r.name).join(', ') +
+        `.\n\nAll of it is set in Centre setup, per centre — none of it is hardcoded.`,
+      source: 'Centre setup',
+    };
+  }
+
   /* Look a person up by name */
   const named = [...STUDENTS, ...STAFF].find((p) =>
     q.includes(`${p.forename} ${p.surname}`.toLowerCase()),
@@ -227,7 +351,8 @@ export function answerLocally(
           `Arrives ${fmtDate(s.arrival)}, leaves ${fmtDate(s.leaving)}.\n` +
           `Guardian ${s.guardian.name} (${s.guardian.relationship}), ${s.guardian.phone}.\n` +
           `Admission: ${r.ready ? 'ready' : r.blocking.join('; ')}.` +
-          (r.watch.length ? `\nWatch: ${r.watch.join('; ')}.` : ''),
+          (r.watch.length ? `\nWatch: ${r.watch.join('; ')}.` : '') +
+          (owed(s) > 0 ? `\nOutstanding: ${fmtMoney(owed(s))} of ${fmtMoney(s.balancePence)}.` : '\nPaid in full.'),
         source: 'Students',
       };
     }
@@ -255,5 +380,9 @@ export const LOCAL_TOPICS = [
   'rooms and beds',
   'outstanding balances',
   'overdue documents',
+  'incidents and how fast the safeguarding lead was told',
+  'unmatched payments and who they probably belong to',
+  'staff availability and rota clashes',
+  'centre setup — sites, ratios, escalation, roles',
   'any student or staff member by name',
 ];
