@@ -114,6 +114,17 @@ two sections share an identical entrance. Killed under
 - Hours are rota'd, never paid — payroll is out of scope (DECISIONS 0001).
   Anything past the 48h working-time limit is flagged as needing a signed
   opt-out rather than silently scheduled.
+- **Ask Kadia works with no API key.** `lib/localAnswers.ts` answers from the
+  same seeded records the live assistant reads through its tools, without a
+  model in the loop, and says plainly what it cannot answer. A key switches it
+  to open conversation. A demo emailed to a prospect who has no Anthropic key
+  must not open onto a dead panel.
+- **Audit trail** is append-only and is what makes the rest defensible at
+  inspection. Entries are never edited or deleted; every action taken in the
+  app writes one as it happens.
+- **Escalation** follows interface-contract.md §1: every reminder carries a
+  chase log (when, channel, to whom) and escalates past a per-severity
+  threshold — safeguarding after 1 day, overdue 3, admin 7 — to a named person.
 - The assistant section is called **Ask Kadia**; Kadia alone is the assistant's
   name inside its own copy.
 - Guardian records are internally consistent by construction: language and

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { IconArrow, IconCheck, IconClose, IconEdit } from '../lib/icons';
-import { SEVERITY_COPY, dueLabel, type Reminder } from '../lib/reminders';
+import {
+  SEVERITY_COPY, dueLabel, escalationLabel, needsEscalation, type Channel,
+  type Reminder,
+} from '../lib/reminders';
 import { useStore } from '../lib/store';
 import type { Route } from '../App';
 
@@ -13,6 +16,7 @@ const ROUTE_LABEL: Record<Route, string> = {
   timetable: 'Timetable',
   bookings: 'Bookings',
   kadia: 'Ask Kadia',
+  audit: 'Audit trail',
   reminders: 'Reminders',
 };
 
@@ -25,7 +29,7 @@ function Task({
   onGo: (route: Route) => void;
   onClose: () => void;
 }) {
-  const { update, remove } = useStore();
+  const { update, remove, chase, escalate } = useStore();
   const [title, setTitle] = useState(r.title);
   const [action, setAction] = useState(r.action);
   const [due, setDue] = useState(r.due);
@@ -77,6 +81,51 @@ function Task({
           A reminder needs a line saying what to do.
         </p>
       )}
+
+      <div className="task__chase">
+        <div className="task__chasehead">
+          <span className="label">
+            Chased {r.chases.length}
+            {r.chases.length === 1 ? ' time' : ' times'} · {r.chaseTo}
+          </span>
+          {escalationLabel(r) && (
+            <span
+              className={`mark ${
+                r.escalated || needsEscalation(r) ? 'mark--critical' : 'mark--idle'
+              }`}
+            >
+              {escalationLabel(r)}
+            </span>
+          )}
+        </div>
+
+        {r.chases.length > 0 && (
+          <ol className="chaselog">
+            {r.chases.map((c, i) => (
+              <li key={i} className="meta">
+                {c.at} · {c.channel} · {c.to}
+              </li>
+            ))}
+          </ol>
+        )}
+
+        <div className="task__chaseactions">
+          {(['email', 'WhatsApp', 'phone'] as Channel[]).map((c) => (
+            <button key={c} className="btn" onClick={() => chase(r.id, c)}>
+              Chase by {c}
+            </button>
+          ))}
+          {!r.escalated && (
+            <button
+              className={`btn${needsEscalation(r) ? ' btn--primary' : ''}`}
+              onClick={() => escalate(r.id)}
+              title={`Hands this to ${ROUTE_LABEL[r.route]}'s management chain`}
+            >
+              Escalate
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="task__actions">
         <button
@@ -166,8 +215,16 @@ export function ReminderList({
                 <span className="rem__meta meta">
                   {r.source}
                   {compact ? ` · ${dueLabel(r.due)}` : ''}
+                  {r.chases.length > 0
+                    ? ` · chased ${r.chases.length}${r.chases.length === 1 ? ' time' : ' times'}`
+                    : ''}
                   {r.edited ? ' · edited' : ''}
                 </span>
+                {!compact && (r.escalated || needsEscalation(r)) && (
+                  <span className="mark mark--critical rem__esc">
+                    {escalationLabel(r)}
+                  </span>
+                )}
                 {!compact && <span className="rem__action meta">{r.action}</span>}
               </button>
 

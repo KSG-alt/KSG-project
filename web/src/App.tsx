@@ -7,11 +7,12 @@ import { Bookings } from './routes/Bookings';
 import { Kadia } from './routes/Kadia';
 import { Reminders } from './routes/Reminders';
 import { Rooms } from './routes/Rooms';
+import { Audit } from './routes/Audit';
 import { Arrivals } from './routes/Arrivals';
 import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
-  IconArrivals, IconRooms, IconTimetable,
+  IconArrivals, IconAudit, IconRooms, IconTimetable,
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { StoreProvider, useStore } from './lib/store';
@@ -19,7 +20,7 @@ import { DEMO_TODAY, fmtDateLong } from './data/seed';
 
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
-  | 'reminders' | 'rooms' | 'arrivals';
+  | 'reminders' | 'rooms' | 'arrivals' | 'audit';
 
 export const NAV: {
   id: Route;
@@ -34,6 +35,7 @@ export const NAV: {
   { id: 'staff', label: 'Staff', blurb: 'Details, qualifications and DBS status', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
   { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
+  { id: 'audit', label: 'Audit trail', blurb: 'Every action, timestamped and attributed, for inspection', icon: IconAudit },
   { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
 ];
 
@@ -49,6 +51,7 @@ const TITLE: Record<Route, string> = {
   timetable: 'Timetable',
   bookings: 'Bookings',
   kadia: 'Ask Kadia',
+  audit: 'Audit trail',
 };
 
 function Shell() {
@@ -130,6 +133,7 @@ function Shell() {
           {route === 'staff' && <Staff />}
           {route === 'timetable' && <Timetable />}
           {route === 'bookings' && <Bookings />}
+          {route === 'audit' && <Audit />}
           {route === 'kadia' && <Kadia />}
           <footer className="page__foot">
             <div className="rule" />

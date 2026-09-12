@@ -335,6 +335,18 @@ p {
   white-space: nowrap;
 }
 
+/* A mark used as a banner is a sentence, not a chip — it has to wrap, or it
+   pushes the page sideways on a phone. */
+p.mark {
+  display: flex;
+  white-space: normal;
+  text-wrap: pretty;
+}
+
+p.mark::before {
+  margin-top: 0.42em;
+}
+
 .mark::before {
   content: "";
   width: 6px;
@@ -2048,4 +2060,126 @@ p {
   gap: 9px;
   font-size: var(--t-sm);
   color: var(--ink-3);
+}
+
+/* ── Audit trail ───────────────────────────────────────────────────────── */
+
+.trail {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trail__row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) 130px;
+  gap: 18px;
+  padding: 13px 0;
+  border-top: 1px solid var(--rule);
+  animation: settle 180ms var(--ease-ui) both;
+}
+
+.trail__at {
+  color: var(--ink-3);
+  font-size: var(--t-sm);
+  padding-top: 2px;
+}
+
+.trail__what {
+  min-width: 0;
+}
+
+.trail__action {
+  margin: 5px 0 0;
+  font-size: var(--t-base);
+}
+
+.trail__action strong {
+  font-weight: 500;
+}
+
+.trail__detail {
+  margin: 3px 0 0;
+  max-width: 78ch;
+}
+
+.trail__who {
+  color: var(--ink-3);
+  text-align: right;
+  padding-top: 2px;
+}
+
+@media (max-width: 820px) {
+  .trail__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .trail__who {
+    text-align: left;
+  }
+}
+
+/* ── Chase log and escalation ──────────────────────────────────────────── */
+
+.task__chase {
+  padding: 14px 16px;
+  background: var(--paper-2);
+  border-radius: var(--r-sm);
+  box-shadow: var(--edge);
+}
+
+.task__chasehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.chaselog {
+  margin: 10px 0 0;
+  padding: 0 0 0 15px;
+  display: grid;
+  gap: 3px;
+}
+
+.chaselog li {
+  color: var(--ink-2);
+}
+
+.task__chaseactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.rem__esc {
+  justify-self: start;
+  margin-top: 2px;
+}
+
+/* ── Small screens: let grid items shrink, and scroll what genuinely cannot ──
+   A grid item defaults to min-width:auto, so a wide table inside one pushes
+   the whole page sideways however well the table itself scrolls. */
+
+.day {
+  min-width: 0;
+}
+
+.arrivals {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 760px) {
+  /* Five groups against four slots has a real minimum width. Scroll the grid
+     rather than crushing the session cards into unreadable columns. */
+  .tt__grid {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .tt__row {
+    min-width: 620px;
+  }
 }

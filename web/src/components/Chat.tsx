@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconClose, IconSend } from '../lib/icons';
 import { clearKey, getKey, hasKey, run, setKey, type Msg, type ToolSpec } from '../lib/anthropic';
+import { LOCAL_TOPICS, answerLocally } from '../lib/localAnswers';
+import { useStore } from '../lib/store';
 
 interface Turn {
   who: 'you' | 'kadia';
   text: string;
   tools?: string[];
+  local?: boolean;
 }
 
 export function Chat({
@@ -23,7 +26,9 @@ export function Chat({
   suggestions?: string[];
   onApplied?: () => void;
 }) {
+  const { sessions } = useStore();
   const [keyed, setKeyed] = useState(hasKey());
+  const [showKeyEntry, setShowKeyEntry] = useState(false);
   const [draftKey, setDraftKey] = useState('');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
@@ -42,6 +47,27 @@ export function Chat({
     setInput('');
     setError(null);
     setTurns((t) => [...t, { who: 'you', text: clean }]);
+
+    /* No key: answer from the records on this device. Same data the live
+       assistant reads through its tools, without a model in the loop. */
+    if (!keyed) {
+      const local = answerLocally(clean, sessions);
+      setTurns((t) => [
+        ...t,
+        local
+          ? { who: 'kadia', text: local.text, tools: [local.source], local: true }
+          : {
+              who: 'kadia',
+              local: true,
+              text:
+                'Without an API key I answer from the records directly, and only on these:\n' +
+                LOCAL_TOPICS.map((x) => `• ${x}`).join('\n') +
+                '\n\nAdd a key for open conversation.',
+            },
+      ]);
+      return;
+    }
+
     history.current.push({ role: 'user', content: clean });
     setBusy(true);
     try {
@@ -59,7 +85,7 @@ export function Chat({
     }
   }
 
-  if (!keyed) {
+  if (!keyed && showKeyEntry) {
     return (
       <div className="chat">
         <div className="chat__gate">
@@ -91,9 +117,13 @@ export function Chat({
               onClick={() => {
                 setKey(draftKey);
                 setKeyed(true);
+                setShowKeyEntry(false);
               }}
             >
               Use this key
+            </button>
+            <button className="btn" onClick={() => setShowKeyEntry(false)}>
+              Cancel
             </button>
           </div>
         </div>
@@ -104,24 +134,36 @@ export function Chat({
   return (
     <div className="chat">
       <div className="chat__head">
-        <span className="label">Chat</span>
-        <button
-          className="btn btn--quiet"
-          onClick={() => {
-            clearKey();
-            setKeyed(false);
-            setTurns([]);
-            history.current = [];
-          }}
-          title={`Key ending ${getKey().slice(-4)}`}
-        >
-          <IconClose />
-          Forget key
-        </button>
+        <span className="label">
+          {keyed ? 'Live' : 'Answering from the records'}
+        </span>
+        {keyed ? (
+          <button
+            className="btn btn--quiet"
+            onClick={() => {
+              clearKey();
+              setKeyed(false);
+              setTurns([]);
+              history.current = [];
+            }}
+            title={`Key ending ${getKey().slice(-4)}`}
+          >
+            <IconClose />
+            Forget key
+          </button>
+        ) : (
+          <button className="btn btn--quiet" onClick={() => setShowKeyEntry(true)}>
+            Add a key
+          </button>
+        )}
       </div>
 
       <div className="chat__scroll" ref={scroller}>
-        <p className="chat__greeting meta">{greeting}</p>
+        <p className="chat__greeting meta">
+          {keyed
+            ? greeting
+            : 'No API key needed — I read the records on this device and answer from them. Add a key for open conversation.'}
+        </p>
 
         {turns.map((t, i) => (
           <div key={i} className={`bubble bubble--${t.who}`}>
@@ -129,7 +171,8 @@ export function Chat({
             <p>{t.text}</p>
             {t.tools && t.tools.length > 0 && (
               <p className="bubble__tools meta">
-                Read {Array.from(new Set(t.tools)).join(', ')}
+                {t.local ? 'From ' : 'Read '}
+                {Array.from(new Set(t.tools)).join(', ')}
               </p>
             )}
           </div>

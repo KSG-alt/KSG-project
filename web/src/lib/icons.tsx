@@ -165,3 +165,14 @@ export function IconArrivals() {
     </svg>
   );
 }
+
+export function IconAudit() {
+  return (
+    <svg {...base}>
+      <path d="M5 2.8h7.6L16.6 7v10.2H5z" />
+      <path d="M12.2 2.9V7h4.2" />
+      <path d="M7.6 11.4 9.3 13l3.3-3.9" />
+      <path d="M7.6 15.2h5.2" />
+    </svg>
+  );
+}
