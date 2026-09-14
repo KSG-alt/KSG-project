@@ -7,17 +7,19 @@ import { CHANNELS, ROLES, SITES, siteCounts, type RoleId } from '../data/centre'
 import { ESCALATION_DEFAULTS, type Severity } from '../lib/reminders';
 import { GROUPS, STUDENTS } from '../data/seed';
 
-type Panel = 'sites' | 'ratios' | 'escalation' | 'access' | 'channels' | 'import';
+type Panel =
+  | 'sites' | 'ratios' | 'rooming' | 'escalation' | 'access' | 'channels' | 'import';
 
 export function Setup() {
   const {
     site, setSite, role, setRole, escalation, setEscalation, bandRules,
-    setBandRules,
+    setBandRules, rooming, setRooming,
   } = useStore();
   const [panel, setPanel] = useState<Panel>('sites');
   const [draftRatios, setDraftRatios] = useState(bandRules);
   const [draftEsc, setDraftEsc] = useState(escalation);
   const [channels, setChannels] = useState(CHANNELS);
+  const [draftRooming, setDraftRooming] = useState(rooming);
 
   const ratiosDirty = draftRatios.some(
     (r, i) => r.ratio !== bandRules[i].ratio,
@@ -29,6 +31,7 @@ export function Setup() {
   const panels: { id: Panel; label: string }[] = [
     { id: 'sites', label: 'Sites' },
     { id: 'ratios', label: 'Age bands and ratios' },
+    { id: 'rooming', label: 'Rooming' },
     { id: 'escalation', label: 'Escalation' },
     { id: 'access', label: 'Roles and access' },
     { id: 'channels', label: 'WhatsApp channels' },
@@ -194,6 +197,128 @@ export function Setup() {
             <span className="meta">
               Off-site and overnight ratios are recorded but not yet enforced —
               the rota only schedules on-site activity sessions today.
+            </span>
+          </div>
+        </>
+      )}
+
+      {panel === 'rooming' && (
+        <>
+          <p className="meta" style={{ maxWidth: '66ch', marginBottom: 20 }}>
+            How the allocator fills beds. The language rule is the one worth
+            having: two students who share a first language will speak it to
+            each other for three weeks, so a language centre separates them on
+            purpose. Nobody has time to check that by hand across three hundred
+            students.
+          </p>
+
+          <div className="esc">
+            <label className="esc__row">
+              <span className="esc__name">
+                First language
+                <span className="meta">
+                  Whether two speakers of one language may share a room
+                </span>
+              </span>
+              <span className="esc__control">
+                <select
+                  className="field"
+                  style={{ width: 210 }}
+                  value={
+                    draftRooming.sameLanguageTogether ? 'allow' : draftRooming.languageRule
+                  }
+                  onChange={(e) =>
+                    setDraftRooming({
+                      ...draftRooming,
+                      sameLanguageTogether: e.target.value === 'allow',
+                      languageRule: e.target.value === 'never' ? 'never' : 'avoid',
+                    })
+                  }
+                >
+                  <option value="avoid">Avoid where possible</option>
+                  <option value="never">Never — refuse the bed</option>
+                  <option value="allow">Allow — do not consider it</option>
+                </select>
+              </span>
+            </label>
+
+            <label className="esc__row">
+              <span className="esc__name">
+                Age spread in a room
+                <span className="meta">
+                  Years between the youngest and oldest, inside one band
+                </span>
+              </span>
+              <span className="esc__control">
+                <input
+                  type="range"
+                  min={1}
+                  max={5}
+                  value={draftRooming.maxAgeSpread}
+                  onChange={(e) =>
+                    setDraftRooming({ ...draftRooming, maxAgeSpread: Number(e.target.value) })
+                  }
+                />
+                <span className="esc__days num">
+                  {draftRooming.maxAgeSpread} year
+                  {draftRooming.maxAgeSpread === 1 ? '' : 's'}
+                </span>
+              </span>
+            </label>
+
+            <label className="esc__row">
+              <span className="esc__name">
+                Reuse a bed between stays
+                <span className="meta">
+                  A bed takes a second student once the first has left
+                </span>
+              </span>
+              <span className="esc__control">
+                <input
+                  type="checkbox"
+                  checked={draftRooming.reuseBeds}
+                  onChange={(e) =>
+                    setDraftRooming({ ...draftRooming, reuseBeds: e.target.checked })
+                  }
+                />
+                <span className="esc__days">
+                  {draftRooming.reuseBeds ? 'On' : 'Off'}
+                </span>
+              </span>
+            </label>
+
+            <div className="esc__row">
+              <span className="esc__name">
+                Rooming by gender
+                <span className="meta">
+                  Not configured, and not guessed
+                </span>
+              </span>
+              <span className="esc__control">
+                <span className="mark mark--idle">Unset</span>
+              </span>
+            </div>
+          </div>
+
+          <p className="meta" style={{ marginTop: 16, maxWidth: '66ch', color: 'var(--ink-3)' }}>
+            Whether a centre rooms by gender, and how, is specified in October.
+            Putting a guess into a safeguarding-adjacent decision is worse than
+            leaving it visibly unset, so the allocator does not consider it and
+            says so on every plan.
+          </p>
+
+          <div className="editor__actions">
+            <button
+              className="btn btn--primary"
+              disabled={JSON.stringify(draftRooming) === JSON.stringify(rooming)}
+              onClick={() => setRooming(draftRooming)}
+            >
+              <IconCheck />
+              Save rooming rules
+            </button>
+            <span className="meta">
+              Changing these does not move anybody. Re-plan the beds in Room
+              allocations to see what they would do.
             </span>
           </div>
         </>

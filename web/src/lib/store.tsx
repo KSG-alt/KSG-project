@@ -11,6 +11,7 @@ import {
 } from '../data/seed';
 import { buildPayments, type Payment } from '../data/finance';
 import { buildDuties, type Duty } from '../data/duty';
+import { DEFAULT_RULES, type Move, type RoomingRules } from './allocate';
 import { fillDuty } from './schedule';
 import { buildIncidents, type Incident } from '../data/incidents';
 import {
@@ -50,6 +51,12 @@ interface Store {
   staff: Staff[];
   saveStudent: (next: Student) => void;
   saveStaff: (next: Staff) => void;
+
+  /* Rooming is configuration plus a proposal a person applies — never a
+     silent reshuffle of where children sleep. */
+  rooming: RoomingRules;
+  setRooming: (next: RoomingRules) => void;
+  applyAllocation: (moves: Move[]) => void;
 
   payments: Payment[];
   matchPayment: (paymentId: string, studentId: string) => void;
@@ -96,6 +103,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [students, setStudents] = useState<Student[]>(STUDENTS);
   const [staff, setStaff] = useState<Staff[]>(STAFF);
+  const [rooming, setRoomingState] = useState<RoomingRules>(DEFAULT_RULES);
   const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
   const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
   const [site, setSite] = useState<Site>(PILOT_SITE);
@@ -233,6 +241,54 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             dbsChanged
               ? `DBS moved from ${before!.dbs.state} to ${next.dbs.state}. Certificate ${next.dbs.certificate ?? 'none on file'}.`
               : 'Role, contact or availability changed on the staff record.',
+          ),
+        );
+      },
+
+      rooming,
+      setRooming: (next) => {
+        setRoomingState(next);
+        append(
+          entry(
+            'record',
+            'Rooming rules changed',
+            site.name,
+            `${next.sameLanguageTogether ? 'Same first language may share' : `Same first language: ${next.languageRule}`}. ` +
+              `Age spread ${next.maxAgeSpread}y. Bed reuse ${next.reuseBeds ? 'on' : 'off'}.`,
+          ),
+        );
+      },
+      applyAllocation: (moves) => {
+        const byId = new Map(moves.map((m) => [m.studentId, m]));
+        setStudents((all) =>
+          all.map((s) => {
+            const m = byId.get(s.id);
+            return m ? { ...s, roomId: m.toRoomId, bed: m.bed } : s;
+          }),
+        );
+
+        /* Doing the work closes the chase. A student who now has a bed should
+           not still be sitting in the queue as having none — that is the
+           spreadsheet failure this product exists to remove. */
+        const cleared = reminders.filter(
+          (r) => !r.done && r.id.startsWith('room-') && byId.has(r.id.slice(5)),
+        );
+        if (cleared.length) {
+          setReminders((all) =>
+            all.map((r) =>
+              cleared.some((c) => c.id === r.id) ? { ...r, done: true } : r,
+            ),
+          );
+        }
+        const movedOnSite = moves.filter((m) => m.fromRoomId && m.fromRoomId !== m.toRoomId);
+        append(
+          entry(
+            'safeguarding',
+            'Room allocation applied',
+            site.name,
+            `${moves.length} students allocated. ${movedOnSite.length} moved from a room they were already in. ` +
+              `${cleared.length} outstanding room reminder${cleared.length === 1 ? '' : 's'} closed. ` +
+              'Proposed by the allocator, applied by a person.',
           ),
         );
       },
@@ -385,7 +441,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
   }, [
     reminders, sessions, duties, audit, outbox, students, staff, payments,
-    incidents, site, role, escalation, bandRules,
+    incidents, site, role, escalation, bandRules, rooming,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

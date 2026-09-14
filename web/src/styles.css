@@ -3910,3 +3910,17 @@ p.mark::before {
   min-width: 220px;
   color: var(--ink-3);
 }
+
+/* ── Planning the beds ─────────────────────────────────────────────────── */
+
+.plan2 .split {
+  margin-bottom: 18px;
+}
+
+.plan2 .alert {
+  margin-top: 22px;
+}
+
+.plan2 .label {
+  margin-top: 28px;
+}
