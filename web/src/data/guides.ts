@@ -40,7 +40,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-archery',
     summary:
-      'Target archery on the lower field, shooting away from the treeline. One qualified instructor runs the line and calls every whistle; the other staff work the waiting group, not the shooting line. Nobody collects arrows until the instructor calls it.',
+      'Target archery on booked pitch space at The Hub in Regent\u2019s Park, shot away from the footpaths. One qualified instructor runs the line and calls every whistle; the other staff work the waiting group, not the shooting line. Nobody collects arrows until the instructor calls it. This is a public park — the overshoot area has to be roped and watched the whole time.',
     duration: '90 minutes, including 15 to set up and 15 to clear',
     groupSize: 'Up to 24, shooting in waves of 8',
     kit: [
@@ -53,8 +53,8 @@ export const GUIDES: Guide[] = [
       'First aid kit and the group register',
     ],
     before: [
-      'Walk the field before the group arrives. Check the overshoot area behind the targets is clear and stays clear for the session.',
-      'Rope the waiting line at least five metres behind the shooting line, and cone the ends.',
+      'Walk the pitch before the group arrives. The overshoot area behind the targets has to be clear of the public and stay clear — in a park that means somebody watching it, not just checking it once.',
+      'Rope the waiting line at least five metres behind the shooting line, and cone the ends. Rope the overshoot area too.',
       'Set the bosses square to the shooting line and check every stand is stable.',
       'Count the arrows out loud with a second staff member and write the number down.',
       'Take the register at the field, not at the accommodation.',
@@ -68,20 +68,20 @@ export const GUIDES: Guide[] = [
     ],
     after: [
       'Two whistles, collect every arrow, and count them back in against the number written down.',
-      'Any arrow unaccounted for — sweep the field before the group leaves. Nothing is left in the grass.',
+      'Any arrow unaccounted for — sweep the pitch before the group leaves. Nothing is left in the grass of a public park.',
       'Strings off, bows and arrows back in the store, bosses under cover.',
       'Register again before walking back.',
       'Write up anything that went wrong in Incidents, same day.',
     ],
     hazards: [
       { risk: 'Someone forward of the line while shooting', control: 'Two whistles stops everything. Only the instructor calls people forward.' },
-      { risk: 'Arrow over the target', control: 'Overshoot area kept clear and checked before the session.' },
+      { risk: 'Arrow over the target into a public footpath', control: 'Overshoot area roped and watched by a named staff member for the whole session.' },
       { risk: 'Finger and forearm injury', control: 'Tabs and arm guards on every shooter, checked at the line.' },
       { risk: 'A bow too heavy for the shooter', control: 'Bows sized to the band, swapped if the shooter cannot hold the draw steady.' },
     ],
     abort: [
       'Wind strong enough to move a target face on its stand',
-      'Anyone on the field who is not part of the session and will not leave',
+      'A member of the public in the overshoot area who will not move',
       'The qualified instructor leaves the line for any reason',
       'Lightning within sight or hearing',
     ],
@@ -91,9 +91,9 @@ export const GUIDES: Guide[] = [
       'No photographs unless the consent list says so — check it before the session, not after.',
     ],
     emergency: {
-      firstAid: 'Kit at the shooting line. Nearest defibrillator is in the sports centre lobby.',
+      firstAid: 'Kit at the shooting line. The Hub building has a first aid point and staff on site.',
       callFirst: 'Welfare officer on 07700 900613. Ambulance direct for anything to the eye or a deep puncture.',
-      assembly: 'Lower field gate, by the track.',
+      assembly: 'The Hub building entrance.',
     },
     owner: 'Tomas Halvorsen, activity manager',
     reviewed: '2027-05-18',
@@ -102,7 +102,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-kayak',
     summary:
-      'Flat-water kayaking inside the harbour wall. A beach lifeguard is on the water for the whole session and never leaves it. Buoyancy aids are fitted on land and checked by a second person before anyone gets in a boat.',
+      'Flat-water paddling on the Regent\u2019s Canal from the wharf at The Pirate Castle. Their instructors run the water; our staff run the group. Buoyancy aids are fitted on land and checked by a second person before anyone gets in a boat. It is a canal, not open water — the risks are the towpath, the locks and the cold, not the sea.',
     duration: '90 minutes on the water, plus 20 for kit and changing',
     groupSize: 'Up to 20, in two pods of 10 with one staff member each',
     kit: [
@@ -110,16 +110,16 @@ export const GUIDES: Guide[] = [
       'Helmets where the launch is over rock',
       'Kayaks and paddles sized to the band',
       'Throw line with each staff member on the water',
-      'Safety boat or a staffed pontoon, per the harbour agreement',
+      'Their safety cover on the water, per the booking',
       'Waterproof first aid kit and a charged phone in a dry bag',
       'Register on waterproof paper',
     ],
     before: [
-      'Check the harbour forecast and the tide time. Both go in the session note before the group leaves the centre.',
-      'Count the group at the centre, at the marine centre, and again on the water.',
+      'Check with their duty instructor that the canal is open — a lock closure or a boat movement can stop the session at no notice.',
+      'Count the group at the centre, at the wharf, and again on the water.',
       'Fit every buoyancy aid on land. A second staff member checks each one by lifting at the shoulders.',
       'Confirm who can swim and who cannot from the medical forms — not by asking the group.',
-      'Agree and show the boundary: nobody goes past the marker, in either direction.',
+      'Agree and show the boundary: nobody paddles past the bridge in either direction, and nobody goes near the lock.',
     ],
     during: [
       'Staff stay on the water with their pod. Never on the pontoon while students are afloat.',
@@ -130,7 +130,7 @@ export const GUIDES: Guide[] = [
     ],
     after: [
       'Count off the water, count on the pontoon, count in the changing room.',
-      'Kit rinsed, buoyancy aids hung, nothing left on the slipway.',
+      'Kit rinsed and handed back, buoyancy aids hung, nothing left on the towpath.',
       'Check for anybody shivering before the walk back, and tell the welfare officer if so.',
       'Report any near miss the same day, even if nothing happened.',
     ],
@@ -138,12 +138,12 @@ export const GUIDES: Guide[] = [
       { risk: 'Capsize and cold shock', control: 'Drill in shallow water first. Lifeguard on the water throughout.' },
       { risk: 'A student drifting past the boundary', control: 'Visible marker, boundary briefed before launch, count every fifteen minutes.' },
       { risk: 'Non-swimmer in the group', control: 'Read from the medical form beforehand and pair them with a staff member.' },
-      { risk: 'Harbour traffic', control: 'Session stays inside the wall, per the harbour agreement.' },
+      { risk: 'Canal boat traffic and the lock', control: 'Boundary set between two bridges, away from the lock, and briefed before launch.' },
     ],
     abort: [
-      'Wind over the harbour limit, or any forecast change after the session starts',
-      'The lifeguard has to leave the water',
-      'Visibility drops below the far marker',
+      'Their instructor calls it off, for any reason — it is their water',
+      'A lock movement or a boat convoy through the session boundary',
+      'Anybody in the water who did not mean to be, until everyone is checked',
       'Any student in the water who cannot self-rescue after the drill',
     ],
     safeguarding: [
@@ -152,9 +152,9 @@ export const GUIDES: Guide[] = [
       'No phones or cameras in the changing area at all, staff included.',
     ],
     emergency: {
-      firstAid: 'Dry bag with the lead instructor. Marine centre has oxygen and a defibrillator.',
-      callFirst: 'Coastguard on 999 for anyone missing on the water. Welfare officer straight after, not before.',
-      assembly: 'Top of the slipway, by the marine centre door.',
+      firstAid: 'Dry bag with the lead instructor. The Pirate Castle has first aid on site.',
+      callFirst: '999 for anyone missing on the water, then their duty manager, then the welfare officer. In that order.',
+      assembly: 'Top of the ramp on Oval Road, off the towpath.',
     },
     owner: 'Tomas Halvorsen, activity manager',
     reviewed: '2027-06-02',
@@ -163,7 +163,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-english',
     summary:
-      'Ninety minutes of classroom English in Block C, taught by a TEFL-qualified teacher against the group’s level. The point of the lesson in an activity centre is that it connects to the afternoon — the language they will need at the harbour, at the museum, at dinner.',
+      'Ninety minutes of classroom English in Block C, taught by a TEFL-qualified teacher against the group’s level. The point of the lesson in an activity centre is that it connects to the afternoon — the language they will need on the canal, at the museum, at dinner.',
     duration: '90 minutes, with a break at 45',
     groupSize: 'Up to 30, working in pairs or fours',
     kit: [
@@ -264,7 +264,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-museum',
     summary:
-      'Off-site excursion into the city by coach, run by Crown Coaches. The whole session is counting: on the coach, off the coach, into the museum, out of the museum, on the coach again. Off-site ratio is tighter than on site, and travel consent is checked by name before anyone boards.',
+      'Off-site excursion to the Natural History Museum by coach. The whole session is counting: on the coach, off the coach, into the museum, out of the museum, on the coach again. School groups use the Exhibition Road entrance and leave bags at School Reception on the lower ground floor of the Green Zone. Off-site ratio is tighter than on site, and travel consent is checked by name before anyone boards.',
     duration: 'Half a day including travel',
     groupSize: 'Up to 45, in sub-groups of no more than 10 with a named staff member',
     kit: [
@@ -279,7 +279,7 @@ export const GUIDES: Guide[] = [
       'Check travel consent against the list, name by name. A student without consent does not go, however short the notice.',
       'Check the off-site ratio for the band before the coach is loaded. It is tighter than on site.',
       'Split into sub-groups and name the staff member for each. Students learn their staff member’s name before boarding.',
-      'Agree the meeting point inside the museum and the time, and say it twice.',
+      'Agree the meeting point inside the museum and the time, and say it twice. Hintze Hall by the whale is the one everybody can find.',
       'Count on to the coach. Write the number down.',
     ],
     during: [
@@ -313,9 +313,9 @@ export const GUIDES: Guide[] = [
       'Photographs only if the consent list allows, and never on a personal phone.',
     ],
     emergency: {
-      firstAid: 'Kit with each sub-group. Museum has a first aid room at the main desk.',
+      firstAid: 'Kit with each sub-group. Ask any museum staff member for first aid.',
       callFirst: 'Centre director first for a missing student, then 999. The coach does not leave.',
-      assembly: 'Museum main steps, then the coach bay.',
+      assembly: 'Exhibition Road entrance, then the Cromwell Road coach bay.',
     },
     owner: 'Kebba Sarr, safeguarding lead',
     reviewed: '2027-06-14',
@@ -324,7 +324,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-football',
     summary:
-      'Coached football on the astro. Mixed ability and mixed language, so the session is built around playing, not drilling. A Level 2 coach runs it; other staff make up the ratio and keep an eye on who is being left out.',
+      'Coached football on a booked pitch at The Hub in Regent\u2019s Park. Mixed ability and mixed language, so the session is built around playing, not drilling. A Level 2 coach runs it; other staff make up the ratio and keep an eye on who is being left out.',
     duration: '90 minutes',
     groupSize: 'Up to 24, in small-sided games',
     kit: [
@@ -336,7 +336,7 @@ export const GUIDES: Guide[] = [
       'Register',
     ],
     before: [
-      'Walk the pitch. Anything on the surface, any loose peg, any damaged fencing.',
+      'Walk the pitch. Anything on the surface, any loose peg, any dog mess — it is a public park.',
       'Peg the goals down. A portable goal that tips is the worst injury on a school field.',
       'Check the medical forms for asthma, and know where the inhalers are.',
       'In hot weather, set the water breaks before you start, not when someone asks.',
@@ -359,8 +359,8 @@ export const GUIDES: Guide[] = [
       { risk: 'A student excluded by the group', control: 'Teams mixed by the coach, not chosen by students.' },
     ],
     abort: [
-      'Lightning within sight or hearing — off the astro immediately, no exceptions',
-      'Surface unsafe after rain',
+      'Lightning within sight or hearing — off the pitch and into The Hub immediately, no exceptions',
+      'Surface unsafe after rain — the Royal Parks close pitches, and that call is theirs',
       'A goal that cannot be pegged',
     ],
     safeguarding: [
@@ -369,9 +369,9 @@ export const GUIDES: Guide[] = [
       'No photographs unless the consent list says so.',
     ],
     emergency: {
-      firstAid: 'Pitchside kit. Defibrillator in the sports centre lobby, two minutes away.',
+      firstAid: 'Pitchside kit. The Hub building has a first aid point and staff on site.',
       callFirst: 'Welfare officer on 07700 900613. 999 for a head injury with any loss of consciousness.',
-      assembly: 'Astro gate.',
+      assembly: 'The Hub building entrance.',
     },
     owner: 'Tomas Halvorsen, activity manager',
     reviewed: '2027-05-27',
@@ -380,7 +380,7 @@ export const GUIDES: Guide[] = [
   {
     activityId: 'a-climbing',
     summary:
-      'Indoor climbing at the sports centre, run by Vertical Ltd instructors on their wall and their systems. Centre staff do not belay and do not supervise the wall — they hold the group, the register and the welfare.',
+      'Indoor climbing at VauxWall in the railway arches under Vauxhall station, run by their instructors on their wall and their systems. Centre staff do not belay and do not supervise the wall — they hold the group, the register and the welfare.',
     duration: '90 minutes including harness fitting',
     groupSize: 'Up to 16, which is the wall’s own limit',
     kit: [
@@ -391,10 +391,10 @@ export const GUIDES: Guide[] = [
       'Medical notes for anyone with a shoulder, back or joint condition',
     ],
     before: [
-      'Confirm Vertical Ltd instructor numbers against the booking. If they are short, the session does not run at full size.',
+      'Confirm instructor numbers against the booking. If they are short, the session does not run at full size.',
       'Check footwear at the centre, not at the wall. A student in sandals cannot climb and will not want to be the one who found out on arrival.',
       'Hand the medical notes that matter to the lead instructor, verbally, before the session.',
-      'Register at the sports centre.',
+      'Register at the centre and again at the arches.',
     ],
     during: [
       'Every harness is fitted and checked by their staff. Centre staff never check a harness — if it is our check, it is our liability and our mistake.',
@@ -404,7 +404,7 @@ export const GUIDES: Guide[] = [
     ],
     after: [
       'Kit returned to their staff and counted by them.',
-      'Register at the sports centre and again at the centre.',
+      'Register at the arches and again back at the centre.',
       'Any fall, slip or knock goes in Incidents, however small, and Vertical Ltd are told the same day.',
     ],
     hazards: [
@@ -424,9 +424,9 @@ export const GUIDES: Guide[] = [
       'No photographs unless the consent list says so.',
     ],
     emergency: {
-      firstAid: 'Sports centre reception, and a defibrillator in the lobby.',
+      firstAid: 'Their reception desk, inside the arch.',
       callFirst: 'Vertical Ltd duty manager first for anything on the wall — it is their system. Welfare officer straight after.',
-      assembly: 'Sports centre car park.',
+      assembly: 'South Lambeth Road, clear of the arches.',
     },
     owner: 'Tomas Halvorsen, activity manager',
     reviewed: '2027-06-09',

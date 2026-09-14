@@ -205,3 +205,12 @@ export function IconSetup() {
     </svg>
   );
 }
+
+export function IconMap() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 4.2 3.4 6.4v13.4L9 17.6l6 2.2 5.6-2.2V4.2L15 6.4z" />
+      <path d="M9 4.2v13.4M15 6.4v13.4" />
+    </svg>
+  );
+}

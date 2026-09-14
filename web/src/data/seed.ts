@@ -473,13 +473,13 @@ export interface Activity {
 }
 
 export const ACTIVITIES: Activity[] = [
-  { id: 'a-archery', name: 'Archery', location: 'Lower field', capacity: 24, requiresQual: 'Level 2 archery', supplier: 'Fieldcraft Outdoor Ltd', costPence: 42000 },
-  { id: 'a-kayak', name: 'Kayaking', location: 'Marine centre', capacity: 20, requiresQual: 'Beach lifeguard', supplier: 'Harbour Watersports', costPence: 68000 },
+  { id: 'a-archery', name: 'Archery', location: "The Hub, Regent's Park", capacity: 24, requiresQual: 'Level 2 archery', supplier: 'Fieldcraft Outdoor Ltd', costPence: 42000 },
+  { id: 'a-kayak', name: 'Kayaking', location: 'The Pirate Castle, Camden', capacity: 20, requiresQual: 'Beach lifeguard', supplier: 'Harbour Watersports', costPence: 68000 },
   { id: 'a-english', name: 'English lesson', location: 'Block C', capacity: 30, requiresQual: 'TEFL', supplier: null, costPence: null },
   { id: 'a-drama', name: 'Drama workshop', location: 'Hall', capacity: 28, requiresQual: null, supplier: 'Playhouse Education', costPence: 31000 },
-  { id: 'a-museum', name: 'Museum excursion', location: 'Off site — city', capacity: 45, requiresQual: null, supplier: 'Crown Coaches', costPence: 96000 },
-  { id: 'a-football', name: 'Football', location: 'Astro pitch', capacity: 24, requiresQual: 'Level 2 coaching', supplier: null, costPence: null },
-  { id: 'a-climbing', name: 'Climbing wall', location: 'Sports centre', capacity: 16, requiresQual: null, supplier: 'Vertical Ltd', costPence: 54000 },
+  { id: 'a-museum', name: 'Museum excursion', location: 'Natural History Museum', capacity: 45, requiresQual: null, supplier: 'Crown Coaches', costPence: 96000 },
+  { id: 'a-football', name: 'Football', location: "The Hub pitches, Regent's Park", capacity: 24, requiresQual: 'Level 2 coaching', supplier: null, costPence: null },
+  { id: 'a-climbing', name: 'Climbing wall', location: 'VauxWall, Vauxhall', capacity: 16, requiresQual: null, supplier: 'Vertical Ltd', costPence: 54000 },
 ];
 
 export type SessionStatus = 'scheduled' | 'reslotted' | 'cancelled';

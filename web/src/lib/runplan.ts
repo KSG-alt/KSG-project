@@ -10,7 +10,9 @@
 
 import { activityById, groupById, staffById, type Session } from '../data/seed';
 import { guideFor } from '../data/guides';
-import { venueFor } from '../data/venues';
+import {
+  MODE_LABEL, routeLicences, routeMinutes, routeModes, venueFor,
+} from '../data/venues';
 
 export type Who = 'Lead' | 'Second' | 'Everyone';
 
@@ -32,6 +34,7 @@ export interface Plan {
   second: string | null;
   driver: string | null;
   needsDriver: boolean;
+  licences: string[];
 }
 
 const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
@@ -49,7 +52,8 @@ export function runPlan(session: Session): Plan {
   const v = venueFor(a.location);
   const group = groupById(session.groupId);
 
-  const travel = v?.minutes ?? 0;
+  const travel = v ? routeMinutes(v.primary) : 0;
+  const licences = v ? routeLicences(v.primary) : [];
   const s = mins(session.start);
   const e = mins(session.end);
 
@@ -61,8 +65,8 @@ export function runPlan(session: Session): Plan {
       ? crew.find((x) => x.quals.includes(a.requiresQual!))
       : undefined) ?? crew[0];
   const secondStaff = crew.find((x) => x.id !== leadStaff?.id);
-  const driverStaff = v?.needsDriver
-    ? crew.find((x) => x.quals.includes('Minibus D1'))
+  const driverStaff = licences.length
+    ? crew.find((x) => licences.every((q) => x.quals.includes(q)))
     : undefined;
 
   const name = (x?: { forename: string; surname: string }) =>
@@ -84,13 +88,13 @@ export function runPlan(session: Session): Plan {
       : 'Collect and check the kit.',
     'prep',
   );
-  if (v?.needsDriver) {
+  if (licences.length) {
     add(
       s - 20,
       'Lead',
       driverStaff
-        ? `${name(driverStaff)} takes the minibus — check fuel, and that the D1 licence is in the cab folder.`
-        : 'No one on this session holds Minibus D1. The session cannot travel as staffed.',
+        ? `${name(driverStaff)} takes the minibus — check fuel, and that the ${licences.join(' and ')} licence is in the cab folder.`
+        : `No one on this session holds ${licences.join(' and ')}. The session cannot travel as staffed.`,
       'prep',
     );
   }
@@ -107,9 +111,11 @@ export function runPlan(session: Session): Plan {
     add(
       s,
       'Everyone',
-      `Leave — ${v?.travel ?? 'on foot'}, ${travel} minutes. ` +
-        (v?.travel === 'coach' || v?.travel === 'minibus'
-          ? 'Count on, and say the number out loud to the second staff member.'
+      `Leave — ${
+        v ? routeModes(v.primary).map((m) => MODE_LABEL[m].toLowerCase()).join(', then ') : 'on foot'
+      }, ${travel} minutes. ` +
+        (v && routeModes(v.primary).some((m) => m !== 'walk')
+          ? 'Count on at the door, and say the number out loud to the second staff member.'
           : 'Staff at the front and the back.'),
       'travel',
     );
@@ -166,7 +172,8 @@ export function runPlan(session: Session): Plan {
     lead: name(leadStaff),
     second: name(secondStaff),
     driver: name(driverStaff),
-    needsDriver: Boolean(v?.needsDriver),
+    needsDriver: licences.length > 0,
+    licences,
   };
 }
 
@@ -177,12 +184,13 @@ export function selfCheck() {
     id: 'x', groupId: 'g-kestrel', day: '2027-07-12',
     staffIds: [], status: 'scheduled' as const, origin: 'manual' as const,
   };
-  /* Lower field is an 8-minute walk: 90 − 16 − 20 = 54 minutes of archery. */
+  /* Regent's Park is a 25-minute walk: 90 − 50 − 20 = 20 minutes of archery.
+     Tight, and the screen says so rather than hiding it. */
   const near = runPlan({ ...base, activityId: 'a-archery', start: '09:00', end: '10:30' });
-  console.assert(near.activityMinutes === 54, `near slot: ${near.activityMinutes}`);
-  console.assert(!near.tooTight, 'an 8-minute walk fits a 90-minute slot');
+  console.assert(near.activityMinutes === 20, `near slot: ${near.activityMinutes}`);
+  console.assert(!near.tooTight, 'a 25-minute walk still leaves time in 90 minutes');
 
-  /* The city is 45 each way, so a 90-minute slot cannot hold it at all. */
+  /* South Kensington is 46 each way, so a 90-minute slot cannot hold it. */
   const far = runPlan({ ...base, activityId: 'a-museum', start: '09:00', end: '10:30' });
   console.assert(far.tooTight, 'a 45-minute coach each way cannot fit 90 minutes');
   console.assert(far.activityMinutes === 0, 'no negative activity time');

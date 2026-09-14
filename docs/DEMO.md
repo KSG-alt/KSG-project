@@ -58,7 +58,16 @@ timetable chat still needs a key to edit the rota by conversation.
 ## What it is not
 
 The data is seeded and fake. Every screen says so, and the numbers are
-generated, not measured. There is no live centre behind it, no customer, and
+generated, not measured.
+
+The centre is fictional and deliberately unnamed — naming a real school would
+imply a customer that does not exist. The **venues around it are real**, so the
+routes, stations, entrances and map links are true and checkable: The Pirate
+Castle on Oval Road NW1, The Hub in Regent's Park NW1, the Natural History
+Museum on Cromwell Road SW7 (school groups use the Exhibition Road entrance),
+and VauxWall in the arches under Vauxhall station SW8. Which activity a
+fictional summer school runs at each is part of the scenario; the places and
+the journeys are not invented. There is no live centre behind it, no customer, and
 no benchmark. Do not describe it as anything else.
 
 The blocked-arrival and outstanding-document counts come from the seed's

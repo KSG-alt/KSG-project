@@ -16,7 +16,7 @@ import {
   WEEKLY_LIMIT, activityById, groupById, isAway, weeklyHours, type Session,
 } from '../data/seed';
 import { guideFor } from '../data/guides';
-import { roundTrip, venueFor } from '../data/venues';
+import { roundTrip, routeLicences, venueFor } from '../data/venues';
 
 const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
 
@@ -349,9 +349,11 @@ export function generate(spec: Spec, all: Session[]): Draft {
       const taken = claim(slot.start);
       const venueTaken = venueClaim(slot.start);
 
-      /* A slot the travel does not fit is not a slot for that activity. The
-         city is 45 minutes each way; putting it in a 90-minute slot schedules
-         a coach journey and no museum. */
+      /* A slot the travel cannot fit at all is not a slot for that activity —
+         the museum is 46 minutes each way, so a 90-minute slot schedules a
+         coach journey and no museum. A slot that is merely tight is still
+         offered: the guide shows the split and a person decides, which is the
+         difference between automating the chase and automating the judgement. */
       const slotMinutes =
         Number(slot.end.slice(0, 2)) * 60 +
         Number(slot.end.slice(3)) -
@@ -359,7 +361,7 @@ export function generate(spec: Spec, all: Session[]): Draft {
 
       const candidates = pool.filter((a) => {
         if (venueTaken.has(a.location)) return false;
-        if (slotMinutes - roundTrip(a.location) - 20 < 20) return false;
+        if (slotMinutes - roundTrip(a.location) - 20 <= 0) return false;
         if (spec.noRepeatPerGroup !== false && used.has(a.id)) return false;
         if (
           isOffSite(a.id) &&
@@ -415,15 +417,25 @@ export function generate(spec: Spec, all: Session[]): Draft {
         /* A minibus venue needs somebody on the session who can legally drive
            it. Without that the group cannot get there, however well staffed
            the session is. */
+        /* Some routes need a licence — a centre minibus needs D1. Without
+           somebody who can legally drive it, the group cannot get there
+           however well staffed the session is. */
         const venue = venueFor(a.location);
-        const driver = venue?.needsDriver
+        const licences = venue ? routeLicences(venue.primary) : [];
+        const driver = licences.length
           ? free.find(
-              (s) => s.id !== instructor?.id && s.quals.includes('Minibus D1'),
-            ) ?? (instructor?.quals.includes('Minibus D1') ? instructor : undefined)
+              (s) =>
+                s.id !== instructor?.id && licences.every((q) => s.quals.includes(q)),
+            ) ??
+            (instructor && licences.every((q) => instructor.quals.includes(q))
+              ? instructor
+              : undefined)
           : undefined;
 
-        if (venue?.needsDriver && !driver) {
-          tried.push(`${a.name} — nobody free holds Minibus D1 to drive there`);
+        if (licences.length && !driver) {
+          tried.push(
+            `${a.name} — nobody free holds ${licences.join(' and ')} to get there`,
+          );
           continue;
         }
 

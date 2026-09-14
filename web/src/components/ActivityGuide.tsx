@@ -5,7 +5,12 @@ import { StudentProfile } from './StudentProfile';
 import { useStore } from '../lib/store';
 import { checkRatio } from '../lib/ratio';
 import { guideFor } from '../data/guides';
-import { venueFor } from '../data/venues';
+import {
+  MODE_LABEL, legStart, routeLicences, routeMinutes, routeModes, venueFor,
+} from '../data/venues';
+import { directionsUrl, mappable, modeSummary, placeUrl } from '../lib/maps';
+import { JourneyMap } from './JourneyMap';
+import { IconMap } from '../lib/icons';
 import { runPlan } from '../lib/runplan';
 
 import {
@@ -26,6 +31,7 @@ export function ActivityGuide({
   const [tab, setTab] = useState<Tab>('plan');
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [openStudent, setOpenStudent] = useState<string | null>(null);
+  const [routeShown, setRouteShown] = useState<'primary' | 'alternative'>('primary');
 
   const a = activityById(session.activityId);
   const g = guideFor(session.activityId);
@@ -61,6 +67,11 @@ export function ActivityGuide({
   const notReady = roll.filter((s) => !readiness(s).ready);
 
   const venue = venueFor(a.location);
+  const route = venue
+    ? routeShown === 'primary'
+      ? venue.primary
+      : venue.alternative
+    : null;
   const plan = runPlan(session);
 
   const tabs: { id: Tab; label: string }[] = [
@@ -196,15 +207,105 @@ export function ActivityGuide({
         )}
 
         {tab === 'travel' && (
-          venue ? (
+          venue && route ? (
             <>
-              <dl className="pairs">
-                <div className="pairs__pair"><dt>How</dt><dd>{venue.travel}</dd></div>
-                <div className="pairs__pair">
-                  <dt>How long</dt>
-                  <dd className="num">{venue.minutes} minutes each way</dd>
+              <div className="routepick">
+                {([venue.primary, venue.alternative] as const).map((r, i) => (
+                  <button
+                    key={r.name}
+                    className={`routepick__opt${
+                      (i === 0) === (routeShown === 'primary') ? ' routepick__opt--on' : ''
+                    }`}
+                    onClick={() => setRouteShown(i === 0 ? 'primary' : 'alternative')}
+                  >
+                    <span className="routepick__name">
+                      {i === 0 ? 'Usual route' : 'Alternative'}
+                    </span>
+                    <span className="routepick__which">{r.name}</span>
+                    <span className="meta routepick__stat num">
+                      {routeMinutes(r)} min · {modeSummary(r)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <p className="guide__lede">{route.when}</p>
+
+              <JourneyMap route={route} to={venue.location} />
+
+              {mappable(venue) && (
+                <div className="maplinks">
+                  <a
+                    className="btn btn--primary"
+                    href={directionsUrl(venue, route)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    <IconMap />
+                    Open the route in Google Maps
+                  </a>
+                  <a
+                    className="btn"
+                    href={placeUrl(venue)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    Find the door
+                  </a>
+                  <span className="meta">
+                    Opens Google Maps with the real address. {venue.address}
+                  </span>
                 </div>
-                <div className="pairs__pair"><dt>Meet at</dt><dd>{venue.meetAt}</dd></div>
+              )}
+
+              <p className="label">Step by step</p>
+              <ol className="steps">
+                {route.legs.map((l, i) => (
+                  <li key={i}>
+                    <span className="steps__n num">{i + 1}</span>
+                    <span>
+                      <strong>{MODE_LABEL[l.mode]}</strong>, {l.minutes} min —{' '}
+                      {legStart(route, i)} to {l.to}.
+                      <span className="meta" style={{ display: 'block' }}>
+                        {l.detail}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="label">What it needs</p>
+              <dl className="pairs">
+                <div className="pairs__pair">
+                  <dt>Meet at</dt>
+                  <dd>{venue.meetAt}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Modes</dt>
+                  <dd>
+                    {routeModes(route)
+                      .map((m) => MODE_LABEL[m])
+                      .join(', then ')}
+                  </dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Licence</dt>
+                  <dd>
+                    {routeLicences(route).length === 0 ? (
+                      'None — no one has to drive'
+                    ) : plan.driver ? (
+                      <>
+                        {routeLicences(route).join(', ')}
+                        <span className="meta"> · {plan.driver} holds it</span>
+                      </>
+                    ) : (
+                      <span className="mark mark--critical">
+                        Needs {routeLicences(route).join(', ')} — nobody on this
+                        session holds it
+                      </span>
+                    )}
+                  </dd>
+                </div>
                 {venue.capacityPerVehicle && (
                   <div className="pairs__pair">
                     <dt>Per vehicle</dt>
@@ -224,108 +325,15 @@ export function ActivityGuide({
                 )}
               </dl>
 
-              {venue.needsDriver && (
-                <div className={`alert${plan.driver ? '' : ' alert--critical'}`}>
-                  <p className="label">Needs a D1 driver</p>
-                  <p className="meta" style={{ margin: 0 }}>
-                    {plan.driver
-                      ? `${plan.driver} holds Minibus D1 and is on this session.`
-                      : 'Nobody on this session holds Minibus D1. It cannot travel as staffed.'}
-                  </p>
-                </div>
-              )}
-
-              <p className="label">The route</p>
-              <ol className="steps">
-                {venue.route.map((r, i) => (
-                  <li key={i}>
-                    <span className="steps__n num">{i + 1}</span>
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ol>
-
               <p className="label">Getting there with a wheelchair or an injury</p>
-              <p className="meta" style={{ margin: 0 }}>{venue.accessible}</p>
+              <p className="meta" style={{ margin: 0 }}>{route.accessible}</p>
 
               <p className="label">Worth knowing</p>
-              <p className="meta" style={{ margin: 0 }}>{venue.notes}</p>
+              <p className="meta" style={{ margin: 0 }}>{route.notes}</p>
             </>
           ) : (
-            <p className="meta">
-              No directions written for {a.location} yet.
-            </p>
+            <p className="meta">No directions written for {a.location} yet.</p>
           )
-        )}
-
-        {!g && (
-          <div className="alert alert--critical">
-            <p className="label">Nothing written down</p>
-            <p className="meta" style={{ margin: 0 }}>
-              This activity runs without a procedure. Write one before it runs
-              again — the first person to need it will be somebody running it
-              for the first time.
-            </p>
-          </div>
-        )}
-
-        {g && tab === 'guide' && (
-          <>
-            <p className="guide__lede">{g.summary}</p>
-
-            <dl className="pairs">
-              <div className="pairs__pair"><dt>Runs for</dt><dd>{g.duration}</dd></div>
-              <div className="pairs__pair"><dt>Group size</dt><dd>{g.groupSize}</dd></div>
-              <div className="pairs__pair"><dt>Capacity</dt><dd className="num">{a.capacity}</dd></div>
-              <div className="pairs__pair">
-                <dt>Needs</dt>
-                <dd>
-                  {a.requiresQual ? (
-                    <span className="mark mark--idle">{a.requiresQual}</span>
-                  ) : (
-                    'No specific qualification'
-                  )}
-                </dd>
-              </div>
-            </dl>
-
-            <p className="label">Kit</p>
-            <ul className="log">
-              {g.kit.map((k) => (
-                <li key={k}>{k}</li>
-              ))}
-            </ul>
-
-            <p className="label">Before the group arrives</p>
-            <ol className="steps">
-              {g.before.map((s, i) => (
-                <li key={i}>
-                  <span className="steps__n num">{i + 1}</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ol>
-
-            <p className="label">Running it</p>
-            <ol className="steps">
-              {g.during.map((s, i) => (
-                <li key={i}>
-                  <span className="steps__n num">{i + 1}</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ol>
-
-            <p className="label">Closing down</p>
-            <ol className="steps">
-              {g.after.map((s, i) => (
-                <li key={i}>
-                  <span className="steps__n num">{i + 1}</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ol>
-          </>
         )}
 
         {tab === 'today' && (
