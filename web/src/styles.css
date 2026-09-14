@@ -3924,3 +3924,42 @@ p.mark::before {
 .plan2 .label {
   margin-top: 28px;
 }
+
+/* ── Planning the beds, with the chat beside it ────────────────────────── */
+
+.beds {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 372px;
+  gap: 30px;
+  align-items: start;
+}
+
+.beds__side {
+  position: sticky;
+  top: 80px;
+}
+
+.beds__side .panel {
+  padding: 18px;
+}
+
+.beds__side .chat {
+  margin: 14px -18px -18px;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  border-top: 1px solid var(--rule);
+  background: transparent;
+  box-shadow: none;
+}
+
+.beds__side .ask__stream {
+  max-height: 300px;
+}
+
+@media (max-width: 1180px) {
+  .beds {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .beds__side {
+    position: static;
+  }
+}

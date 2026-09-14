@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { ReadinessMark } from '../components/StudentReadiness';
 import { StudentProfile } from '../components/StudentProfile';
@@ -6,9 +6,13 @@ import { StaffProfile } from '../components/StaffProfile';
 import { useStore } from '../lib/store';
 import {
   ROOMS, fmtDate, groupById, roomLabel, upcomingArrivals, wardenFor,
-  whenLabel, type Student,
+  whenLabel, DEMO_TODAY, fmtDateLong, type AgeBand, type Student,
 } from '../data/seed';
-import { changed, propose, type Mode, type Proposal } from '../lib/allocate';
+import {
+  changed, parseRoomingSpec, propose, roomReport, type Mode, type Proposal,
+} from '../lib/allocate';
+import { Chat } from '../components/Chat';
+import type { ToolSpec } from '../lib/anthropic';
 
 type View = 'rooms' | 'students' | 'unallocated' | 'arrivals' | 'plan';
 
@@ -16,6 +20,10 @@ export function Rooms() {
   const { students, rooming, applyAllocation, role } = useStore();
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [mode, setMode] = useState<Mode>('fill-gaps');
+  /* The chat and the buttons drive the same planner, so a plan asked for in
+     words and a plan asked for with a button are the same object. */
+  const live = useRef({ students: [] as Student[], rooming });
+  live.current = { students, rooming };
 
   /* Occupancy comes from the store, not the seed — the allocator changes it. */
   const STUDENTS = students;
@@ -54,6 +62,189 @@ export function Rooms() {
 
   const studentRows = STUDENTS.filter(matches);
 
+
+  const BLOCKS = Array.from(new Set(ROOMS.map((r) => r.block)));
+
+  /* One planner, three callers: the buttons, the keyless parser, and the
+     model's tool. They all land here so a plan is a plan however it was
+     asked for. */
+  function plan(
+    nextMode: Mode,
+    rules = live.current.rooming,
+    scope?: { bands?: AgeBand[]; blocks?: string[] },
+  ) {
+    const p = propose(live.current.students, rules, ROOMS, nextMode, scope);
+    setMode(nextMode);
+    setProposal(p);
+    return p;
+  }
+
+  function localRoomCommand(q: string) {
+    const t = q.toLowerCase();
+    /* Either an explicit phrase for one of the two jobs, or a subject the
+       planner owns paired with a verb that means do it. */
+    const explicit = /\bfill the gaps?\b|\bfrom scratch\b|\breplan\b|\breshuffle\b/.test(t);
+    const subject = /\b(room|rooms|rooming|bed|beds|allocat|dorm|sleep|gaps?|unallocated)\b/.test(t);
+    const verb = /\b(plan|allocat|sort|fill|work out|do|redo|draft|arrange|put)\b/.test(t);
+    if (!explicit && !(subject && verb)) return null;
+
+    const parsed = parseRoomingSpec(q, live.current.rooming, BLOCKS);
+    const p = plan(parsed.mode, parsed.rules, parsed.scope);
+    const real = changed(p, live.current.students);
+    return { text: roomReport(p, real, parsed), source: 'the bed planner' };
+  }
+
+  const tools: ToolSpec[] = [
+    {
+      name: 'rooming_state',
+      description:
+        'How the beds stand right now: rooms, capacity, who has no bed, and how many rooms share a first language.',
+      input_schema: { type: 'object', properties: {} },
+      run: () => {
+        const ss = live.current.students;
+        const byRoom = new Map<string, typeof ss>();
+        ss.forEach((x) => {
+          if (!x.roomId) return;
+          byRoom.set(x.roomId, [...(byRoom.get(x.roomId) ?? []), x]);
+        });
+        let clashes = 0;
+        byRoom.forEach((list) => {
+          list.forEach((a, i) =>
+            list.slice(i + 1).forEach((b) => {
+              if (
+                a.arrival <= b.leaving &&
+                b.arrival <= a.leaving &&
+                a.guardian.language === b.guardian.language
+              ) {
+                clashes += 1;
+              }
+            }),
+          );
+        });
+        return {
+          students: ss.length,
+          with_a_bed: ss.filter((x) => x.roomId).length,
+          without_a_bed: ss.filter((x) => !x.roomId).length,
+          rooms: ROOMS.length,
+          beds: ROOMS.reduce((n, r) => n + r.beds, 0),
+          rooms_sharing_a_first_language: clashes,
+          rules_in_force: live.current.rooming,
+          blocks: BLOCKS,
+          bands: ['8–11', '12–14', '15–17'],
+        };
+      },
+    },
+    {
+      name: 'plan_beds',
+      description:
+        "Draft a bed plan. mode 'fill-gaps' places only students with no bed and never moves a settled one; 'from-scratch' replans and will move people who have unpacked. Returns what would change and everything it could not do. It does NOT apply anything.",
+      input_schema: {
+        type: 'object',
+        properties: {
+          mode: { type: 'string', enum: ['fill-gaps', 'from-scratch'] },
+          same_language_rule: {
+            type: 'string',
+            enum: ['avoid', 'never', 'allow'],
+            description: 'Whether two speakers of one first language may share a room.',
+          },
+          max_age_spread: { type: 'number', description: 'Years, 1 to 5.' },
+          reuse_beds: {
+            type: 'boolean',
+            description: 'Let a bed take a second student once the first has left.',
+          },
+          bands: { type: 'array', items: { type: 'string' }, description: 'e.g. ["8–11"]' },
+          blocks: { type: 'array', items: { type: 'string' }, description: 'House names.' },
+        },
+      },
+      run: (i: {
+        mode?: Mode;
+        same_language_rule?: 'avoid' | 'never' | 'allow';
+        max_age_spread?: number;
+        reuse_beds?: boolean;
+        bands?: string[];
+        blocks?: string[];
+      }) => {
+        const rules = {
+          ...live.current.rooming,
+          ...(i.same_language_rule
+            ? {
+                sameLanguageTogether: i.same_language_rule === 'allow',
+                languageRule: i.same_language_rule === 'never' ? ('never' as const) : ('avoid' as const),
+              }
+            : {}),
+          ...(i.max_age_spread ? { maxAgeSpread: i.max_age_spread } : {}),
+          ...(i.reuse_beds !== undefined ? { reuseBeds: i.reuse_beds } : {}),
+        };
+        const scope =
+          i.bands?.length || i.blocks?.length
+            ? { bands: i.bands as AgeBand[] | undefined, blocks: i.blocks }
+            : undefined;
+        const p = plan(i.mode ?? 'fill-gaps', rules, scope);
+        const real = changed(p, live.current.students);
+        return {
+          planned: p.moves.length,
+          would_change_bed: real.length,
+          already_settled_and_moved: real.filter((m) => m.fromRoomId).length,
+          beds_reused_between_stays: p.sharedBeds,
+          rooms_sharing_a_first_language: p.languagePairs,
+          could_not_place: p.unplaced,
+          sample: real.slice(0, 8).map((m) => ({
+            student: m.name,
+            to: roomLabel(m.toRoomId),
+            bed: m.bed,
+            because: m.because,
+          })),
+          applied: false,
+        };
+      },
+    },
+    {
+      name: 'apply_plan',
+      description:
+        'Apply the plan currently on screen to every student record. Only call this when the user has clearly asked for it — never off your own judgement, and never without telling them how many students move.',
+      input_schema: { type: 'object', properties: {} },
+      run: () => {
+        if (!proposal) return { applied: false, why: 'No plan has been drafted yet.' };
+        const real = changed(proposal, live.current.students);
+        if (!real.length) return { applied: false, why: 'Nothing would change.' };
+        applyAllocation(proposal.moves);
+        setProposal(null);
+        return { applied: true, changed: real.length };
+      },
+    },
+    {
+      name: 'who_shares_with',
+      description: 'Who a named student shares a room with, and what languages are in that room.',
+      input_schema: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name'],
+      },
+      run: (i: { name: string }) => {
+        const s = live.current.students.find((x) =>
+          `${x.forename} ${x.surname}`.toLowerCase().includes(i.name.toLowerCase().trim()),
+        );
+        if (!s) return { found: false };
+        if (!s.roomId) return { found: true, room: null, note: 'No bed allocated.' };
+        const mates = live.current.students.filter(
+          (x) => x.roomId === s.roomId && x.id !== s.id,
+        );
+        return {
+          found: true,
+          student: `${s.forename} ${s.surname}`,
+          language: s.guardian.language,
+          room: roomLabel(s.roomId),
+          bed: s.bed,
+          sharing_with: mates.map((m) => ({
+            name: `${m.forename} ${m.surname}`,
+            language: m.guardian.language,
+            stay: `${m.arrival} to ${m.leaving}`,
+            overlaps: m.arrival <= s.leaving && s.arrival <= m.leaving,
+          })),
+        };
+      },
+    },
+  ];
 
   const tabs: { id: View; label: string }[] = [
     { id: 'rooms', label: `By room ${used.length}` },
@@ -119,7 +310,8 @@ export function Rooms() {
         ].join(' · ');
 
         return (
-          <div className="plan2">
+          <div className="beds">
+            <div className="plan2">
             <p className="meta section__lede">
               The allocator fills every bed against the centre&rsquo;s rooming
               rules and shows what it would change before anything moves. It
@@ -145,22 +337,10 @@ export function Rooms() {
             </div>
 
             <div className="editor__actions" style={{ marginTop: 4 }}>
-              <button
-                className="btn btn--primary"
-                onClick={() => {
-                  setMode('fill-gaps');
-                  setProposal(propose(students, rooming, ROOMS, 'fill-gaps'));
-                }}
-              >
+              <button className="btn btn--primary" onClick={() => plan('fill-gaps')}>
                 Fill the gaps
               </button>
-              <button
-                className="btn"
-                onClick={() => {
-                  setMode('from-scratch');
-                  setProposal(propose(students, rooming, ROOMS, 'from-scratch'));
-                }}
-              >
+              <button className="btn" onClick={() => plan('from-scratch')}>
                 Plan from scratch
               </button>
               {proposal && (
@@ -340,6 +520,45 @@ export function Rooms() {
                 )}
               </>
             )}
+            </div>
+
+            <aside className="beds__side">
+              <div className="panel">
+                <div className="panel__head">
+                  <span className="label">Ask Kadia</span>
+                  <span className="meta">plans the beds</span>
+                </div>
+                <p className="meta" style={{ margin: '0 0 12px', color: 'var(--ink-3)' }}>
+                  Say how the rooms should work and I will draft it. I never
+                  move anybody — you apply it.
+                </p>
+                <Chat
+                  system={`You plan bed allocations for a residential summer school. Today is ${fmtDateLong(
+                    DEMO_TODAY.toISOString(),
+                  )}.
+
+Call rooming_state before you answer anything about how the beds stand. Call plan_beds to draft an allocation — it returns what would change and what it could not do, and it applies nothing.
+
+Rules you must respect:
+- A room holds one age band.
+- A language school separates first languages on purpose. Two speakers of one language in a room is a bad outcome, not a neutral one.
+- 'fill-gaps' is the safe default: it places students with no bed and moves nobody who has one. Only use 'from-scratch' when the user has asked to replan, and say plainly how many settled students it would move.
+- Rooming by gender is NOT configured and you must not invent a policy for it. If asked, say it is specified by the centre in October and the planner does not consider it.
+- You draft; a person applies. Never call apply_plan unless the user has clearly asked you to apply it, and always say how many students move.
+Keep replies to a few short sentences. Use British English.`}
+                  tools={tools}
+                  greeting="Tell me how the rooms should work — mix the languages, keep ages close, just fill the gaps. I draft it and tell you what I could not do."
+                  placeholder="e.g. Plan the beds, never two of the same language"
+                  suggestions={[
+                    'Plan the beds and never put two of the same language together',
+                    'Just fill the gaps, leave everyone else alone',
+                    'Replan the 8–11 band from scratch, ages within 1 year',
+                    'Plan the beds without reusing any bed between stays',
+                  ]}
+                  localCommands={localRoomCommand}
+                />
+              </div>
+            </aside>
           </div>
         );
       })()}

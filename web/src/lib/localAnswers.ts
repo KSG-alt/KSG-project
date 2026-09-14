@@ -286,7 +286,10 @@ export function answerLocally(
   }
 
   /* Availability */
-  if (has(q, 'away', 'availab', 'unavailab', 'leave', 'off this week', 'clash')) {
+  /* "leave" on its own is far too common a word — it caught "leave everyone
+     else alone" and answered about staff away days. Match the phrases people
+     actually use for absence. */
+  if (has(q, 'away', 'availab', 'unavailab', 'annual leave', 'booked leave', 'on leave', 'off this week', 'clash')) {
     const clashes = sessions
       .filter((x) => x.status !== 'cancelled')
       .flatMap((x) =>

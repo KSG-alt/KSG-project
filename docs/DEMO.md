@@ -36,8 +36,12 @@ build, not a slideshow of it.
   and the working-time limit, then tells you everything it could not do. This
   works without an API key.
 - Try to confirm a booking with no receipt and be blocked.
-- Plan the beds. **Fill the gaps** places everyone without a room and leaves
-  settled students alone; **Plan from scratch** replans the season. Both show
+- Plan the beds by asking. The chat beside the plan takes a specification —
+  "never two of the same language", "just fill the gaps, leave everyone else
+  alone", "replan the 8–11 band, ages within 1 year" — drafts it, and names
+  anything it could not act on. Works without an API key.
+- Or use the buttons. **Fill the gaps** places everyone without a room and
+  leaves settled students alone; **Plan from scratch** replans the season. Both show
   what would change and why, and nothing moves until you apply it. Watch the
   same-language room count fall to zero, and watch it find beds freed by
   students who have already left.
