@@ -10,6 +10,8 @@ import {
   type Staff, type Student,
 } from '../data/seed';
 import { buildPayments, type Payment } from '../data/finance';
+import { buildDuties, type Duty } from '../data/duty';
+import { fillDuty } from './schedule';
 import { buildIncidents, type Incident } from '../data/incidents';
 import {
   BAND_RULES, PILOT_SITE, ROLES, type BandRule, type RoleDef, type Site,
@@ -36,6 +38,11 @@ interface Store {
      rota hours the staff screen reports. */
   sessions: Session[];
   updateSessions: (fn: (all: Session[]) => Session[]) => void;
+
+  /* Duty shifts carry most of a seasonal contract's hours, so they are rota'd
+     state like sessions, not a display detail. */
+  duties: Duty[];
+  setDuties: (next: Duty[]) => void;
 
   /* Records live here so a profile opened from any screen edits the same
      person, not that screen's copy of them. */
@@ -78,6 +85,11 @@ const today = demoIso;
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [reminders, setReminders] = useState<Reminder[]>(() => buildReminders());
   const [sessions, setSessions] = useState<Session[]>(SESSIONS);
+  /* The duty rota arrives staffed, like the activity rota does. An empty duty
+     board on first load reads as a broken screen rather than a starting point. */
+  const [duties, setDutyState] = useState<Duty[]>(
+    () => fillDuty(SESSIONS, buildDuties()).duties,
+  );
   const [audit, setAudit] = useState<AuditEntry[]>(() => buildAudit());
   const [outbox, setOutbox] = useState<OutboxItem[]>(() =>
     buildOutbox(buildReminders()),
@@ -182,6 +194,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       sessions,
       updateSessions: (fn) => setSessions((all) => fn(all)),
+
+      duties,
+      setDuties: (next) => {
+        setDutyState(next);
+        append(
+          entry(
+            'rota',
+            'Duty rota redrafted',
+            site.name,
+            `${next.filter((d) => d.staffIds.length).length} of ${next.length} duty shifts staffed.`,
+          ),
+        );
+      },
 
       students,
       staff,
@@ -359,8 +384,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       log: append,
     };
   }, [
-    reminders, sessions, audit, outbox, students, staff, payments, incidents,
-    site, role, escalation, bandRules,
+    reminders, sessions, duties, audit, outbox, students, staff, payments,
+    incidents, site, role, escalation, bandRules,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

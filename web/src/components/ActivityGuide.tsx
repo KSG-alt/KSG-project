@@ -5,13 +5,15 @@ import { StudentProfile } from './StudentProfile';
 import { useStore } from '../lib/store';
 import { checkRatio } from '../lib/ratio';
 import { guideFor } from '../data/guides';
+import { venueFor } from '../data/venues';
+import { runPlan } from '../lib/runplan';
 
 import {
   BOOKINGS, activityById, fmtDate, fmtDateLong, fmtMoney, groupById, isAway,
   readiness, type Session,
 } from '../data/seed';
 
-type Tab = 'guide' | 'today' | 'group' | 'booking' | 'safety';
+type Tab = 'guide' | 'plan' | 'travel' | 'today' | 'group' | 'booking' | 'safety';
 
 export function ActivityGuide({
   session,
@@ -21,7 +23,7 @@ export function ActivityGuide({
   onClose: () => void;
 }) {
   const { staff, students, role } = useStore();
-  const [tab, setTab] = useState<Tab>('guide');
+  const [tab, setTab] = useState<Tab>('plan');
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [openStudent, setOpenStudent] = useState<string | null>(null);
 
@@ -58,7 +60,12 @@ export function ActivityGuide({
   const medical = roll.filter((s) => s.medical);
   const notReady = roll.filter((s) => !readiness(s).ready);
 
+  const venue = venueFor(a.location);
+  const plan = runPlan(session);
+
   const tabs: { id: Tab; label: string }[] = [
+    { id: 'plan', label: 'The plan' },
+    { id: 'travel', label: `Getting there${plan.tooTight ? ' ·' : ''}` },
     { id: 'guide', label: 'How to run it' },
     { id: 'today', label: `Running it ${onDuty.length}` },
     { id: 'group', label: `The group ${roll.length}` },
@@ -109,6 +116,147 @@ export function ActivityGuide({
         }
       >
         <DrawerTabs tabs={tabs} value={tab} onChange={setTab} />
+
+        {tab === 'plan' && (
+          <>
+            {plan.tooTight ? (
+              <div className="alert alert--critical">
+                <p className="label">This does not fit the slot</p>
+                <p className="meta" style={{ margin: 0 }}>
+                  {plan.travelMinutes} minutes of travel out of a{' '}
+                  {Math.round(
+                    (Number(session.end.slice(0, 2)) * 60 +
+                      Number(session.end.slice(3)) -
+                      (Number(session.start.slice(0, 2)) * 60 +
+                        Number(session.start.slice(3)))),
+                  )}
+                  -minute slot leaves nothing for the activity. Give it a longer
+                  slot or a nearer venue.
+                </p>
+              </div>
+            ) : (
+              <div className="split">
+                <span>
+                  <span className="split__n num">{plan.activityMinutes}</span>
+                  <span className="meta">minutes of {a.name.toLowerCase()}</span>
+                </span>
+                <span>
+                  <span className="split__n num">{plan.travelMinutes}</span>
+                  <span className="meta">minutes travelling, there and back</span>
+                </span>
+                <span>
+                  <span className="split__n num">20</span>
+                  <span className="meta">setting up and packing down</span>
+                </span>
+              </div>
+            )}
+
+            <p className="label">Who does what</p>
+            <dl className="pairs">
+              <div className="pairs__pair">
+                <dt>Lead</dt>
+                <dd>{plan.lead ?? <span className="mark mark--critical">Nobody assigned</span>}</dd>
+              </div>
+              <div className="pairs__pair">
+                <dt>Second</dt>
+                <dd>{plan.second ?? <span className="mark mark--overdue">Nobody else on it</span>}</dd>
+              </div>
+              {plan.needsDriver && (
+                <div className="pairs__pair">
+                  <dt>Driver</dt>
+                  <dd>
+                    {plan.driver ?? (
+                      <span className="mark mark--critical">
+                        Nobody holds Minibus D1 — it cannot travel
+                      </span>
+                    )}
+                  </dd>
+                </div>
+              )}
+            </dl>
+
+            <p className="label">Minute by minute</p>
+            <ol className="plan">
+              {plan.steps.map((st, i) => (
+                <li key={i} className={`plan__step plan__step--${st.kind}`}>
+                  <span className="plan__at num">{st.at}</span>
+                  <span className={`plan__who plan__who--${st.who.toLowerCase()}`}>
+                    {st.who}
+                  </span>
+                  <span className="plan__what">{st.what}</span>
+                </li>
+              ))}
+            </ol>
+
+            <p className="meta" style={{ marginTop: 18, color: 'var(--ink-3)' }}>
+              Times are worked out from the slot and the travel, so a session
+              moved to another slot gets a plan that is still right.
+            </p>
+          </>
+        )}
+
+        {tab === 'travel' && (
+          venue ? (
+            <>
+              <dl className="pairs">
+                <div className="pairs__pair"><dt>How</dt><dd>{venue.travel}</dd></div>
+                <div className="pairs__pair">
+                  <dt>How long</dt>
+                  <dd className="num">{venue.minutes} minutes each way</dd>
+                </div>
+                <div className="pairs__pair"><dt>Meet at</dt><dd>{venue.meetAt}</dd></div>
+                {venue.capacityPerVehicle && (
+                  <div className="pairs__pair">
+                    <dt>Per vehicle</dt>
+                    <dd>
+                      <span className="num">{venue.capacityPerVehicle} seats</span>
+                      {roll.length > venue.capacityPerVehicle && (
+                        <span className="mark mark--overdue" style={{ display: 'block', marginTop: 4 }}>
+                          {Math.ceil(roll.length / venue.capacityPerVehicle)} runs to move{' '}
+                          {roll.length} students
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                )}
+                {venue.parking && (
+                  <div className="pairs__pair"><dt>Parking</dt><dd>{venue.parking}</dd></div>
+                )}
+              </dl>
+
+              {venue.needsDriver && (
+                <div className={`alert${plan.driver ? '' : ' alert--critical'}`}>
+                  <p className="label">Needs a D1 driver</p>
+                  <p className="meta" style={{ margin: 0 }}>
+                    {plan.driver
+                      ? `${plan.driver} holds Minibus D1 and is on this session.`
+                      : 'Nobody on this session holds Minibus D1. It cannot travel as staffed.'}
+                  </p>
+                </div>
+              )}
+
+              <p className="label">The route</p>
+              <ol className="steps">
+                {venue.route.map((r, i) => (
+                  <li key={i}>
+                    <span className="steps__n num">{i + 1}</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="label">Getting there with a wheelchair or an injury</p>
+              <p className="meta" style={{ margin: 0 }}>{venue.accessible}</p>
+
+              <p className="label">Worth knowing</p>
+              <p className="meta" style={{ margin: 0 }}>{venue.notes}</p>
+            </>
+          ) : (
+            <p className="meta">
+              No directions written for {a.location} yet.
+            </p>
+          )
+        )}
 
         {!g && (
           <div className="alert alert--critical">

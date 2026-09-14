@@ -12,10 +12,11 @@
    ──────────────────────────────────────────────────────────────────────── */
 
 import {
-  ACTIVITIES, GROUPS, SLOTS, SLOT_HOURS, STAFF, STUDENTS, WEEKLY_LIMIT,
-  activityById, groupById, isAway, weeklyHours, type Session,
+  ACTIVITIES, GROUPS, SESSIONS, SLOTS, SLOT_HOURS, STAFF, STUDENTS,
+  WEEKLY_LIMIT, activityById, groupById, isAway, weeklyHours, type Session,
 } from '../data/seed';
 import { guideFor } from '../data/guides';
+import { roundTrip, venueFor } from '../data/venues';
 
 const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
 
@@ -337,11 +338,28 @@ export function generate(spec: Spec, all: Session[]): Draft {
     ];
 
     slots.forEach((slot, si) => {
+      /* A slot the group already holds — because the session in it was edited
+         by hand and kept — is not an empty slot. Drafting into it puts one
+         group in two places at once. */
+      const already = keep.some(
+        (k) => k.groupId === g.id && k.start === slot.start && k.status !== 'cancelled',
+      );
+      if (already) return;
+
       const taken = claim(slot.start);
       const venueTaken = venueClaim(slot.start);
 
+      /* A slot the travel does not fit is not a slot for that activity. The
+         city is 45 minutes each way; putting it in a 90-minute slot schedules
+         a coach journey and no museum. */
+      const slotMinutes =
+        Number(slot.end.slice(0, 2)) * 60 +
+        Number(slot.end.slice(3)) -
+        (Number(slot.start.slice(0, 2)) * 60 + Number(slot.start.slice(3)));
+
       const candidates = pool.filter((a) => {
         if (venueTaken.has(a.location)) return false;
+        if (slotMinutes - roundTrip(a.location) - 20 < 20) return false;
         if (spec.noRepeatPerGroup !== false && used.has(a.id)) return false;
         if (
           isOffSite(a.id) &&
@@ -394,16 +412,34 @@ export function generate(spec: Spec, all: Session[]): Draft {
           continue;
         }
 
+        /* A minibus venue needs somebody on the session who can legally drive
+           it. Without that the group cannot get there, however well staffed
+           the session is. */
+        const venue = venueFor(a.location);
+        const driver = venue?.needsDriver
+          ? free.find(
+              (s) => s.id !== instructor?.id && s.quals.includes('Minibus D1'),
+            ) ?? (instructor?.quals.includes('Minibus D1') ? instructor : undefined)
+          : undefined;
+
+        if (venue?.needsDriver && !driver) {
+          tried.push(`${a.name} — nobody free holds Minibus D1 to drive there`);
+          continue;
+        }
+
         /* Spread the load: least rota'd first, so a week's hours come out
            even rather than falling on whoever sorts first. */
         const rest = free
-          .filter((s) => s.id !== instructor?.id)
+          .filter((s) => s.id !== instructor?.id && s.id !== driver?.id)
           .sort((x, y) => (hours.get(x.id) ?? 0) - (hours.get(y.id) ?? 0));
 
-        const crew = [...(instructor ? [instructor] : []), ...rest].slice(
-          0,
-          Math.max(required, 1),
+        /* The instructor and the driver are not optional, so they go on first
+           and the ratio is made up around them. */
+        const must = [instructor, driver].filter(
+          (x, i, arr): x is NonNullable<typeof x> =>
+            Boolean(x) && arr.findIndex((y) => y?.id === x?.id) === i,
         );
+        const crew = [...must, ...rest].slice(0, Math.max(required, must.length));
 
         if (crew.length < required && !spec.allowUnderRatio) {
           tried.push(
@@ -549,4 +585,281 @@ export function selfCheck() {
   const c = parseSpec('rebuild Kestrel from scratch', day);
   console.assert(c.spec.groupIds?.length === 1, 'one named group');
   console.assert(c.spec.keepManual === false, 'from scratch overwrites hand edits');
+
+  /* Redrafting while keeping hand-edited sessions must not put a group in two
+     places at once. */
+  const d = generate(defaultSpec(day), SESSIONS);
+  console.assert(
+    noDoubleBooking(d.sessions),
+    'a kept session and a new draft landed in the same group and slot',
+  );
+}
+
+/* ── The week ─────────────────────────────────────────────────────────────
+   One day is a demonstration. A week is the job: six days of activity
+   sessions, seven of duty, and every person landing on the hours they are
+   contracted for without going past the working-time limit.
+   ──────────────────────────────────────────────────────────────────────── */
+
+import { WEEK_DAYS } from '../data/seed';
+import {
+  DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover, type Duty,
+} from '../data/duty';
+
+const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+const overlaps = (aS: string, aE: string, bS: string, bE: string) =>
+  mins(aS) < mins(bE) && mins(bS) < mins(aE);
+
+export interface WeekDraft {
+  sessions: Session[];
+  duties: Duty[];
+  activityHours: number;
+  dutyHours: number;
+  /* Per person, so the screen can show who is short and who is over. */
+  hours: {
+    staffId: string;
+    name: string;
+    total: number;
+    contracted: number;
+    blocked: boolean;
+  }[];
+  short: number;
+  blocked: number;
+  over: number;
+  unmet: Unmet[];
+  notes: string[];
+}
+
+/* Fill to each person's own contracted hours by default. A flat 40 for
+   everyone is available, and warns, because a 25-hour contract worked to 40
+   is not a full week — it is a breach with extra steps. */
+export interface HoursTarget {
+  mode: 'contract' | 'flat';
+  flat?: number;
+}
+
+export function generateWeek(
+  spec: Omit<Spec, 'day'>,
+  all: Session[],
+  duties: Duty[],
+  target: HoursTarget = { mode: 'contract' },
+): WeekDraft {
+  const unmet: Unmet[] = [];
+  const notes: string[] = [];
+
+  /* Days first. Each day is drafted against the ones already drafted, so
+     hours and double-bookings carry across the week rather than each day
+     being planned as if it were alone. */
+  let sessions = all;
+  WEEK_DAYS.forEach((day) => {
+    const d = generate({ ...spec, day }, sessions);
+    sessions = d.sessions;
+    unmet.push(...d.unmet);
+    d.notes.forEach((n) => {
+      if (!notes.includes(n)) notes.push(n);
+    });
+  });
+
+  const filled = fillDuty(sessions, duties, target);
+
+  const rows = STAFF.map((s) => {
+    const activity = weeklyHours(s.id, sessions);
+    const duty = dutyHours(s.id, filled.duties);
+    return {
+      staffId: s.id,
+      name: `${s.forename} ${s.surname}`,
+      total: activity + duty,
+      contracted: s.contractedHours,
+      /* Why somebody is short matters more than that they are. A blocked DBS
+         is a safeguarding problem; a thin week is a scheduling one. */
+      blocked: s.dbs.state !== 'cleared',
+    };
+  });
+
+  return {
+    sessions,
+    duties: filled.duties,
+    activityHours: rows.reduce((n, r) => n + weeklyHours(r.staffId, sessions), 0),
+    dutyHours: rows.reduce((n, r) => n + dutyHours(r.staffId, filled.duties), 0),
+    hours: rows,
+    short: rows.filter((r) => !r.blocked && r.total < r.contracted - 2).length,
+    blocked: rows.filter((r) => r.blocked).length,
+    over: rows.filter((r) => r.total > WEEKLY_LIMIT).length,
+    unmet: [...unmet, ...filled.unmet],
+    notes,
+  };
+}
+
+/* ── Duty ──────────────────────────────────────────────────────────────── */
+
+export function fillDuty(
+  sessions: Session[],
+  duties: Duty[],
+  target: HoursTarget = { mode: 'contract' },
+): { duties: Duty[]; unmet: Unmet[] } {
+  const unmet: Unmet[] = [];
+  const week = dutyWeek();
+
+  /* Start from empty rather than adding to whatever was there, or a second
+     run doubles everyone's hours. */
+  const next: Duty[] = duties.map((d) => ({ ...d, staffIds: [] }));
+
+  const want = (id: string) => {
+    const s = STAFF.find((x) => x.id === id)!;
+    return target.mode === 'flat' ? target.flat ?? 40 : s.contractedHours;
+  };
+
+  /* What each person is already committed to, activity sessions included, so
+     duty never lands on top of a session. */
+  const committed = new Map<string, { day: string; start: string; end: string }[]>();
+  const commit = (id: string, day: string, start: string, end: string) => {
+    const list = committed.get(id) ?? [];
+    list.push({ day, start, end });
+    committed.set(id, list);
+  };
+  sessions
+    .filter((s) => s.status !== 'cancelled')
+    .forEach((s) => s.staffIds.forEach((id) => commit(id, s.day, s.start, s.end)));
+
+  const hours = new Map<string, number>();
+  STAFF.forEach((s) => hours.set(s.id, weeklyHours(s.id, sessions)));
+
+  const clashes = (id: string, day: string, start: string, end: string) =>
+    (committed.get(id) ?? []).some(
+      (c) => c.day === day && overlaps(c.start, c.end, start, end),
+    );
+
+  /* Nobody comes off night duty at 23:30 and opens breakfast at 07:15. Eight
+     hours between shifts, which is the rule a centre can actually keep. */
+  const tooSoon = (id: string, day: string, start: string) => {
+    const di = week.indexOf(day);
+    if (di <= 0) return false;
+    const prev = week[di - 1];
+    return (committed.get(id) ?? []).some(
+      (c) => c.day === prev && mins(c.end) > 20 * 60 && mins(start) < 10 * 60,
+    );
+  };
+
+  /* Fill in day order, and within a day the shifts nobody wants first — night
+     duty and the early start — because the easy shifts will always find
+     takers and the hard ones will not. */
+  const order = [...next].sort((a, b) => {
+    const rank = (k: string) =>
+      k === 'Night duty' ? 0 : k === 'Breakfast' ? 1 : k === 'Transfers' ? 2 : 3;
+    return a.day.localeCompare(b.day) || rank(a.kind) - rank(b.kind);
+  });
+
+  order.forEach((duty) => {
+    const pattern = DUTY_PATTERNS.find((p) => p.kind === duty.kind)!;
+
+    const pool = STAFF.filter((s) => {
+      if (s.dbs.state !== 'cleared') return false;
+      if (isAway(s, duty.day)) return false;
+      if (clashes(s.id, duty.day, duty.start, duty.end)) return false;
+      if (tooSoon(s.id, duty.day, duty.start)) return false;
+      if ((hours.get(s.id) ?? 0) + duty.hours > WEEKLY_LIMIT) return false;
+      return true;
+    });
+
+    /* Whoever is furthest below their contract goes on first. That is what
+       makes the week come out even instead of falling on the same people. */
+    const picked = pool
+      .sort(
+        (a, b) =>
+          want(b.id) - (hours.get(b.id) ?? 0) - (want(a.id) - (hours.get(a.id) ?? 0)),
+      )
+      .slice(0, duty.needed);
+
+    picked.forEach((s) => {
+      hours.set(s.id, (hours.get(s.id) ?? 0) + duty.hours);
+      commit(s.id, duty.day, duty.start, duty.end);
+    });
+
+    duty.staffIds = picked.map((s) => s.id);
+
+    if (picked.length < duty.needed) {
+      unmet.push({
+        where: `${duty.kind}, ${duty.day}`,
+        problem: `${picked.length} of ${duty.needed} on duty. ${
+          pool.length === 0
+            ? 'Nobody was free and cleared.'
+            : 'Everyone else was already committed or would go past the 48h limit.'
+        } ${pattern.what}`,
+      });
+    }
+  });
+
+  return { duties: next, unmet };
+}
+
+/* The week, as sentences. */
+export function weekReport(w: WeekDraft, t: HoursTarget, p?: Parsed) {
+  const rostered = w.hours.filter((r) => r.total > 0);
+  const avg = rostered.length
+    ? w.hours.reduce((n, r) => n + r.total, 0) / rostered.length
+    : 0;
+  const lines: string[] = [];
+
+  lines.push(
+    `Drafted the week: ${w.sessions.filter((s) => WEEK_DAYS.includes(s.day)).length} ` +
+      `activity sessions and ${w.duties.length} duty shifts.`,
+  );
+  lines.push(
+    '',
+    `${w.activityHours.toFixed(1)}h of activity and ${w.dutyHours.toFixed(1)}h of duty, ` +
+      `across ${rostered.length} staff — ${avg.toFixed(1)}h each on average.`,
+  );
+  if (t.mode === 'flat') {
+    lines.push(
+      '',
+      `Aiming everyone at ${t.flat ?? 40}h. Note that contracts on this roster ` +
+        `run from 25h to 40h, so anyone contracted below that is being asked to ` +
+        `work past their contract.`,
+    );
+  } else {
+    lines.push('', 'Filled to each person’s own contracted hours.');
+  }
+  if (w.blocked) {
+    lines.push(
+      `${w.blocked} staff were left off everything because their DBS is not ` +
+        `cleared. That is a safeguarding block, not a scheduling one — clear it ` +
+        `and they can be rota'd.`,
+    );
+  }
+  if (w.short) {
+    lines.push(
+      `${w.short} cleared staff are more than two hours short of their contract. ` +
+        `There is not enough work in the week to fill them.`,
+    );
+  }
+  if (w.over) {
+    lines.push(`${w.over} staff would go past the 48h limit. They were left off.`);
+  }
+  if (p?.understood.length) {
+    lines.push('', 'Working to: ' + p.understood.join('; ') + '.');
+  }
+  if (w.notes.length) lines.push('', ...w.notes.map((n) => `• ${n}`));
+  if (w.unmet.length) {
+    lines.push(
+      '',
+      `${w.unmet.length} thing${w.unmet.length === 1 ? '' : 's'} I could not do:`,
+      ...w.unmet.slice(0, 5).map((u) => `• ${u.where} — ${u.problem}`),
+    );
+    if (w.unmet.length > 5) lines.push(`• …and ${w.unmet.length - 5} more`);
+  }
+  lines.push('', 'Nothing is approved. A person signs the week off, not the draft.');
+  return lines.join('\n');
+}
+
+/* A group can never hold two sessions in one slot. The kept-session path made
+   that possible, so it is checked rather than assumed. */
+export function noDoubleBooking(sessions: Session[]) {
+  const seen = new Set<string>();
+  for (const s of sessions) {
+    if (s.status === 'cancelled') continue;
+    const key = `${s.day}|${s.groupId}|${s.start}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+  }
+  return true;
 }

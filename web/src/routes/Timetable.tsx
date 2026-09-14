@@ -6,11 +6,16 @@ import { StaffProfile } from '../components/StaffProfile';
 import { ActivityGuide } from '../components/ActivityGuide';
 import { IconClose } from '../lib/icons';
 import { checkRatio } from '../lib/ratio';
-import { generate, parseSpec, report, type Spec } from '../lib/schedule';
+import {
+  generate, generateWeek, parseSpec, report, weekReport, type HoursTarget,
+  type Spec,
+} from '../lib/schedule';
+import { DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover } from '../data/duty';
 import type { ToolSpec } from '../lib/anthropic';
 import {
-  ACTIVITIES, DEMO_TODAY, GROUPS, SESSIONS, SLOTS, STAFF, activityById,
-  fmtDateLong, groupById, isAway, staffById, type Session,
+  ACTIVITIES, DEMO_TODAY, GROUPS, SESSIONS, SLOTS, STAFF, WEEKLY_LIMIT,
+  WEEK_DAYS, activityById, dayName, fmtDate, fmtDateLong, fmtHours, groupById,
+  isAway, staffById, weeklyHours, type Session,
 } from '../data/seed';
 
 const TODAY_ISO = `${DEMO_TODAY.getFullYear()}-${String(
@@ -25,9 +30,11 @@ const CANCEL_REASONS = [
 ];
 
 export function Timetable() {
-  const { sessions: allSessions, updateSessions } = useStore();
+  const { sessions: allSessions, updateSessions, duties, setDuties, staff } =
+    useStore();
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [guide, setGuide] = useState<string | null>(null);
+  const [view, setView] = useState<'day' | 'week' | 'duty' | 'hours'>('day');
   /* One day on screen; the rota underneath runs the whole week. */
   const sessions = useMemo(
     () => allSessions.filter((s) => s.day === TODAY_ISO),
@@ -324,6 +331,18 @@ export function Timetable() {
     return report(d, parsed);
   }
 
+  function draftWeek(spec: Omit<Spec, 'day'>, target: HoursTarget, parsed?: ReturnType<typeof parseSpec>) {
+    const w = generateWeek(spec, live.current, duties, target);
+    setSessions(() => w.sessions);
+    setDuties(w.duties);
+    setApproved(false);
+    note(
+      `Redrafted the whole week — ${w.activityHours.toFixed(0)}h of activity, ` +
+        `${w.dutyHours.toFixed(0)}h of duty.`,
+    );
+    return weekReport(w, target, parsed);
+  }
+
   function localTimetableCommand(q: string) {
     const t = q.toLowerCase();
     const asking =
@@ -333,10 +352,30 @@ export function Timetable() {
     /* "Rebuild Kestrel from scratch" never says "timetable". A named group, or
        "from scratch", is the same instruction. */
     const aboutTheDay =
-      /\b(timetable|day|rota|schedule|sessions?|slots?|from scratch)\b/.test(t) ||
+      /\b(timetable|day|week|rota|schedule|sessions?|slots?|shifts?|duty|hours|contract|from scratch)\b/.test(
+        t,
+      ) ||
       GROUPS.some((g) => t.includes(g.name.toLowerCase()));
     if (!asking || !aboutTheDay) return null;
     const parsed = parseSpec(q, TODAY_ISO);
+
+    /* "the week" is a different job from "the day": it schedules duty as well,
+       and it is the only one that can answer a question about hours. */
+    const wholeWeek = /\b(week|everyone|whole roster|all week|hours|40h|40 hours|contract)\b/.test(
+      t,
+    );
+    if (wholeWeek) {
+      const flat = /\b(40 ?h|40 hours|everyone (on|to) 40|same hours|level)\b/.test(t);
+      const { day: _drop, ...rest } = parsed.spec;
+      const text = draftWeek(
+        rest,
+        flat ? { mode: 'flat', flat: 40 } : { mode: 'contract' },
+        parsed,
+      );
+      setView('hours');
+      return { text, source: 'the rota builder' };
+    }
+
     return { text: draft(parsed.spec, parsed), source: 'the rota builder' };
   }
 
@@ -378,8 +417,27 @@ export function Timetable() {
         </p>
       )}
 
+      <div className="tabs" role="tablist" aria-label="Rota view">
+        {([
+          { id: 'day', label: 'Today' },
+          { id: 'week', label: 'The week' },
+          { id: 'duty', label: `Duty ${duties.filter((d) => d.staffIds.length).length}/${duties.length}` },
+          { id: 'hours', label: 'Hours' },
+        ] as const).map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={view === t.id}
+            className={`tab${view === t.id ? ' tab--on' : ''}`}
+            onClick={() => setView(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <div className="tt">
-        <div className="tt__grid">
+        <div className="tt__grid" hidden={view !== 'day'}>
           <div className="tt__row tt__row--head">
             <div className="tt__cnr label">Group</div>
             {SLOTS.map((s) => (
@@ -495,6 +553,263 @@ export function Timetable() {
             </div>
           ))}
         </div>
+
+        {view === 'week' && (
+          <div className="wk">
+            {GROUPS.map((g) => (
+              <section key={g.id} className="wk__group">
+                <div className="wk__head">
+                  <h3 className="wk__name">{g.name}</h3>
+                  <span className="meta">
+                    {g.band} · 1:{g.ratio} ·{' '}
+                    {allSessions.filter((x) => x.groupId === g.id && WEEK_DAYS.includes(x.day) && x.status !== 'cancelled').length}{' '}
+                    sessions
+                  </span>
+                </div>
+                <div className="tablewrap">
+                  <table className="reg wk__grid">
+                    <thead>
+                      <tr>
+                        <th style={{ width: 74 }}>Day</th>
+                        {SLOTS.map((sl) => (
+                          <th key={sl.start} className="num">{sl.start}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {WEEK_DAYS.map((d) => (
+                        <tr key={d}>
+                          <th scope="row" className="wk__day">
+                            {dayName(d)}
+                            <span className="meta num">{fmtDate(d)}</span>
+                          </th>
+                          {SLOTS.map((sl) => {
+                            const x = allSessions.find(
+                              (y) =>
+                                y.groupId === g.id &&
+                                y.day === d &&
+                                y.start === sl.start &&
+                                y.status !== 'cancelled',
+                            );
+                            if (!x) return <td key={sl.start} className="wk__free">—</td>;
+                            const ok = checkRatio(x).compliant;
+                            return (
+                              <td key={sl.start}>
+                                <button
+                                  className={`wk__cell${ok ? '' : ' wk__cell--bad'}`}
+                                  onClick={() => setGuide(x.id)}
+                                >
+                                  {activityById(x.activityId).name}
+                                  <span className="meta">
+                                    {x.staffIds.length} staff
+                                  </span>
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {view === 'duty' && (
+          <div className="duty">
+            <p className="meta section__lede">
+              Activity sessions come to {(allSessions.filter((x) => WEEK_DAYS.includes(x.day) && x.status !== 'cancelled').length * 1.5).toFixed(0)}h
+              across the week. A seasonal contract is 25 to 40 hours, so most of
+              it is duty — meals, free time, the evening programme, nights, and
+              changeover-day transfers. The rota has to schedule it, or it lands
+              in a WhatsApp message on Sunday night.
+            </p>
+            {dutyWeek().map((d) => (
+              <section key={d} className="duty__day">
+                <div className="duty__head">
+                  <h3 className="duty__date">
+                    {dayName(d)} {fmtDate(d)}
+                  </h3>
+                  <span className="meta">
+                    {isChangeover(d) ? 'Changeover — arrivals and departures' : 'Activity day'}
+                  </span>
+                </div>
+                <div className="tablewrap">
+                  <table className="reg">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '16%' }}>Shift</th>
+                        <th style={{ width: 110 }}>Time</th>
+                        <th style={{ width: 70 }}>Hours</th>
+                        <th style={{ width: 90 }}>On it</th>
+                        <th>Who</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {duties
+                        .filter((x) => x.day === d)
+                        .map((x) => {
+                          const pattern = DUTY_PATTERNS.find((pp) => pp.kind === x.kind);
+                          const full = x.staffIds.length >= x.needed;
+                          return (
+                            <tr key={x.id}>
+                              <td>
+                                <span style={{ fontWeight: 500 }}>{x.kind}</span>
+                                <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                                  {pattern?.what}
+                                </span>
+                              </td>
+                              <td className="num">{x.start}–{x.end}</td>
+                              <td className="num">{x.hours}h</td>
+                              <td>
+                                <span className={`mark ${full ? 'mark--clear' : 'mark--critical'}`}>
+                                  {x.staffIds.length}/{x.needed}
+                                </span>
+                              </td>
+                              <td className="meta">
+                                {x.staffIds.length === 0
+                                  ? 'Nobody rota\u2019d'
+                                  : x.staffIds
+                                      .map((id) => {
+                                        const p2 = staff.find((y) => y.id === id);
+                                        return p2 ? `${p2.forename} ${p2.surname[0]}` : '';
+                                      })
+                                      .join(', ')}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {view === 'hours' && (() => {
+          const rows = staff
+            .map((p2) => {
+              const act = weeklyHours(p2.id, allSessions);
+              const dut = dutyHours(p2.id, duties);
+              return { p: p2, act, dut, total: act + dut };
+            })
+            .sort((x, y) => x.total - y.total);
+          const rostered = rows.filter((r) => r.total > 0);
+          const blocked = rows.filter((r) => r.p.dbs.state !== 'cleared');
+          const short = rows.filter(
+            (r) => r.p.dbs.state === 'cleared' && r.total < r.p.contractedHours - 2,
+          );
+          const over = rows.filter((r) => r.total > WEEKLY_LIMIT);
+          const totalAll = rows.reduce((n, r) => n + r.total, 0);
+          return (
+            <div className="hours">
+              <p className="meta section__lede">
+                Rota&rsquo;d hours against each person&rsquo;s own contract, not
+                against a flat number — the roster runs from 25 to 40 hours and
+                working a 25-hour contract to 40 is not a full week, it is a
+                breach. These are hours the rota schedules, never pay.
+              </p>
+
+              <div className="split">
+                <span>
+                  <span className="split__n num">{totalAll.toFixed(0)}h</span>
+                  <span className="meta">rota&rsquo;d across {rostered.length} staff</span>
+                </span>
+                <span>
+                  <span className="split__n num">
+                    {rostered.length ? (totalAll / rostered.length).toFixed(1) : '0'}h
+                  </span>
+                  <span className="meta">each, on average</span>
+                </span>
+                <span>
+                  <span className={`split__n num${short.length ? ' split__n--bad' : ''}`}>
+                    {short.length}
+                  </span>
+                  <span className="meta">cleared, but more than 2h under contract</span>
+                </span>
+                <span>
+                  <span className={`split__n num${blocked.length ? ' split__n--bad' : ''}`}>
+                    {blocked.length}
+                  </span>
+                  <span className="meta">off everything — DBS not cleared</span>
+                </span>
+                <span>
+                  <span className={`split__n num${over.length ? ' split__n--bad' : ''}`}>
+                    {over.length}
+                  </span>
+                  <span className="meta">past the {WEEKLY_LIMIT}h limit</span>
+                </span>
+              </div>
+
+              <div className="tablewrap">
+                <table className="reg">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '22%' }}>Name</th>
+                      <th style={{ width: '15%' }}>Role</th>
+                      <th>Activity</th>
+                      <th>Duty</th>
+                      <th>Total</th>
+                      <th>Contract</th>
+                      <th style={{ width: '24%' }}>Against contract</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => {
+                      const gap = r.total - r.p.contractedHours;
+                      const pct = Math.min(
+                        100,
+                        (r.total / Math.max(r.p.contractedHours, 1)) * 100,
+                      );
+                      return (
+                        <tr key={r.p.id}>
+                          <td>
+                            <button className="namebtn" onClick={() => setOpenStaff(r.p.id)}>
+                              {r.p.forename} {r.p.surname}
+                            </button>
+                          </td>
+                          <td className="meta">{r.p.role}</td>
+                          <td className="num">{fmtHours(r.act)}</td>
+                          <td className="num">{fmtHours(r.dut)}</td>
+                          <td className="num" style={{ fontWeight: 500 }}>
+                            {fmtHours(r.total)}
+                          </td>
+                          <td className="num meta">{fmtHours(r.p.contractedHours)}</td>
+                          <td>
+                            <span className="bar">
+                              <span
+                                className={`bar__fill${
+                                  r.total > WEEKLY_LIMIT
+                                    ? ' bar__fill--over'
+                                    : gap < -2
+                                    ? ' bar__fill--short'
+                                    : ''
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </span>
+                            <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                              {r.p.dbs.state !== 'cleared'
+                                ? `DBS ${r.p.dbs.state} — cannot be rota’d`
+                                : gap >= -2 && gap <= 2
+                                ? 'on contract'
+                                : gap < 0
+                                ? `${fmtHours(-gap)} short`
+                                : `${fmtHours(gap)} over`}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
 
         <aside className="tt__side">
           {sel ? (

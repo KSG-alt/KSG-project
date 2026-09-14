@@ -3469,3 +3469,208 @@ p.mark::before {
     opacity: 1;
   }
 }
+
+/* ── The run plan ──────────────────────────────────────────────────────── */
+
+.split {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 34px;
+  margin: 0 0 26px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.split > span {
+  display: grid;
+  gap: 2px;
+}
+
+.split__n {
+  font-family: var(--serif);
+  font-size: var(--t-xl);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.split__n--bad {
+  color: var(--oxide);
+}
+
+.plan {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.plan__step {
+  display: grid;
+  grid-template-columns: 52px 74px minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 11px 13px;
+  background: var(--paper);
+  line-height: 1.5;
+}
+
+/* Travel and closing down read quieter than the session itself. */
+.plan__step--travel,
+.plan__step--prep {
+  background: var(--paper-2);
+}
+
+.plan__step--close {
+  background: var(--paper-2);
+}
+
+.plan__at {
+  color: var(--ink);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.plan__who {
+  font-size: var(--t-xs);
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--ink-3);
+}
+
+.plan__who--lead {
+  color: var(--forest);
+  font-weight: 500;
+}
+
+.plan__what {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+
+/* ── The week ──────────────────────────────────────────────────────────── */
+
+.wk {
+  display: grid;
+  gap: 30px;
+}
+
+.wk__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.wk__name {
+  margin: 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.wk__day {
+  text-align: left;
+  font-weight: 500;
+}
+
+.wk__day .meta {
+  display: block;
+  color: var(--ink-3);
+}
+
+.wk__free {
+  color: var(--ink-3);
+}
+
+.wk__cell {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  padding: 7px 9px;
+  background: var(--white);
+  border: none;
+  border-radius: var(--r-xs);
+  box-shadow: var(--edge);
+  color: inherit;
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: box-shadow 150ms var(--ease-ui);
+}
+
+.wk__cell:hover {
+  box-shadow: var(--edge-strong), var(--shadow-1);
+}
+
+.wk__cell .meta {
+  color: var(--ink-3);
+}
+
+.wk__cell--bad {
+  box-shadow: inset 0 0 0 1px rgba(192, 52, 26, 0.35);
+}
+
+/* ── Duty ──────────────────────────────────────────────────────────────── */
+
+.duty {
+  display: grid;
+  gap: 28px;
+}
+
+.duty__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.duty__date {
+  margin: 0;
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+/* ── Hours against contract ────────────────────────────────────────────── */
+
+.bar {
+  display: block;
+  height: 5px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--forest);
+  border-radius: var(--r-pill);
+  transition: width 320ms var(--ease);
+}
+
+.bar__fill--short {
+  background: var(--ochre);
+}
+
+.bar__fill--over {
+  background: var(--oxide);
+}
+
+@media (max-width: 760px) {
+  .plan__step {
+    grid-template-columns: 52px minmax(0, 1fr);
+    row-gap: 3px;
+  }
+  .plan__who {
+    grid-column: 2;
+  }
+  .plan__what {
+    grid-column: 2;
+  }
+}

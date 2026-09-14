@@ -22,6 +22,14 @@ build, not a slideshow of it.
   step by step, who is on it today with their phone numbers, the group roll
   with anything outstanding flagged, the booking and its receipt, and the
   hazards, stop conditions and emergency contacts.
+- Ask the timetable chat to draft the **whole week** — "generate the week and
+  fill everyone to their contracted hours". It schedules six days of activity
+  sessions and seven days of duty, then shows every person's hours against
+  their own contract.
+- Open any session's **plan**: how much of the slot survives the travel, who
+  leads, who drives, and a minute-by-minute run sheet computed from the slot
+  and the journey. **Getting there** carries the route, the meeting point, the
+  vehicle and the step-free way in.
 - Ask the timetable chat to draft the day — "no kayaking, and English for
   every group", "nothing off site", "rebuild Kestrel, mornings only". It
   builds it against cleared DBS, qualifications, availability, venue clashes

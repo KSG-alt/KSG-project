@@ -3,6 +3,7 @@ import { Drawer, DrawerTabs } from './Drawer';
 import { IconCheck, IconClose, IconEdit } from '../lib/icons';
 import { useStore } from '../lib/store';
 import { LEVEL_COPY } from '../data/incidents';
+import { dutiesFor, dutyHours } from '../data/duty';
 import {
   DEMO_TODAY, SLOTS, WEEKLY_LIMIT, WEEK_DAYS, activityById, dayHours, dayName,
   fmtDate, fmtDateLong, fmtHours, groupById, isAway, sessionsFor, weeklyHours,
@@ -219,7 +220,7 @@ function AwayEditor({ rec }: { rec: Staff }) {
 }
 
 export function StaffProfile({ id, onClose }: { id: string; onClose: () => void }) {
-  const { staff, sessions, reminders, incidents, audit, role } = useStore();
+  const { staff, sessions, duties, reminders, incidents, audit, role } = useStore();
   const [tab, setTab] = useState<Tab>('record');
   const [editing, setEditing] = useState(false);
   const { saveStaff } = useStore();
@@ -228,7 +229,10 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
   if (!rec) return null;
 
   const mine = sessionsFor(rec.id, sessions);
-  const hours = weeklyHours(rec.id, sessions);
+  const activity = weeklyHours(rec.id, sessions);
+  const duty = dutyHours(rec.id, duties);
+  const hours = activity + duty;
+  const myDuties = dutiesFor(rec.id, duties);
   const dbs = DBS_COPY[rec.dbs.state];
   const until = rec.dbs.expires ? daysUntil(rec.dbs.expires) : null;
   const name = `${rec.forename} ${rec.surname}`;
@@ -239,7 +243,7 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'record', label: 'Record' },
-    { id: 'week', label: `Their week ${mine.length}` },
+    { id: 'week', label: `Their week ${mine.length + myDuties.length}` },
     { id: 'away', label: `Availability${clashes.length ? ' ·' : ''}` },
     { id: 'history', label: `History ${involved.length + trail.length}` },
   ];
@@ -349,6 +353,14 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
           <p className="label">Rota</p>
           <dl className="pairs">
             <div className="pairs__pair">
+              <dt>Activity</dt>
+              <dd className="num">{fmtHours(activity)}</dd>
+            </div>
+            <div className="pairs__pair">
+              <dt>Duty</dt>
+              <dd className="num">{fmtHours(duty)}</dd>
+            </div>
+            <div className="pairs__pair">
               <dt>This week</dt>
               <dd className="num">
                 {fmtHours(hours)}
@@ -377,6 +389,21 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
               </ul>
             </>
           )}
+        </>
+      )}
+
+      {tab === 'week' && myDuties.length > 0 && (
+        <>
+          <p className="label">Duty — {fmtHours(duty)}</p>
+          <ul className="log">
+            {myDuties.map((d) => (
+              <li key={d.id}>
+                {dayName(d.day)} {d.start}–{d.end} · {d.kind}
+                <span className="meta"> · {d.hours}h</span>
+              </li>
+            ))}
+          </ul>
+          <p className="label">Activity sessions — {fmtHours(activity)}</p>
         </>
       )}
 

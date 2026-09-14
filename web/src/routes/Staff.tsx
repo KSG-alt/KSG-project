@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { StaffProfile, DBS_COPY } from '../components/StaffProfile';
 import { useStore } from '../lib/store';
+import { dutyHours } from '../data/duty';
 import {
   DEMO_TODAY, WEEKLY_LIMIT, fmtDate, fmtHours, isAway, sessionsFor,
   weeklyHours,
@@ -33,7 +34,8 @@ function daysUntil(iso: string) {
 }
 
 export function Staff() {
-  const { staff, sessions } = useStore();
+  const { staff, sessions, duties } = useStore();
+  const total = (id: string) => weeklyHours(id, sessions) + dutyHours(id, duties);
   const [open, setOpen] = useState<string | null>(null);
   const [view, setView] = useState<View>('all');
   const [q, setQ] = useState('');
@@ -41,8 +43,8 @@ export function Staff() {
   const blocked = staff.filter(
     (s) => s.dbs.state === 'missing' || s.dbs.state === 'pending',
   );
-  const totalHours = staff.reduce((n, s) => n + weeklyHours(s.id, sessions), 0);
-  const overLimit = staff.filter((s) => weeklyHours(s.id, sessions) > WEEKLY_LIMIT);
+  const totalHours = staff.reduce((n, s) => n + total(s.id), 0);
+  const overLimit = staff.filter((s) => total(s.id) > WEEKLY_LIMIT);
 
   /* Somebody rota'd on a day they have told the centre they cannot work. */
   const clashing = staff.filter((s) =>
@@ -53,7 +55,7 @@ export function Staff() {
     .filter((s) => {
       if (view === 'blocked') return blocked.includes(s);
       if (view === 'clashes') return clashing.includes(s);
-      if (view === 'hours') return weeklyHours(s.id, sessions) > s.contractedHours;
+      if (view === 'hours') return total(s.id) > s.contractedHours;
       return true;
     })
     .filter(
@@ -68,14 +70,14 @@ export function Staff() {
     { id: 'all', label: `Whole roster ${staff.length}` },
     { id: 'blocked', label: `Cannot be rota’d ${blocked.length}` },
     { id: 'clashes', label: `Availability clashes ${clashing.length}` },
-    { id: 'hours', label: `Over contract ${staff.filter((s) => weeklyHours(s.id, sessions) > s.contractedHours).length}` },
+    { id: 'hours', label: `Over contract ${staff.filter((s) => total(s.id) > s.contractedHours).length}` },
   ];
 
   return (
     <>
       <SectionHead
         title="Staff"
-        count={`${staff.length} on the roster · ${fmtHours(totalHours)} rota'd this week`}
+        count={`${staff.length} on the roster · ${fmtHours(totalHours)} rota'd this week, activity and duty`}
       >
         <input
           className="field"
@@ -175,13 +177,13 @@ export function Staff() {
                     <td>{s.role}</td>
                     <td>
                       <HoursMark
-                        hours={weeklyHours(s.id, sessions)}
+                        hours={total(s.id)}
                         contracted={s.contractedHours}
                       />
                       <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
-                        {DUTY_ROLES.includes(s.role)
-                          ? 'Duty role, not activity sessions'
-                          : `of ${fmtHours(s.contractedHours)} contracted`}
+                        {fmtHours(weeklyHours(s.id, sessions))} activity ·{' '}
+                        {fmtHours(dutyHours(s.id, duties))} duty · of{' '}
+                        {fmtHours(s.contractedHours)}
                       </span>
                     </td>
                     <td className="num meta">{s.bands.join(', ')}</td>
