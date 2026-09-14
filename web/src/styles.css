@@ -1240,10 +1240,14 @@ p.mark::before {
 .bar {
   position: sticky;
   top: 0;
-  z-index: 40;
   display: flex;
   align-items: center;
   gap: 18px;
+  /* Never wraps and never changes height. Everything in it is one line tall,
+     and what does not fit is dropped by the queries below rather than being
+     allowed to push the bar open. */
+  flex-wrap: nowrap;
+  min-height: 61px;
   z-index: var(--z-bar);
   padding: 12px clamp(16px, 3vw, 34px);
   background: rgba(252, 250, 248, 0.86);
@@ -1288,6 +1292,13 @@ p.mark::before {
 .bar__where {
   font-size: var(--t-sm);
   color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.bar__brand,
+.bar__menu,
+.bar__where {
+  flex-shrink: 0;
 }
 
 .bar__right {
@@ -1295,6 +1306,13 @@ p.mark::before {
   align-items: center;
   gap: 16px;
   margin-left: auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.bar__right > * {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .bar__count {
@@ -1330,10 +1348,57 @@ p.mark::before {
   white-space: nowrap;
 }
 
+/* What the bar drops as it narrows, least useful first. The counts are the
+   last to go — they are the only things in there you act on. */
+@media (max-width: 1060px) {
+  .bar__when {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .bar__date {
+    display: none;
+  }
+}
+
 @media (max-width: 720px) {
-  .bar__date,
   .bar__where {
     display: none;
+  }
+  .bar__right {
+    gap: 10px;
+  }
+  .bar__count {
+    padding: 6px 11px;
+  }
+}
+
+/* A phone keeps the menu, the mark, and whatever is on fire. Safeguarding
+   outranks admin here as everywhere: the untold-incident count holds its
+   place and the general queue count gives way, because the queue is one tap
+   away in the menu and still carries its own badge there. */
+@media (max-width: 560px) {
+  .bar {
+    gap: 10px;
+  }
+  .bar__rolelong {
+    display: none;
+  }
+  .bar__count--queue {
+    display: none;
+  }
+  /* The mark alone still identifies the builder, and the word "menu" is
+     carried by the icon beside it. Both give way before a safeguarding
+     count does. */
+  .bar__brand .lockup__name {
+    display: none;
+  }
+  .bar__menu span {
+    display: none;
+  }
+  .bar__menu {
+    padding: 8px 11px;
   }
 }
 
@@ -3636,9 +3701,11 @@ p.mark::before {
   font-weight: 600;
 }
 
-/* ── Hours against contract ────────────────────────────────────────────── */
+/* ── Hours against contract ──────────────────────────────────────────────
+   Named meter, not bar. `.bar` is the chrome at the top of every page, and a
+   second rule by that name further down the file quietly redefined it. */
 
-.bar {
+.meter {
   display: block;
   height: 5px;
   background: var(--surface-2);
@@ -3646,7 +3713,7 @@ p.mark::before {
   overflow: hidden;
 }
 
-.bar__fill {
+.meter__fill {
   display: block;
   height: 100%;
   background: var(--forest);
@@ -3654,11 +3721,11 @@ p.mark::before {
   transition: width 320ms var(--ease);
 }
 
-.bar__fill--short {
+.meter__fill--short {
   background: var(--ochre);
 }
 
-.bar__fill--over {
+.meter__fill--over {
   background: var(--oxide);
 }
 

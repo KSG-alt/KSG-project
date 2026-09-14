@@ -779,13 +779,13 @@ export function Timetable() {
                           </td>
                           <td className="num meta">{fmtHours(r.p.contractedHours)}</td>
                           <td>
-                            <span className="bar">
+                            <span className="meter">
                               <span
-                                className={`bar__fill${
+                                className={`meter__fill${
                                   r.total > WEEKLY_LIMIT
-                                    ? ' bar__fill--over'
+                                    ? ' meter__fill--over'
                                     : gap < -2
-                                    ? ' bar__fill--short'
+                                    ? ' meter__fill--short'
                                     : ''
                                 }`}
                                 style={{ width: `${pct}%` }}

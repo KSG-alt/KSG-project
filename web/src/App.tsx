@@ -132,7 +132,9 @@ function Shell() {
               onClick={() => setRole(ROLES[0])}
               title="Demonstration control — return to the administrator view. In the real system nobody changes their own role."
             >
-              as {role.name.toLowerCase()} · leave
+              <span className="bar__rolelong">as </span>
+              {role.name.toLowerCase().replace('centre ', '')}
+              <span className="bar__rolelong"> · leave</span>
             </button>
           )}
           {untold > 0 && allowed('incidents') && (
@@ -145,14 +147,20 @@ function Shell() {
           )}
           {open.length > 0 && allowed('reminders') && (
             <button
-              className={`bar__count${critical ? ' bar__count--critical' : ''}`}
+              className={`bar__count bar__count--queue${
+                critical ? ' bar__count--critical' : ''
+              }`}
               onClick={() => go('reminders')}
             >
               {open.length} outstanding
             </button>
           )}
           <span className="label bar__date">
-            {site.name} · {fmtDateLong(DEMO_TODAY.toISOString())}
+            {site.name}
+            <span className="bar__when">
+              {' · '}
+              {fmtDateLong(DEMO_TODAY.toISOString())}
+            </span>
           </span>
         </div>
       </header>
