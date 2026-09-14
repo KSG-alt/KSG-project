@@ -7,7 +7,8 @@
 import {
   BOOKINGS, DEMO_TODAY, SESSIONS, STAFF, STUDENTS, activityById,
   daysFromToday, fmtDate, fmtMoney, groupById, isOnSite, readiness,
-  upcomingArrivals, whenLabel,
+  upcomingArrivals, whenLabel, type Booking, type Session, type Staff,
+  type Student,
 } from '../data/seed';
 import { checkRatio } from './ratio';
 import type { Route } from '../App';
@@ -124,7 +125,28 @@ function seedChases(r: Omit<Reminder, 'chases' | 'chaseTo'>, chaseTo: string): R
   return { ...r, chaseTo, chases };
 }
 
-export function buildReminders(): Reminder[] {
+/* The records a reminder can derive from. Passed in rather than imported, so
+   the queue is a view of how things actually stand — fix a DBS, attach a
+   receipt, allocate a bed, and the row goes. A queue built once at start-up
+   and never recomputed is a spreadsheet with extra steps, which is the exact
+   thing this product exists to replace. */
+export interface Records {
+  students: Student[];
+  staff: Staff[];
+  sessions: Session[];
+  bookings: Booking[];
+}
+
+export const SEED_RECORDS: Records = {
+  students: STUDENTS,
+  staff: STAFF,
+  sessions: SESSIONS,
+  bookings: BOOKINGS,
+};
+
+export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
+  const { students: STUDENTS, staff: STAFF, sessions: SESSIONS, bookings: BOOKINGS } =
+    records;
   const out: Reminder[] = [];
 
   /* Staff who cannot legally be rota'd — the loudest thing in the system. */
@@ -162,7 +184,7 @@ export function buildReminders(): Reminder[] {
   SESSIONS.filter(
     (s) => s.status !== 'cancelled' && s.day === iso(DEMO_TODAY),
   ).forEach((s) => {
-    const v = checkRatio(s);
+    const v = checkRatio(s, records);
     if (v.compliant) return;
     out.push(seedChases({
       id: `ratio-${s.id}`,
@@ -228,7 +250,8 @@ export function buildReminders(): Reminder[] {
   /* Only students who have NOT landed yet. Someone arriving today is already
      on site, and their missing document is raised once, by the document rule
      below — not twice. */
-  upcomingArrivals()
+  STUDENTS.filter((s) => new Date(s.arrival) > DEMO_TODAY)
+    .sort((a, b) => a.arrival.localeCompare(b.arrival))
     .filter((s) => {
       const d = daysFromToday(s.arrival);
       return d >= 1 && d <= 7 && !readiness(s).ready;

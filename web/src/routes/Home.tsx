@@ -2,7 +2,7 @@ import { NAV, type Route } from '../App';
 import { Chat } from '../components/Chat';
 import { ReminderList } from '../components/ReminderList';
 import { IconArrow } from '../lib/icons';
-import { KADIA_SYSTEM, KADIA_TOOLS } from '../lib/kadiaAgent';
+import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
 import { useStore } from '../lib/store';
 import { DEMO_TODAY, SEASON_END, SEASON_START } from '../data/seed';
 
@@ -31,7 +31,9 @@ export function Home({
   operator: string;
   onGo: (r: Route) => void;
 }) {
-  const { open } = useStore();
+  const { open, students, staff, sessions, bookings, incidents, payments } =
+    useStore();
+  const tools = kadiaTools({ students, staff, sessions, bookings, incidents, payments });
   const critical = open.filter((r) => r.severity === 'safeguarding');
   const top = open.slice(0, 5);
 
@@ -108,7 +110,7 @@ export function Home({
             </div>
             <Chat
               system={KADIA_SYSTEM}
-              tools={KADIA_TOOLS}
+              tools={tools}
               greeting="Ask anything about the centre — I read the real records."
               placeholder="e.g. Who is arriving Sunday without documents?"
               suggestions={[

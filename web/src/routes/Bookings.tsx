@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
+import { useStore } from '../lib/store';
 import { IconAttach, IconCheck, IconClose } from '../lib/icons';
 import {
   BOOKINGS, DEMO_TODAY, activityById, fmtDate, fmtMoney, groupById,
@@ -17,7 +18,10 @@ function kb(bytes: number) {
 }
 
 export function Bookings() {
-  const [bookings, setBookings] = useState<Booking[]>(BOOKINGS);
+  /* From the store, so a receipt attached here clears the reminder chasing
+     it on the reminders screen. */
+  const { bookings, updateBookings } = useStore();
+  const setBookings = (fn: (all: Booking[]) => Booking[]) => updateBookings(fn);
   const [pending, setPending] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 

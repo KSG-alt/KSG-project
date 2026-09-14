@@ -13,7 +13,26 @@ import { buildPayments, invoiceRef, owed, suggestMatches } from '../data/finance
 import { BAND_RULES, ROLES, SITES } from './../data/centre';
 import { ESCALATION_DAYS } from './reminders';
 
-export const KADIA_TOOLS: ToolSpec[] = [
+/* The same records the keyless answers read. Without this the two halves of
+   Ask Kadia disagree: the keyless one reports live state and the model
+   reports the seed, so matching a payment changes one answer and not the
+   other. */
+export interface AgentRecords {
+  students: typeof STUDENTS;
+  staff: typeof STAFF;
+  sessions: typeof SESSIONS;
+  bookings: typeof BOOKINGS;
+  incidents: ReturnType<typeof buildIncidents>;
+  payments: ReturnType<typeof buildPayments>;
+}
+
+export function kadiaTools(records: AgentRecords): ToolSpec[] {
+  const {
+    students: STUDENTS, staff: STAFF, sessions: SESSIONS, bookings: BOOKINGS,
+    incidents: INCIDENTS, payments: PAYMENTS,
+  } = records;
+
+  return [
   {
     name: 'find_students',
     description:
@@ -112,7 +131,7 @@ export const KADIA_TOOLS: ToolSpec[] = [
         activity: activityById(s.activityId).name,
         start: s.start,
         staff: s.staffIds.map((i) => `${staffById(i).forename} ${staffById(i).surname}`),
-        ratio: checkRatio(s),
+        ratio: checkRatio(s, { students: STUDENTS, staff: STAFF }),
       })),
   },
   {
@@ -126,8 +145,8 @@ export const KADIA_TOOLS: ToolSpec[] = [
         role: s.role,
         rotaed_hours: weeklyHours(s.id),
         contracted_hours: s.contractedHours,
-        sessions: sessionsFor(s.id).length,
-        over_working_time_limit: weeklyHours(s.id) > WEEKLY_LIMIT,
+        sessions: sessionsFor(s.id, SESSIONS).length,
+        over_working_time_limit: weeklyHours(s.id, SESSIONS) > WEEKLY_LIMIT,
       })),
   },
   {
@@ -168,7 +187,7 @@ export const KADIA_TOOLS: ToolSpec[] = [
       },
     },
     run: (i: { open_only?: boolean; level?: string }) =>
-      buildIncidents()
+      INCIDENTS
         .filter((x) => (i.open_only ? x.status === 'open' : true))
         .filter((x) => (i.level ? x.level === i.level : true))
         .map((x) => ({
@@ -194,11 +213,11 @@ export const KADIA_TOOLS: ToolSpec[] = [
       properties: { unmatched_only: { type: 'boolean' }, limit: { type: 'number' } },
     },
     run: (i: { unmatched_only?: boolean; limit?: number }) =>
-      buildPayments()
+      PAYMENTS
         .filter((p) => (i.unmatched_only ? !p.studentId : true))
         .slice(0, i.limit ?? 25)
         .map((p) => {
-          const best = p.studentId ? null : suggestMatches(p)[0];
+          const best = p.studentId ? null : suggestMatches(p, STUDENTS)[0];
           return {
             received: p.at,
             amount: fmtMoney(p.amountPence),
@@ -241,7 +260,7 @@ export const KADIA_TOOLS: ToolSpec[] = [
         name: `${s.forename} ${s.surname}`,
         away: s.away,
       })),
-      clashes: availabilityClashes().map((c) => ({
+      clashes: availabilityClashes(SESSIONS).map((c) => ({
         name: `${c.staff.forename} ${c.staff.surname}`,
         day: c.session.day,
         start: c.session.start,
@@ -272,7 +291,18 @@ export const KADIA_TOOLS: ToolSpec[] = [
       })),
     }),
   },
-];
+  ];
+}
+
+/* The seed set, for anything that has no store to hand. */
+export const KADIA_TOOLS: ToolSpec[] = kadiaTools({
+  students: STUDENTS,
+  staff: STAFF,
+  sessions: SESSIONS,
+  bookings: BOOKINGS,
+  incidents: buildIncidents(),
+  payments: buildPayments(),
+});
 
 
 export const KADIA_SYSTEM = `You are Kadia, the assistant inside a summer-school operations platform for a UK activity centre. Today is ${fmtDateLong(

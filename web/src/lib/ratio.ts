@@ -6,7 +6,18 @@
    See docs/interface-contract.md §2.
    ──────────────────────────────────────────────────────────────────────── */
 
-import { GROUPS, STAFF, STUDENTS, activityById, isAway, type Session } from '../data/seed';
+import {
+  GROUPS, STAFF, STUDENTS, activityById, isAway, type Session, type Staff,
+  type Student,
+} from '../data/seed';
+
+/* The records the verdict is computed against. Defaulted to the seed so every
+   existing call site is unchanged — the point of the seam is that call sites
+   do not move when David's engine lands. */
+export interface RatioRecords {
+  students: Student[];
+  staff: Staff[];
+}
 
 export interface RatioVerdict {
   compliant: boolean;
@@ -17,9 +28,13 @@ export interface RatioVerdict {
   reasons: string[];
 }
 
-export function checkRatio(session: Session): RatioVerdict {
+export function checkRatio(
+  session: Session,
+  records: RatioRecords = { students: STUDENTS, staff: STAFF },
+): RatioVerdict {
+  const { students, staff } = records;
   const group = GROUPS.find((g) => g.id === session.groupId)!;
-  const headcount = STUDENTS.filter((s) => s.groupId === group.id).length;
+  const headcount = students.filter((s) => s.groupId === group.id).length;
   const required = Math.ceil(headcount / group.ratio);
   const assigned = session.staffIds.length;
   const reasons: string[] = [];
@@ -31,8 +46,8 @@ export function checkRatio(session: Session): RatioVerdict {
   }
 
   const uncleared = session.staffIds
-    .map((id) => STAFF.find((s) => s.id === id)!)
-    .filter((s) => s.dbs.state !== 'cleared');
+    .map((id) => staff.find((s) => s.id === id)!)
+    .filter((s) => s && s.dbs.state !== 'cleared');
 
   uncleared.forEach((s) => {
     reasons.push(`${s.forename} ${s.surname} — DBS ${s.dbs.state}`);
@@ -41,7 +56,7 @@ export function checkRatio(session: Session): RatioVerdict {
   /* Somebody who has told the centre they are away is not cover, however
      cleared they are. The draft was generated before they said so. */
   session.staffIds
-    .map((id) => STAFF.find((s) => s.id === id)!)
+    .map((id) => staff.find((s) => s.id === id)!)
     .filter((s) => s && isAway(s, session.day))
     .forEach((s) => {
       reasons.push(`${s.forename} ${s.surname} is away on this day`);
@@ -51,7 +66,7 @@ export function checkRatio(session: Session): RatioVerdict {
   const activity = activityById(session.activityId);
   if (activity.requiresQual) {
     const held = session.staffIds.some((id) =>
-      STAFF.find((s) => s.id === id)?.quals.includes(activity.requiresQual!),
+      staff.find((s) => s.id === id)?.quals.includes(activity.requiresQual!),
     );
     if (!held) {
       reasons.push(`No one assigned holds ${activity.requiresQual}`);

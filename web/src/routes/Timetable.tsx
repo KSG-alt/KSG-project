@@ -30,8 +30,11 @@ const CANCEL_REASONS = [
 ];
 
 export function Timetable() {
-  const { sessions: allSessions, updateSessions, duties, setDuties, staff } =
-    useStore();
+  const { sessions: allSessions, updateSessions, duties, setDuties, staff,
+    students } = useStore();
+  /* Staffing decisions read the store, not the seed — a DBS edited on the
+     staff screen has to change what this screen will let you rota. */
+  const records = { students, staff };
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [guide, setGuide] = useState<string | null>(null);
   const [view, setView] = useState<'day' | 'week' | 'duty' | 'hours'>('day');
@@ -52,7 +55,7 @@ export function Timetable() {
   const breaches = useMemo(
     () =>
       sessions.filter(
-        (s) => s.status !== 'cancelled' && !checkRatio(s).compliant,
+        (s) => s.status !== 'cancelled' && !checkRatio(s, records).compliant,
       ),
     [sessions],
   );
@@ -140,7 +143,7 @@ export function Timetable() {
           status: s.status,
           origin: s.origin,
           staff: s.staffIds.map((i) => `${staffById(i).forename} ${staffById(i).surname}`),
-          ratio: checkRatio(s),
+          ratio: checkRatio(s, records),
         })),
     },
     {
@@ -153,7 +156,7 @@ export function Timetable() {
         activities: ACTIVITIES.map((a) => ({
           name: a.name, location: a.location, capacity: a.capacity, requiresQual: a.requiresQual,
         })),
-        staff: STAFF.map((s) => ({
+        staff: staff.map((s) => ({
           name: `${s.forename} ${s.surname}`, bands: s.bands, quals: s.quals, dbs: s.dbs.state,
         })),
       }),
@@ -305,7 +308,7 @@ export function Timetable() {
         const ids = i.staff_names
           .map(
             (n) =>
-              STAFF.find(
+              staff.find(
                 (s) => `${s.forename} ${s.surname}`.toLowerCase() === n.toLowerCase().trim(),
               )?.id,
           )
@@ -471,13 +474,13 @@ export function Timetable() {
                   <div key={slot.start} className="tt__cell">
                     {cell.map((s) => {
                       const a = activityById(s.activityId);
-                      const v = checkRatio(s);
+                      const v = checkRatio(s, records);
                       const dead = s.status === 'cancelled';
                       /* Who is actually on it. The rota is only useful to the
                          person reading it if it names them. */
                       const crew = s.staffIds
-                        .map((id) => STAFF.find((x) => x.id === id))
-                        .filter((x): x is (typeof STAFF)[number] => Boolean(x));
+                        .map((id) => staff.find((x) => x.id === id))
+                        .filter((x): x is (typeof staff)[number] => Boolean(x));
                       return (
                         <div
                           key={s.id}
@@ -592,7 +595,7 @@ export function Timetable() {
                                 y.status !== 'cancelled',
                             );
                             if (!x) return <td key={sl.start} className="wk__free">—</td>;
-                            const ok = checkRatio(x).compliant;
+                            const ok = checkRatio(x, records).compliant;
                             return (
                               <td key={sl.start}>
                                 <button
@@ -846,7 +849,7 @@ export function Timetable() {
               </label>
 
               {(() => {
-                const v = checkRatio(sel);
+                const v = checkRatio(sel, records);
                 return v.compliant ? (
                   <p className="mark mark--clear">
                     Compliant — {v.assigned} of {v.required} for {v.headcount} at 1:
@@ -869,10 +872,10 @@ export function Timetable() {
 
               <div className="editor__f" style={{ marginBottom: 14 }}>
                 <span className="label">
-                  Staff assigned · {sel.staffIds.length} of {checkRatio(sel).required}
+                  Staff assigned · {sel.staffIds.length} of {checkRatio(sel, records).required}
                 </span>
                 <div className="checklist">
-                {STAFF.filter((s) => s.bands.includes(groupById(sel.groupId).band)).map(
+                {staff.filter((s) => s.bands.includes(groupById(sel.groupId).band)).map(
                   (s) => {
                     const on = sel.staffIds.includes(s.id);
                     const cleared = s.dbs.state === 'cleared';

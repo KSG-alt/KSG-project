@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Chat } from '../components/Chat';
 import { IconGoogle } from '../lib/icons';
-import { KADIA_SYSTEM, KADIA_TOOLS } from '../lib/kadiaAgent';
+import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
 import { useStore } from '../lib/store';
-import { BOOKINGS } from '../data/seed';
+
 import { LOCAL_TOPICS } from '../lib/localAnswers';
 
 const GOOGLE_SCOPES = [
@@ -14,7 +14,10 @@ const GOOGLE_SCOPES = [
 ];
 
 export function Kadia() {
-  const { students, staff, open, incidents, payments } = useStore();
+  const { students, staff, open, incidents, payments, sessions, bookings } =
+    useStore();
+  /* Live records, so a key-holder and a keyless viewer get the same numbers. */
+  const tools = kadiaTools({ students, staff, sessions, bookings, incidents, payments });
   const [showScopes, setShowScopes] = useState(false);
   const [showReach, setShowReach] = useState(false);
 
@@ -26,7 +29,7 @@ export function Kadia() {
         variant="full"
         opener="Ask Kadia"
         system={KADIA_SYSTEM}
-        tools={KADIA_TOOLS}
+        tools={tools}
         greeting="Ask anything about the centre. I read the real records — students, staff, bookings, payments, incidents, the timetable — and I can draft the chase for you."
         placeholder="Ask about a student, the rota, a payment, today…"
         suggestions={[
@@ -60,9 +63,9 @@ export function Kadia() {
           <div>
             <p className="label">The records</p>
             <ul className="log">
-              <li className="meta">{students.length} students, with stays, documents and balances</li>
+              <li className="meta">{students.length} students, with stays, documents, beds and balances</li>
               <li className="meta">{staff.length} staff, with DBS, qualifications and availability</li>
-              <li className="meta">{BOOKINGS.length} activity bookings and their receipts</li>
+              <li className="meta">{bookings.length} activity bookings and their receipts</li>
               <li className="meta">{incidents.length} incidents, and who was told when</li>
               <li className="meta">{payments.length} payments, {unmatched} of them unmatched</li>
               <li className="meta">{open.length} outstanding items and every chase against them</li>

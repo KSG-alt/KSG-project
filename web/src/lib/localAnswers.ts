@@ -95,7 +95,7 @@ export function answerLocally(
     const today = sessions.filter(
       (s) => s.day === DEMO_TODAY.toISOString().slice(0, 10) && s.status !== 'cancelled',
     );
-    const bad = today.filter((s) => !checkRatio(s).compliant);
+    const bad = today.filter((s) => !checkRatio(s, { students: STUDENTS, staff: STAFF }).compliant);
     if (!bad.length)
       return { text: `All ${today.length} sessions today meet their required ratio.`, source: 'Timetable' };
     return {
@@ -103,7 +103,7 @@ export function answerLocally(
         `${bad.length} of ${today.length} sessions today are not compliant:\n` +
         list(
           bad.map((s) => {
-            const v = checkRatio(s);
+            const v = checkRatio(s, { students: STUDENTS, staff: STAFF });
             return `${activityById(s.activityId).name}, ${groupById(s.groupId).name} at ${s.start} — ${v.reasons.join('; ')}`;
           }),
         ) +
@@ -184,7 +184,8 @@ export function answerLocally(
             (s) => `${s.forename} ${s.surname} — ${s.band} band, ${groupById(s.groupId).name}`,
           ),
         ) +
-        `\n\nRooms are allocated inside one age band. Whether a centre also rooms by gender is per-centre configuration and is not modelled here.`,
+        `\n\nRooms are allocated inside one age band, and the planner keeps first languages apart. Whether a centre also rooms by gender is per-centre configuration and is not modelled here.` +
+        `\n\nOpen Room allocations and Plan the beds to have me fill these, or tell me the rules there.`,
       source: 'Room allocations',
     };
   }
@@ -387,5 +388,6 @@ export const LOCAL_TOPICS = [
   'unmatched payments and who they probably belong to',
   'staff availability and rota clashes',
   'centre setup — sites, ratios, escalation, roles',
+  'who sleeps where, and who has no bed',
   'any student or staff member by name',
 ];

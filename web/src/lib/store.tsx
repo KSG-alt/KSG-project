@@ -6,8 +6,8 @@ import {
 import { buildAudit, entry, type AuditEntry } from './audit';
 import { buildOutbox, queue, type OutboxItem } from './outbox';
 import {
-  GROUPS, SESSIONS, STAFF, STUDENTS, demoIso, demoStamp, type Session,
-  type Staff, type Student,
+  BOOKINGS, GROUPS, SESSIONS, STAFF, STUDENTS, demoIso, demoStamp,
+  type Booking, type Session, type Staff, type Student,
 } from '../data/seed';
 import { buildPayments, type Payment } from '../data/finance';
 import { buildDuties, type Duty } from '../data/duty';
@@ -39,6 +39,11 @@ interface Store {
      rota hours the staff screen reports. */
   sessions: Session[];
   updateSessions: (fn: (all: Session[]) => Session[]) => void;
+
+  /* Bookings live here too, so a receipt attached on one screen clears the
+     reminder chasing it on another. */
+  bookings: Booking[];
+  updateBookings: (fn: (all: Booking[]) => Booking[]) => void;
 
   /* Duty shifts carry most of a seasonal contract's hours, so they are rota'd
      state like sessions, not a display detail. */
@@ -90,8 +95,8 @@ const Ctx = createContext<Store | null>(null);
 const today = demoIso;
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [reminders, setReminders] = useState<Reminder[]>(() => buildReminders());
   const [sessions, setSessions] = useState<Session[]>(SESSIONS);
+  const [bookings, setBookings] = useState<Booking[]>(BOOKINGS);
   /* The duty rota arrives staffed, like the activity rota does. An empty duty
      board on first load reads as a broken screen rather than a starting point. */
   const [duties, setDutyState] = useState<Duty[]>(
@@ -103,19 +108,39 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   );
   const [students, setStudents] = useState<Student[]>(STUDENTS);
   const [staff, setStaff] = useState<Staff[]>(STAFF);
+  const [escalation, setEscalationState] =
+    useState<Record<Severity, number>>(ESCALATION_DEFAULTS);
+
+  /* ── The queue ────────────────────────────────────────────────────────
+     Reminders are DERIVED from the records above, every render, so the queue
+     is a view of how things stand rather than a list made once at start-up.
+     Fix the DBS and the row goes; attach the receipt and the row goes.
+
+     What cannot be derived is what the operator did to a row — completed it,
+     reworded it, chased it, escalated it, deleted it. That is kept here by
+     id and laid back over the derived list. */
+  const [touched, setTouched] = useState<Record<string, Partial<Reminder>>>({});
+  const [removed, setRemoved] = useState<string[]>([]);
+
+  const reminders = useMemo(() => {
+    const derived = buildReminders({ students, staff, sessions, bookings });
+    return derived
+      .filter((r) => !removed.includes(r.id))
+      .map((r) => (touched[r.id] ? { ...r, ...touched[r.id] } : r));
+    /* escalation is a dependency because the thresholds live in module state
+       — without it the queue would not re-rank when they change. */
+  }, [students, staff, sessions, bookings, touched, removed, escalation]);
   const [rooming, setRoomingState] = useState<RoomingRules>(DEFAULT_RULES);
   const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
   const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
   const [site, setSite] = useState<Site>(PILOT_SITE);
   const [role, setRole] = useState<RoleDef>(ROLES[0]);
-  const [escalation, setEscalationState] =
-    useState<Record<Severity, number>>(ESCALATION_DEFAULTS);
   const [bandRules, setBandRulesState] = useState<BandRule[]>(BAND_RULES);
 
   const value = useMemo<Store>(() => {
     const append = (e: AuditEntry) => setAudit((all) => [e, ...all]);
     const patch = (id: string, p: Partial<Reminder>) =>
-      setReminders((all) => all.map((r) => (r.id === id ? { ...r, ...p } : r)));
+      setTouched((all) => ({ ...all, [id]: { ...(all[id] ?? {}), ...p } }));
     const find = (id: string) => reminders.find((r) => r.id === id);
     const pupil = (id: string) => students.find((s) => s.id === id);
 
@@ -148,7 +173,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       reopen: (id) => patch(id, { done: false }),
       remove: (id) => {
         const r = find(id);
-        setReminders((all) => all.filter((x) => x.id !== id));
+        setRemoved((all) => [...all, id]);
         if (r) {
           append(
             entry('record', 'Reminder deleted', r.title, `Removed without completing. Was due ${r.due}.`),
@@ -202,6 +227,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       sessions,
       updateSessions: (fn) => setSessions((all) => fn(all)),
+
+      bookings,
+      updateBookings: (fn) => setBookings((all) => fn(all)),
 
       duties,
       setDuties: (next) => {
@@ -267,19 +295,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           }),
         );
 
-        /* Doing the work closes the chase. A student who now has a bed should
-           not still be sitting in the queue as having none — that is the
-           spreadsheet failure this product exists to remove. */
+        /* No need to close the room reminders by hand — they are derived from
+           whether a student has a bed, so they go on their own. */
         const cleared = reminders.filter(
           (r) => !r.done && r.id.startsWith('room-') && byId.has(r.id.slice(5)),
         );
-        if (cleared.length) {
-          setReminders((all) =>
-            all.map((r) =>
-              cleared.some((c) => c.id === r.id) ? { ...r, done: true } : r,
-            ),
-          );
-        }
         const movedOnSite = moves.filter((m) => m.fromRoomId && m.fromRoomId !== m.toRoomId);
         append(
           entry(
@@ -440,8 +460,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       log: append,
     };
   }, [
-    reminders, sessions, duties, audit, outbox, students, staff, payments,
-    incidents, site, role, escalation, bandRules, rooming,
+    reminders, sessions, bookings, duties, audit, outbox, students, staff,
+    payments, incidents, site, role, escalation, bandRules, rooming,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

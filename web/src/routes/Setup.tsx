@@ -5,7 +5,7 @@ import { IconCheck } from '../lib/icons';
 import { useStore } from '../lib/store';
 import { CHANNELS, ROLES, SITES, siteCounts, type RoleId } from '../data/centre';
 import { ESCALATION_DEFAULTS, type Severity } from '../lib/reminders';
-import { GROUPS, STUDENTS } from '../data/seed';
+import { GROUPS } from '../data/seed';
 
 type Panel =
   | 'sites' | 'ratios' | 'rooming' | 'escalation' | 'access' | 'channels' | 'import';
@@ -13,7 +13,7 @@ type Panel =
 export function Setup() {
   const {
     site, setSite, role, setRole, escalation, setEscalation, bandRules,
-    setBandRules, rooming, setRooming,
+    setBandRules, rooming, setRooming, students,
   } = useStore();
   const [panel, setPanel] = useState<Panel>('sites');
   const [draftRatios, setDraftRatios] = useState(bandRules);
@@ -146,7 +146,7 @@ export function Setup() {
                   <tr key={r.band}>
                     <td style={{ fontWeight: 500 }}>{r.band}</td>
                     <td className="num">
-                      {STUDENTS.filter((s) => s.band === r.band).length}
+                      {students.filter((s) => s.band === r.band).length}
                     </td>
                     <td className="num">
                       {GROUPS.filter((g) => g.band === r.band).length}

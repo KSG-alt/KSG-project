@@ -36,7 +36,7 @@ export function ActivityGuide({
   const a = activityById(session.activityId);
   const g = guideFor(session.activityId);
   const group = groupById(session.groupId);
-  const v = checkRatio(session);
+  const v = checkRatio(session, { students, staff });
   const onDuty = session.staffIds
     .map((id) => staff.find((s) => s.id === id))
     .filter((s): s is NonNullable<typeof s> => Boolean(s));
