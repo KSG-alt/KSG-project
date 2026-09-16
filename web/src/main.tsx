@@ -11,6 +11,7 @@ import { selfCheck as transferCheck } from './lib/transfers';
 import { selfCheck as chargeCheck } from './data/suppliers';
 import { selfCheck as healthCheck } from './data/health';
 import { selfCheck as coverCheck } from './lib/cover';
+import { selfCheck as seasonCheck } from './lib/season';
 
 /* The import parser is the one place a silent wrong answer moves a child's
    arrival date. It checks itself in dev; console.assert stays quiet when it
@@ -25,6 +26,7 @@ if (import.meta.env.DEV) {
   chargeCheck();
   healthCheck();
   coverCheck();
+  seasonCheck();
 }
 
 createRoot(document.getElementById('root')!).render(

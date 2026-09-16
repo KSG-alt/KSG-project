@@ -140,6 +140,31 @@ export function buildAudit(): AuditEntry[] {
       );
     });
 
+  /* Reads of special category data are events in their own right. Seeded so
+     the access log opens with a history rather than an empty page — the point
+     of the log is that it was already running before anybody asked. */
+  const READERS: [string, string][] = [
+    ['Nadia Rahman', 'Head office welfare'],
+    ['Kebba Sarr', 'Safeguarding lead'],
+    ['Ismail', 'Centre administrator'],
+    ['Tomas Halvorsen', 'Centre director'],
+  ];
+  STUDENTS.filter((s) => s.medical || s.dietary)
+    .slice(0, 6)
+    .forEach((s, i) => {
+      const [who, as] = READERS[i % READERS.length];
+      out.push(
+        entry(
+          'record',
+          'Welfare record opened',
+          `${s.forename} ${s.surname}`,
+          `Medication and allergy detail read by ${as}. Special category data — every read is logged.`,
+          who,
+          back(1 + (i % 4), 8 + (i % 6), i * 11),
+        ),
+      );
+    });
+
   return out.sort((a, b) => b.at.localeCompare(a.at));
 }
 

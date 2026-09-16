@@ -1,7 +1,40 @@
-# The standalone demo
+# The standalone demos
 
-`docs/kadia-demo.html` is the whole admin dashboard in one file. Double-click
-it, or attach it to an email. No server, no install, no network.
+Three files, one build. Double-click any of them, or attach one to an email.
+No server, no install, no network.
+
+| File | Who it is for | Opens as |
+| --- | --- | --- |
+| `docs/kadia-demo-centre.html` | A centre director or administrator | The centre's day, as centre administrator |
+| `docs/kadia-demo-head-office.html` | The senior team | Head office, as head office welfare |
+| `docs/kadia-demo.html` | Internal, and anyone who wants both halves | The centre's day, with Head office reachable by switching role |
+
+The two sides are the same application with a different audience. The centre
+runs the day — registers, rotas, transfers, rooms, the queue. Head office owns
+what the records say — the clinical record, the money, the documents, DBS,
+incidents and the audit trail, across every centre — and does not carry the
+hour-to-hour screens at all. A single "everything" demo shows a person screens
+they would never have, and a prospect notices.
+
+## What head office sees that a centre does not
+
+- **Centres** — every site's figures side by side, with a site that is
+  contracted but not yet imported shown as exactly that.
+- **Money** — invoiced, banked, still owed, in the bank and unallocated,
+  committed to suppliers, and booked with no receipt behind it. Plus every
+  child arriving inside a week who still owes, because a centre cannot hold a
+  child at the door over a balance.
+- **Children** — every child on the books with documents, health state,
+  balance, bed and guardian, searchable.
+- **To verify / Consent** — the clinical declarations waiting on head office,
+  and the medication a centre holds with nothing signed behind it.
+- **Clinical load** — adrenaline plans on site, who holds what, doses due
+  today, doses nobody recorded.
+- **Who read what** — every opening of a child's medical record.
+
+The centre build has none of it, and a centre administrator cannot reach Head
+office in the combined build either — the first place in this platform where
+the person it was built for is not the person with the most access.
 
 ## What a viewer can actually do
 

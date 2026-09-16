@@ -9,7 +9,18 @@ import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const DIST = 'dist';
-const OUT = '../docs/kadia-demo.html';
+
+/* Three files out of one build. The centre demo and the head office demo are
+   the same application with a different audience: the centre runs the day,
+   head office owns what the records say and sees every centre at once. A
+   single "everything" demo shows a person screens they would never have, and
+   a prospect notices. The combined file stays for anyone who wants to see
+   both halves in one place. */
+const BUILDS = [
+  { side: 'both', out: '../docs/kadia-demo.html', label: 'Centre and head office' },
+  { side: 'centre', out: '../docs/kadia-demo-centre.html', label: 'Centre' },
+  { side: 'office', out: '../docs/kadia-demo-head-office.html', label: 'Head office' },
+];
 
 const assets = await readdir(join(DIST, 'assets'));
 const jsName = assets.find((f) => f.endsWith('.js'));
@@ -30,7 +41,7 @@ const faviconUri = `data:image/svg+xml;base64,${Buffer.from(favicon).toString('b
 /* The CSS references the image by absolute path; point it at the data URI. */
 const cssInline = css.replaceAll('/home-bg.jpeg', jpegUri);
 
-let out = html
+const base = html
   .replace(
     new RegExp(`<script type="module"[^>]*src="/assets/${jsName}"[^>]*></script>`),
     () => `<script type="module">\n${js}\n</script>`,
@@ -51,27 +62,38 @@ let out = html
     `<style>\n${fontCss}\n</style>`,
   );
 
-if (out.includes('fonts.googleapis.com') || out.includes('fonts.gstatic.com')) {
+if (base.includes('fonts.googleapis.com') || base.includes('fonts.gstatic.com')) {
   throw new Error('A font stylesheet reference survived — the demo would need the network.');
 }
 
-if (out.includes('/assets/')) {
+if (base.includes('/assets/')) {
   throw new Error('An asset reference survived inlining — the demo would break offline.');
 }
 
-/* A prospect opening this from a mail attachment gets one line of context
-   before anything else renders. */
-out = out.replace(
-  '<div id="root"></div>',
-  `<noscript>
+for (const build of BUILDS) {
+  /* The side is set before the application module runs, because the store
+     picks its opening role from it on the first render. */
+  const side =
+    build.side === 'both'
+      ? ''
+      : `<script>window.__KADIA_SIDE__=${JSON.stringify(build.side)}</script>\n    `;
+
+  const out = base.replace(
+    '<div id="root"></div>',
+    `${side}<noscript>
       <p style="font:16px/1.5 system-ui;color:#e6e7d9;background:#0e1216;padding:40px;margin:0">
         This demonstration needs JavaScript. Everything in it runs in your
         browser — nothing is uploaded and no data leaves this page.
       </p>
     </noscript>
     <div id="root"></div>`,
-);
+  );
 
-await writeFile(OUT, out);
-const kb = Math.round(Buffer.byteLength(out) / 1024);
-console.log(`wrote ${OUT} — ${kb} KB, single file, no external assets`);
+  if (build.side !== 'both' && !out.includes('window.__KADIA_SIDE__')) {
+    throw new Error(`${build.out}: the side was not written into the file.`);
+  }
+
+  await writeFile(build.out, out);
+  const kb = Math.round(Buffer.byteLength(out) / 1024);
+  console.log(`wrote ${build.out} — ${kb} KB · ${build.label}`);
+}

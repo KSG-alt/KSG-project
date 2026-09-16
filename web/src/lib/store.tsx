@@ -25,6 +25,7 @@ import { buildIncidents, type Incident } from '../data/incidents';
 import {
   BAND_RULES, PILOT_SITE, ROLES, type BandRule, type RoleDef, type Site,
 } from '../data/centre';
+import { START_ROLE } from './side';
 import { ESCALATION_DEFAULTS } from './reminders';
 
 interface Store {
@@ -200,7 +201,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
   const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
   const [site, setSite] = useState<Site>(PILOT_SITE);
-  const [role, setRole] = useState<RoleDef>(ROLES[0]);
+  /* Each standalone demo opens as the side it was built for. */
+  const [role, setRole] = useState<RoleDef>(START_ROLE);
   const [bandRules, setBandRulesState] = useState<BandRule[]>(BAND_RULES);
 
   const value = useMemo<Store>(() => {

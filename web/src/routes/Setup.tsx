@@ -6,6 +6,7 @@ import { useStore } from '../lib/store';
 import {
   ALL_SECTIONS, CHANNELS, ROLES, SITES, siteCounts, type RoleId,
 } from '../data/centre';
+import { SIDE, sideRoles } from '../lib/side';
 import { ESCALATION_DEFAULTS, type Severity } from '../lib/reminders';
 import { GROUPS } from '../data/seed';
 
@@ -404,13 +405,24 @@ export function Setup() {
           <p className="meta" style={{ maxWidth: '66ch', marginBottom: 20 }}>
             Change the role and the whole interface changes with it — sections
             disappear from the menu, and special category data stops being
-            shown. Try <strong>Activity staff</strong> and open any student, or{' '}
-            <strong>Head office welfare</strong> and open Head office, which a
-            centre administrator cannot reach at all.
+            shown.
+            {SIDE !== 'office' && (
+              <>
+                {' '}
+                Try <strong>Activity staff</strong> and open any student.
+              </>
+            )}
+            {SIDE !== 'centre' && (
+              <>
+                {' '}
+                Switch to <strong>Head office welfare</strong> and open Head
+                office — a section a centre administrator cannot reach at all.
+              </>
+            )}
           </p>
 
           <div className="roles">
-            {ROLES.map((r) => (
+            {sideRoles().map((r) => (
               <button
                 key={r.id}
                 className={`rolecard${r.id === role.id ? ' rolecard--on' : ''}`}

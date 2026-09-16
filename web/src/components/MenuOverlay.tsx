@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { NAV, type Route } from '../App';
+import { inSide } from '../lib/side';
 import { Lockup } from '../lib/Logo';
 import { useStore } from '../lib/store';
 
@@ -51,8 +52,8 @@ export function MenuOverlay({
   /* The menu shows what this role may open, not what exists. A section it
      cannot reach is not greyed out, it is absent. */
   const items: { id: Route; label: string }[] = [
-    { id: 'home', label: 'home' },
-    ...NAV.filter((n) => role.sections.includes(n.id)).map((n) => ({
+    ...(inSide('home') ? [{ id: 'home' as Route, label: 'home' }] : []),
+    ...NAV.filter((n) => role.sections.includes(n.id) && inSide(n.id)).map((n) => ({
       id: n.id,
       label: n.label.toLowerCase(),
     })),

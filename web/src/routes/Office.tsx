@@ -30,11 +30,14 @@ import {
   HEALTH_COPY, SEVERITY_COPY, dueToday, missedDoses, type Health,
 } from '../data/health';
 import { waitingOnThem, waitingOnUs } from '../data/portal';
+import { children, money } from '../lib/season';
+import { invoiceRef, owed } from '../data/finance';
 import {
   DEMO_TODAY, daysFromToday, fmtDate, fmtDateLong, fmtMoney, isOnSite,
+  roomLabel,
 } from '../data/seed';
 
-type View = 'centres' | 'verify' | 'consent' | 'load' | 'access';
+type View = 'centres' | 'money' | 'children' | 'verify' | 'consent' | 'load' | 'access';
 
 /* Head office is judged on how long a declaration sat, not on how many it
    cleared. Anything older than this has been waiting too long. */
@@ -47,6 +50,7 @@ export function Office() {
   } = useStore();
 
   const [view, setView] = useState<View>('centres');
+  const [q, setQ] = useState('');
   const [openStudent, setOpenStudent] = useState<string | null>(null);
   const [asking, setAsking] = useState<string | null>(null);
   const [reason, setReason] = useState('');
@@ -102,12 +106,37 @@ export function Office() {
 
   const missed = missedDoses(administrations);
 
+  const purse = useMemo(
+    () => money(students, payments, bookings),
+    [students, payments, bookings],
+  );
+
+  const roll = useMemo(() => children(students, health), [students, health]);
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return roll
+      .filter((r) => {
+        if (!needle) return true;
+        const s = r.student;
+        return `${s.forename} ${s.surname} ${s.country} ${s.band} ${invoiceRef(s)}`
+          .toLowerCase()
+          .includes(needle);
+      })
+      .sort(
+        (a, b) =>
+          Number(b.onSite) - Number(a.onSite) ||
+          a.student.surname.localeCompare(b.student.surname),
+      );
+  }, [roll, q]);
+
   /* Who opened a clinical record, from the same audit trail everything else
      writes to. */
   const reads = audit.filter((a) => a.action === 'Welfare record opened');
 
   const tabs: { id: View; label: string }[] = [
     { id: 'centres', label: `Centres ${SITES.filter((s) => s.onboarded).length}` },
+    { id: 'money', label: 'Money' },
+    { id: 'children', label: `Children ${students.length}` },
     { id: 'verify', label: `To verify ${toVerify.length}` },
     { id: 'consent', label: `Consent ${noConsent.length}` },
     { id: 'load', label: 'Clinical load' },
@@ -263,6 +292,221 @@ export function Office() {
               </section>
             );
           })}
+        </>
+      )}
+
+      {view === 'money' && (
+        <>
+          <div className="figs">
+            <span className="fig">
+              <span className="fig__n num">{fmtMoney(purse.invoicedPence)}</span>
+              <span className="fig__label">invoiced this season</span>
+              <span className="fig__note meta">{students.length} students on the books</span>
+            </span>
+            <span className="fig">
+              <span className="fig__n num">{fmtMoney(purse.bankedPence)}</span>
+              <span className="fig__label">banked against a student</span>
+              <span className="fig__note meta">
+                {Math.round((purse.bankedPence / purse.invoicedPence) * 100)}% of the season
+              </span>
+            </span>
+            <span className={`fig${purse.outstandingPence > 0 ? ' fig--alarm' : ''}`}>
+              <span className="fig__n num">{fmtMoney(purse.outstandingPence)}</span>
+              <span className="fig__label">still owed</span>
+              <span className="fig__note meta">invoiced less banked</span>
+            </span>
+            <span className={`fig${purse.unmatchedCount ? ' fig--alarm' : ''}`}>
+              <span className="fig__n num">{fmtMoney(purse.unmatchedPence)}</span>
+              <span className="fig__label">in the bank, unallocated</span>
+              <span className="fig__note meta">
+                {purse.unmatchedCount} payments with no student
+              </span>
+            </span>
+            <span className="fig">
+              <span className="fig__n num">{fmtMoney(purse.bookedPence)}</span>
+              <span className="fig__label">committed to suppliers</span>
+              <span className="fig__note meta">{bookings.length} activity bookings</span>
+            </span>
+            <span className={`fig${purse.unreceiptedCount ? ' fig--alarm' : ''}`}>
+              <span className="fig__n num">{fmtMoney(purse.unreceiptedPence)}</span>
+              <span className="fig__label">booked with no receipt</span>
+              <span className="fig__note meta">
+                {purse.unreceiptedCount} bookings finance cannot pay
+              </span>
+            </span>
+          </div>
+
+          <p className="meta section__lede">
+            Money in the bank that belongs to nobody yet is counted separately
+            from money owed — adding the two would flatter the season by
+            whatever the centre has failed to allocate.
+          </p>
+
+          <p className="label">
+            Arriving within a week and still owing — {purse.arrivingOwing.length}
+          </p>
+          {purse.arrivingOwing.length === 0 ? (
+            <p className="meta">
+              Nobody arriving this week owes anything. Nothing to decide.
+            </p>
+          ) : (
+            <>
+              <p className="meta section__lede">
+                A centre cannot hold a child at the door over a balance, so the
+                decision is made here and now: chase it, let it ride, or take
+                it up with the agent. Left to the day itself it is not a
+                decision, it is an argument in a car park.
+              </p>
+              <div className="tablewrap">
+                <table className="reg">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>Arrives</th>
+                      <th>Owed</th>
+                      <th>Invoice</th>
+                      <th>Guardian</th>
+                      <th>Documents</th>
+                    </tr>
+                  </thead>
+                  <tbody className="stagger">
+                    {purse.arrivingOwing.map(({ student: s, owed: due, days }) => (
+                      <tr key={s.id}>
+                        <td>
+                          <button className="namebtn" onClick={() => setOpenStudent(s.id)}>
+                            {s.forename} {s.surname}
+                          </button>
+                          <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {s.country} · {s.band}
+                          </span>
+                        </td>
+                        <td className="num">
+                          {fmtDate(s.arrival)}
+                          <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {days === 0 ? 'today' : `in ${days} day${days === 1 ? '' : 's'}`}
+                          </span>
+                        </td>
+                        <td className="num">{fmtMoney(due)}</td>
+                        <td className="num meta">{invoiceRef(s)}</td>
+                        <td>
+                          {s.guardian.name}
+                          <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {s.guardian.phone}
+                          </span>
+                        </td>
+                        <td className="meta">
+                          {Object.values(s.docs).filter((d) => d === 'in').length} of 3 in
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {view === 'children' && (
+        <>
+          <p className="meta section__lede">
+            Every child on the books, across every centre, with the six things
+            head office is ever asked about: are they paid up, are their
+            documents in, is their health record signed off, are they here,
+            where do they sleep, and who is the contact.
+          </p>
+
+          <input
+            className="field"
+            style={{ maxWidth: 360, marginBottom: 18 }}
+            value={q}
+            placeholder="Search name, country, band or invoice"
+            aria-label="Search children"
+            onChange={(e) => setQ(e.target.value)}
+          />
+
+          <div className="tablewrap">
+            <table className="reg">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Stay</th>
+                  <th>Documents</th>
+                  <th>Health</th>
+                  <th>Owed</th>
+                  <th>Room</th>
+                  <th>Guardian</th>
+                </tr>
+              </thead>
+              <tbody className="stagger">
+                {shown.slice(0, 80).map((r) => {
+                  const s = r.student;
+                  return (
+                    <tr key={s.id}>
+                      <td>
+                        <button className="namebtn" onClick={() => setOpenStudent(s.id)}>
+                          {s.forename} {s.surname}
+                        </button>
+                        <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                          {s.age} · {s.band} · {s.country}
+                        </span>
+                      </td>
+                      <td className="num">
+                        {fmtDate(s.arrival)} – {fmtDate(s.leaving)}
+                        <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                          {r.onSite ? 'on site' : 'not here'}
+                        </span>
+                      </td>
+                      <td>
+                        {r.docsIn === r.docsTotal ? (
+                          <span className="mark mark--clear">All in</span>
+                        ) : (
+                          <span className="mark mark--overdue">
+                            {r.docsTotal - r.docsIn} outstanding
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {r.health ? (
+                          <>
+                            <span className={`mark ${HEALTH_COPY[r.health.state].mark}`}>
+                              {HEALTH_COPY[r.health.state].label}
+                            </span>
+                            <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                              {r.health.allergies.some((a) => a.severity === 'anaphylaxis')
+                                ? 'adrenaline plan'
+                                : r.health.medications.length
+                                  ? `${r.health.medications.length} medication${r.health.medications.length === 1 ? '' : 's'}`
+                                  : 'allergies only'}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="meta" style={{ color: 'var(--ink-3)' }}>
+                            Nothing declared
+                          </span>
+                        )}
+                      </td>
+                      <td className="num">
+                        {r.owed > 0 ? fmtMoney(r.owed) : <span className="meta">Paid</span>}
+                      </td>
+                      <td className="meta">{roomLabel(s.roomId)}</td>
+                      <td>
+                        {s.guardian.name}
+                        <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                          {s.guardian.phone}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {shown.length > 80 && (
+            <p className="meta slab__more">
+              Showing the first 80 of {shown.length}. Narrow with the search.
+            </p>
+          )}
         </>
       )}
 

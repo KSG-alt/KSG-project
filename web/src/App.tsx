@@ -23,6 +23,7 @@ import {
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { Office } from './routes/Office';
+import { SIDE, START, inSide } from './lib/side';
 import { StoreProvider, useStore } from './lib/store';
 import { ROLES } from './data/centre';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
@@ -79,13 +80,16 @@ const TITLE: Record<Route, string> = {
 };
 
 function Shell() {
-  const [route, setRoute] = useState<Route>('home');
+  const [route, setRoute] = useState<Route>(START);
   const [menu, setMenu] = useState(false);
   const [tick, setTick] = useState(0);
   const { open, role, setRole, site, incidents } = useStore();
 
   const go = (r: Route) => {
-    setRoute(r);
+    /* A reminder can point at a section this build does not carry — head
+       office sees that a register was never taken without being the people
+       who take it. Land somewhere real rather than flashing through it. */
+    setRoute(inSide(r) ? r : START);
     setTick((t) => t + 1);
     window.scrollTo({ top: 0 });
   };
@@ -93,19 +97,19 @@ function Shell() {
   /* A role that loses its current section lands back on home rather than on a
      screen it may not read. */
   useEffect(() => {
-    if (!role.sections.includes(route)) go('home');
+    if (!role.sections.includes(route) || !inSide(route)) go(START);
   }, [role, route]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !menu && route !== 'home') go('home');
+      if (e.key === 'Escape' && !menu && route !== START) go(START);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [route, menu]);
 
   const critical = open.filter((r) => r.severity === 'safeguarding').length;
-  const allowed = (r: Route) => role.sections.includes(r);
+  const allowed = (r: Route) => role.sections.includes(r) && inSide(r);
   const untold = incidents.filter(
     (i) => i.level !== 'logged' && !i.dslInformedAt,
   ).length;
@@ -168,7 +172,7 @@ function Shell() {
             </button>
           )}
           <span className="label bar__date">
-            {site.name}
+            {SIDE === 'office' ? 'Head office · all centres' : site.name}
             <span className="bar__when">
               {' · '}
               {fmtDateLong(DEMO_TODAY.toISOString())}
