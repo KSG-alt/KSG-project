@@ -14,8 +14,9 @@ import {
   wardenFor, type DocState, type Student,
 } from '../data/seed';
 
-/* Who is signed in at the dashboard. Matches the name the audit trail uses. */
-const OPERATOR_NAME = 'Ismail';
+/* Who is signed in at the dashboard, per build. Matches the name the audit
+   trail uses. */
+import { OPERATOR as OPERATOR_NAME } from '../lib/side';
 
 /* The demo clock's date, for telling "not yet arrived" from "has left". */
 const TODAY_ISO = (() => {

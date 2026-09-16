@@ -23,7 +23,8 @@ import {
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { Office } from './routes/Office';
-import { SIDE, START, inSide } from './lib/side';
+import { OfficeHome } from './routes/OfficeHome';
+import { OPERATOR, SIDE, START, inSide } from './lib/side';
 import { StoreProvider, useStore } from './lib/store';
 import { ROLES } from './data/centre';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
@@ -56,8 +57,6 @@ export const NAV: {
   { id: 'setup', label: 'Centre setup', blurb: 'Sites, ratios, escalation, access and import', icon: IconSetup },
   { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
 ];
-
-const OPERATOR = 'Ismail';
 
 const TITLE: Record<Route, string> = {
   home: 'Home',
@@ -186,7 +185,11 @@ function Shell() {
       )}
 
       {route === 'home' ? (
-        <Home key={tick} operator={OPERATOR} onGo={go} />
+        SIDE === 'office' ? (
+          <OfficeHome key={tick} operator={OPERATOR} onGo={go} />
+        ) : (
+          <Home key={tick} operator={OPERATOR} onGo={go} />
+        )
       ) : (
         <main key={tick} id="main" className="page">
           {route === 'reminders' && <Reminders onGo={go} />}

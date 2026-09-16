@@ -6,7 +6,7 @@ No server, no install, no network.
 | File | Who it is for | Opens as |
 | --- | --- | --- |
 | `docs/kadia-demo-centre.html` | A centre director or administrator | The centre's day, as centre administrator |
-| `docs/kadia-demo-head-office.html` | The senior team | Head office, as head office welfare |
+| `docs/kadia-demo-head-office.html` | The senior team | Its own home screen, as head office welfare |
 | `docs/kadia-demo.html` | Internal, and anyone who wants both halves | The centre's day, with Head office reachable by switching role |
 
 The two sides are the same application with a different audience. The centre
@@ -15,6 +15,14 @@ what the records say — the clinical record, the money, the documents, DBS,
 incidents and the audit trail, across every centre — and does not carry the
 hour-to-hour screens at all. A single "everything" demo shows a person screens
 they would never have, and a prospect notices.
+
+Head office has its own home screen rather than the centre's with different
+numbers on it, because the two jobs keep different clocks. A centre opens the
+morning asking what happens in the next four hours; head office opens it
+asking what will be short by the end of the season and what is sitting on
+their own desk. So: where the season is, **only you can clear this**, the
+money with a banked-against-invoiced bar, the changeover days ahead with the
+unverified and unpaid counts against each, and which centres are live.
 
 ## What head office sees that a centre does not
 

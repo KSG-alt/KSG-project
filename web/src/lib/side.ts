@@ -32,9 +32,11 @@ export const SIDE: Side =
   (typeof window !== 'undefined' && window.__KADIA_SIDE__) || 'both';
 
 /* Head office does not run the hour-to-hour day, so the operational screens
-   are not in its build. It keeps everything it is accountable for. */
+   are not in its build. It keeps everything it is accountable for — and it
+   keeps a home screen, which is its own screen rather than the centre's with
+   different numbers on it (routes/OfficeHome.tsx). */
 const OFFICE_ONLY_HIDES: Route[] = [
-  'home', 'timetable', 'attendance', 'transfers', 'rooms', 'bookings',
+  'timetable', 'attendance', 'transfers', 'rooms', 'bookings',
 ];
 
 export const inSide = (route: Route): boolean => {
@@ -43,8 +45,8 @@ export const inSide = (route: Route): boolean => {
   return !OFFICE_ONLY_HIDES.includes(route);
 };
 
-/* Where each build opens. */
-export const START: Route = SIDE === 'office' ? 'office' : 'home';
+/* Where each build opens. Both sides open on their own home screen. */
+export const START: Route = 'home';
 
 /* Who each build opens as. A centre demo that opens as head office, or the
    other way round, spends its first thirty seconds explaining itself. */
@@ -61,6 +63,10 @@ export const sideRoles = (): RoleDef[] =>
     : SIDE === 'centre'
       ? ROLES.filter((r) => r.id !== 'senior')
       : ROLES;
+
+/* Who is at the dashboard in each build. A head office demo greeting the
+   centre administrator by name is the first thing a viewer notices. */
+export const OPERATOR = SIDE === 'office' ? 'Nadia' : 'Ismail';
 
 export const SIDE_LABEL: Record<Side, string> = {
   centre: 'Centre',
