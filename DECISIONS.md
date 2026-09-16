@@ -77,3 +77,34 @@ still moving.
 bookings, payments. Then CODEOWNERS paths get updated to the real layout and
 [docs/interface-contract.md](docs/interface-contract.md) gets checked against
 what he actually built.
+
+---
+
+## 0005 — Medication and allergies: declared at booking, verified by head office
+
+**Decided:** 16 Sep 2026 · **Status:** settled for the prototype
+
+Clinical data enters the platform from the family, with the booking, and
+becomes a record the centre may act on only when a named person in the senior
+team verifies it. Centre staff read it and record what they gave. Nobody at
+the centre can enter, edit or delete a medication.
+
+**Why:** the family holds the facts, so asking them is the only way to get the
+dose right first time, and it costs the centre nothing. But a parent's
+free-text declaration is not a clinical instruction, and a seasonal member of
+staff retyping a dose off a WhatsApp message is exactly how the wrong amount
+of insulin gets given. Verification sits with head office because they are
+continuous across the season, they can ring the family or ask for a GP letter,
+and they are the smallest group that can hold the liability.
+
+**What it means in the product:** every health record carries where it came
+from (`booking` or `senior`), a state (`declared`, `verified`, `queried`) and
+the name of whoever verified it. Unverified records and medication held
+without written consent appear in the reminder queue as safeguarding items.
+Role access splits reading (`welfareDetail`) from changing the record
+(`welfareEdit`), and every read of the clinical record is written to the audit
+trail.
+
+**Open:** whether an agent-booked student's declaration arrives through the
+agent or direct from the family. Agents book most students, so this decides
+who the portal link is sent to.

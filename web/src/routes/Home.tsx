@@ -63,10 +63,12 @@ export function Home({
 }) {
   const {
     open, students, staff, sessions, bookings, incidents, payments, registers,
-    requests, flights,
+    requests, flights, duties,
   } = useStore();
 
-  const tools = kadiaTools({ students, staff, sessions, bookings, incidents, payments });
+  const tools = kadiaTools({
+    students, staff, sessions, bookings, incidents, payments, duties,
+  });
   const critical = open.filter((r) => r.severity === 'safeguarding');
   const onSite = students.filter((s) => isOnSite(s));
 

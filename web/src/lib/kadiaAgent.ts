@@ -9,6 +9,8 @@ import {
   staffById, weeklyHours, availabilityClashes,
 } from '../data/seed';
 import { buildIncidents, minutesToDsl } from '../data/incidents';
+import { findCover } from './cover';
+import type { Duty } from '../data/duty';
 import { buildPayments, invoiceRef, owed, suggestMatches } from '../data/finance';
 import { BAND_RULES, ROLES, SITES } from './../data/centre';
 import { ESCALATION_DAYS } from './reminders';
@@ -24,12 +26,21 @@ export interface AgentRecords {
   bookings: typeof BOOKINGS;
   incidents: ReturnType<typeof buildIncidents>;
   payments: ReturnType<typeof buildPayments>;
+  /* Duty shifts carry most of a seasonal contract's hours, so cover that
+     ignores them covers half the day. */
+  duties?: Duty[];
 }
+
+/* The demo clock's date, which is what "today" means everywhere else. */
+const today = () => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${DEMO_TODAY.getFullYear()}-${p(DEMO_TODAY.getMonth() + 1)}-${p(DEMO_TODAY.getDate())}`;
+};
 
 export function kadiaTools(records: AgentRecords): ToolSpec[] {
   const {
     students: STUDENTS, staff: STAFF, sessions: SESSIONS, bookings: BOOKINGS,
-    incidents: INCIDENTS, payments: PAYMENTS,
+    incidents: INCIDENTS, payments: PAYMENTS, duties: DUTIES = [],
   } = records;
 
   return [
@@ -172,6 +183,48 @@ export function kadiaTools(records: AgentRecords): ToolSpec[] {
           STUDENTS.reduce((n, s) => n + (s.balancePence - s.paidPence), 0),
         ),
         bookings_without_receipt: BOOKINGS.filter((b) => !b.receipt).length,
+      };
+    },
+  },
+  {
+    name: 'find_cover',
+    description:
+      "Find who can legally cover a staff member who is off. Checks DBS, availability, age band, the qualification the activity requires, whether they are already rota'd at that hour, and the weekly hours limit. Proposes only — it changes no rota and tells nobody.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        staff_name: { type: 'string', description: 'Who is off, by name' },
+        day: { type: 'string', description: 'ISO date. Defaults to today.' },
+      },
+      required: ['staff_name'],
+    },
+    run: (i: { staff_name: string; day?: string }) => {
+      const q = i.staff_name.toLowerCase();
+      const person = STAFF.find((s) =>
+        `${s.forename} ${s.surname}`.toLowerCase().includes(q),
+      );
+      if (!person) return { error: `No staff member matches "${i.staff_name}".` };
+      const day = i.day ?? today();
+      const plan = findCover(person.id, day, {
+        staff: STAFF, sessions: SESSIONS, duties: DUTIES, students: STUDENTS,
+      });
+      if (!plan) return { error: 'Could not build a cover plan.' };
+      return {
+        off: `${person.forename} ${person.surname}`,
+        day,
+        to_cover: plan.gaps.length,
+        nobody_available: plan.unfillable.length,
+        gaps: plan.gaps.map((g) => ({
+          when: g.when,
+          what: g.what,
+          best: g.candidates[0]
+            ? `${g.candidates[0].staff.forename} ${g.candidates[0].staff.surname}`
+            : null,
+          why: g.candidates[0]?.why ?? [],
+          others: g.candidates.slice(1, 3).map((c) => `${c.staff.forename} ${c.staff.surname}`),
+          blocked: g.blocked.slice(0, 3).map((b) => `${b.name}: ${b.reason}`),
+        })),
+        note: 'Nothing has been changed and nobody has been told.',
       };
     },
   },

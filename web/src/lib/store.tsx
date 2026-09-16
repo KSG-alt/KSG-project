@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useRef, useState } from 'react';
 import {
   buildReminders, setEscalationDays, type Channel, type Reminder,
   type Severity,
@@ -13,6 +13,9 @@ import { buildPayments, type Payment } from '../data/finance';
 import { buildDuties, type Duty } from '../data/duty';
 import { buildFlights, type Flight } from '../data/travel';
 import { buildRequests, DOC_LABEL, type DocRequest } from '../data/portal';
+import {
+  buildAdministrations, buildHealth, type Administration, type Health,
+} from '../data/health';
 import {
   blankRegister, buildRegisters, rollFor, type Mark, type Register,
 } from '../data/attendance';
@@ -61,6 +64,22 @@ interface Store {
   takeRegister: (sessionId: string) => void;
   closeRegister: (sessionId: string) => void;
   markOne: (sessionId: string, studentId: string, mark: Mark) => void;
+
+  /* Medication and allergies. The centre reads them and records what it gave;
+     only a role with welfareEdit changes what the record says. */
+  health: Health[];
+  administrations: Administration[];
+  verifyHealth: (studentId: string) => void;
+  queryHealth: (studentId: string, reason: string) => void;
+  recordDose: (
+    id: string,
+    given: boolean,
+    by: string,
+    witness: string | null,
+    note?: string,
+  ) => void;
+  /* Reading special category data is itself an event worth recording. */
+  logWelfareView: (studentId: string) => void;
 
   requests: DocRequest[];
   sendRequest: (id: string) => void;
@@ -136,6 +155,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [duties, setDutyState] = useState<Duty[]>(
     () => fillDuty(SESSIONS, buildDuties()).duties,
   );
+  const [health, setHealth] = useState<Health[]>(() => buildHealth());
+  const [administrations, setAdministrations] = useState<Administration[]>(() =>
+    buildAdministrations(buildHealth()),
+  );
+  /* One line per student per session, so the same record is not written to the
+     trail every time a drawer re-renders. */
+  const viewed = useRef<Set<string>>(new Set());
   const [audit, setAudit] = useState<AuditEntry[]>(() => buildAudit());
   const [outbox, setOutbox] = useState<OutboxItem[]>(() =>
     buildOutbox(buildReminders()),
@@ -159,6 +185,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const reminders = useMemo(() => {
     const derived = buildReminders({
       students, staff, sessions, bookings, registers, requests, flights,
+      health, administrations,
     });
     return derived
       .filter((r) => !removed.includes(r.id))
@@ -167,7 +194,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        — without it the queue would not re-rank when they change. */
   }, [
     students, staff, sessions, bookings, registers, requests, flights,
-    touched, removed, escalation,
+    health, administrations, touched, removed, escalation,
   ]);
   const [rooming, setRoomingState] = useState<RoomingRules>(DEFAULT_RULES);
   const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
@@ -351,6 +378,102 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             ),
           );
         }
+      },
+
+      health,
+      administrations,
+      verifyHealth: (studentId) => {
+        const s = pupil(studentId);
+        setHealth((all) =>
+          all.map((h) =>
+            h.studentId === studentId
+              ? {
+                  ...h,
+                  state: 'verified' as const,
+                  verifiedBy: role.name,
+                  verifiedAt: demoIso(),
+                  query: null,
+                }
+              : h,
+          ),
+        );
+        if (s) {
+          append(
+            entry(
+              'safeguarding',
+              'Health record verified',
+              `${s.forename} ${s.surname}`,
+              `Checked against what the family declared and accepted by ${role.name}. The centre may now act on it.`,
+            ),
+          );
+        }
+      },
+      queryHealth: (studentId, reason) => {
+        const s = pupil(studentId);
+        setHealth((all) =>
+          all.map((h) =>
+            h.studentId === studentId
+              ? { ...h, state: 'queried' as const, verifiedBy: null, verifiedAt: null, query: reason }
+              : h,
+          ),
+        );
+        if (s) {
+          append(
+            entry(
+              'safeguarding',
+              'Health record queried with the family',
+              `${s.forename} ${s.surname}`,
+              reason,
+            ),
+          );
+        }
+      },
+      recordDose: (id, given, by, witness, note) => {
+        const dose = administrations.find((a) => a.id === id);
+        const s = dose ? pupil(dose.studentId) : null;
+        setAdministrations((all) =>
+          all.map((a) =>
+            a.id === id
+              ? {
+                  ...a,
+                  givenAt: given ? demoStamp().slice(11, 16) : null,
+                  givenBy: given ? by : null,
+                  witness: given ? witness : null,
+                  refused: !given,
+                  note: note ?? a.note,
+                }
+              : a,
+          ),
+        );
+        if (dose && s) {
+          const med = health
+            .find((h) => h.studentId === dose.studentId)
+            ?.medications.find((m) => m.id === dose.medicationId);
+          append(
+            entry(
+              'safeguarding',
+              given ? 'Medication given' : 'Medication not given',
+              `${s.forename} ${s.surname}`,
+              given
+                ? `${med?.name ?? 'Dose'} ${med?.dose ?? ''} due ${dose.due}, given by ${by}${witness ? `, witnessed by ${witness}` : ', unwitnessed'}. Recorded at the dashboard.`
+                : `${med?.name ?? 'Dose'} due ${dose.due} was not given. ${note ?? 'No reason recorded.'}`,
+            ),
+          );
+        }
+      },
+      logWelfareView: (studentId) => {
+        const s = pupil(studentId);
+        const key = `${role.id}:${studentId}`;
+        if (!s || viewed.current.has(key)) return;
+        viewed.current.add(key);
+        append(
+          entry(
+            'record',
+            'Welfare record opened',
+            `${s.forename} ${s.surname}`,
+            `Medication and allergy detail read by ${role.name}. Special category data — every read is logged.`,
+          ),
+        );
       },
 
       requests,
@@ -672,7 +795,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [
     reminders, sessions, bookings, flights, requests, registers, duties, audit,
     outbox, students, staff, payments, incidents, site, role, escalation,
-    bandRules, rooming,
+    bandRules, rooming, health, administrations,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Chat } from '../components/Chat';
 import { IconGoogle } from '../lib/icons';
 import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
+import { coverCommand } from '../lib/cover';
 import { useStore } from '../lib/store';
+import { DEMO_TODAY } from '../data/seed';
 
 import { LOCAL_TOPICS } from '../lib/localAnswers';
 
@@ -14,10 +16,19 @@ const GOOGLE_SCOPES = [
 ];
 
 export function Kadia() {
-  const { students, staff, open, incidents, payments, sessions, bookings } =
-    useStore();
+  const {
+    students, staff, open, incidents, payments, sessions, bookings, duties,
+  } = useStore();
   /* Live records, so a key-holder and a keyless viewer get the same numbers. */
-  const tools = kadiaTools({ students, staff, sessions, bookings, incidents, payments });
+  const tools = kadiaTools({
+    students, staff, sessions, bookings, incidents, payments, duties,
+  });
+
+  /* "Yusuf is off sick today, who covers him?" answered without a key. */
+  const p = (n: number) => String(n).padStart(2, '0');
+  const todayIso = `${DEMO_TODAY.getFullYear()}-${p(DEMO_TODAY.getMonth() + 1)}-${p(DEMO_TODAY.getDate())}`;
+  const localCover = (q: string) =>
+    coverCommand(q, { staff, sessions, duties, students }, todayIso);
   const [showScopes, setShowScopes] = useState(false);
   const [showReach, setShowReach] = useState(false);
 
@@ -32,10 +43,11 @@ export function Kadia() {
         tools={tools}
         greeting="Ask anything about the centre. I read the real records — students, staff, bookings, payments, incidents, the timetable — and I can draft the chase for you."
         placeholder="Ask about a student, the rota, a payment, today…"
+        localCommands={localCover}
         suggestions={[
           'What needs my attention today?',
+          'Kebba Sarr is off sick today — who can cover?',
           'Which staff cannot be rota’d with students, and why?',
-          'Who arrives in the next week with documents outstanding?',
           'How many hours is each staff member working this week?',
         ]}
       />

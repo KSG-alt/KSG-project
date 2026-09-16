@@ -419,6 +419,11 @@ export function Setup() {
                   {r.sections.length} of 16 sections ·{' '}
                   {r.welfareDetail ? 'sees welfare notes' : 'no welfare notes'} ·{' '}
                   {r.canEditRecords ? 'can edit' : 'read only'}
+                  {r.welfareEdit
+                    ? ' · owns the clinical record'
+                    : r.welfareDetail
+                      ? ' · records doses, cannot change the record'
+                      : ''}
                 </span>
                 {r.id === role.id && (
                   <span className="mark mark--clear rolecard__on">Viewing as this</span>

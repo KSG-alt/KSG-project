@@ -70,7 +70,7 @@ export const BAND_RULES: BandRule[] = [
 
 /* ── Roles and access ──────────────────────────────────────────────────── */
 
-export type RoleId = 'admin' | 'director' | 'safeguarding' | 'activity';
+export type RoleId = 'admin' | 'director' | 'safeguarding' | 'activity' | 'senior';
 
 export interface RoleDef {
   id: RoleId;
@@ -82,6 +82,13 @@ export interface RoleDef {
      category data under UK GDPR — an activity instructor has no business
      reading it, and PRODUCT.md names role-based access as a constraint. */
   welfareDetail: boolean;
+  /* Whether this role may CHANGE the clinical record — enter a medication,
+     verify a declaration from a family, or query it back to them. Deliberately
+     narrower than welfareDetail: the centre reads and records what it gave,
+     and head office owns what the record says. A seasonal activity leader
+     correcting a dose off a WhatsApp message is exactly the failure this
+     separation exists to prevent. */
+  welfareEdit: boolean;
   canEditRecords: boolean;
 }
 
@@ -98,6 +105,7 @@ export const ROLES: RoleDef[] = [
     who: 'Runs the queue. The person this product is built for.',
     sections: ALL_SECTIONS,
     welfareDetail: true,
+    welfareEdit: false,
     canEditRecords: true,
   },
   {
@@ -106,6 +114,7 @@ export const ROLES: RoleDef[] = [
     who: 'Signs off, receives escalations, owns the numbers.',
     sections: ALL_SECTIONS,
     welfareDetail: true,
+    welfareEdit: false,
     canEditRecords: true,
   },
   {
@@ -117,6 +126,7 @@ export const ROLES: RoleDef[] = [
       'portal', 'rooms', 'staff', 'timetable', 'incidents', 'audit', 'kadia',
     ],
     welfareDetail: true,
+    welfareEdit: false,
     canEditRecords: true,
   },
   {
@@ -126,7 +136,17 @@ export const ROLES: RoleDef[] = [
     /* Activity staff take registers — that is most of what the app is for. */
     sections: ['home', 'students', 'timetable', 'attendance', 'kadia'],
     welfareDetail: false,
+    welfareEdit: false,
     canEditRecords: false,
+  },
+  {
+    id: 'senior',
+    name: 'Head office welfare',
+    who: 'The senior team. Owns the clinical record: enters it, verifies what families declare, and queries what does not add up. Not at the centre.',
+    sections: ALL_SECTIONS,
+    welfareDetail: true,
+    welfareEdit: true,
+    canEditRecords: true,
   },
 ];
 

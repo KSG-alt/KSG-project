@@ -274,8 +274,14 @@ function buildStudents(): Student[] {
   return out;
 }
 
-export const isOnSite = (s: Student, on: Date = DEMO_TODAY) =>
-  new Date(s.arrival) <= on && new Date(s.leaving) >= on;
+/* Compared as DATES, not moments. `new Date('2027-07-12')` is midnight, so a
+   student leaving today came out as not on site from 00:01 — which took a
+   whole departure day's worth of children off every count that matters. */
+export const isOnSite = (s: Student, on: Date = DEMO_TODAY) => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  const day = `${on.getFullYear()}-${p(on.getMonth() + 1)}-${p(on.getDate())}`;
+  return s.arrival <= day && s.leaving >= day;
+};
 
 /* Two students are deliberately left without a bed, so the safeguarding
    reminder for an unallocated arrival has something real to catch. */

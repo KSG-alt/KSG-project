@@ -13,6 +13,7 @@ import {
 import { checkRatio } from './ratio';
 import type { Register } from '../data/attendance';
 import type { DocRequest } from '../data/portal';
+import type { Administration, Health } from '../data/health';
 import type { Flight } from '../data/travel';
 import type { Route } from '../App';
 
@@ -142,6 +143,8 @@ export interface Records {
   registers?: Register[];
   requests?: DocRequest[];
   flights?: Flight[];
+  health?: Health[];
+  administrations?: Administration[];
 }
 
 export const SEED_RECORDS: Records = {
@@ -324,6 +327,65 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
         route: 'attendance',
         source: `Attendance · ${sess.start}`,
       }, 'The session leader'));
+    });
+
+  /* A child on site whose medication and allergies nobody at head office has
+     verified. The centre is left holding a declaration it must not act on as
+     a clinical instruction, which is the worst of both states. */
+  records.health
+    ?.filter((h) => h.state !== 'verified')
+    .forEach((h) => {
+      const s = records.students.find((x) => x.id === h.studentId);
+      if (!s) return;
+      const worst = h.allergies.find((a) => a.severity === 'anaphylaxis');
+      out.push(seedChases({
+        id: `health-${h.studentId}`,
+        severity: 'safeguarding',
+        title: `${s.forename} ${s.surname} — health record not verified`,
+        action: worst
+          ? `Declared ${worst.what.toLowerCase()} with anaphylaxis, and nobody has signed the record off. Verify it or query it today.`
+          : 'Medication is declared against this student and head office has not verified it. Until it is, the centre cannot act on it.',
+        due: s.arrival,
+        route: 'students',
+        source: `Health · declared ${h.source === 'booking' ? 'at booking' : 'by head office'}`,
+      }, 'Head office welfare'));
+    });
+
+  /* Medication held for a child with no written consent to give it. */
+  records.health?.forEach((h) => {
+    const s = records.students.find((x) => x.id === h.studentId);
+    if (!s) return;
+    h.medications
+      .filter((m) => !m.consent)
+      .forEach((m) => {
+        out.push(seedChases({
+          id: `consent-${m.id}`,
+          severity: 'safeguarding',
+          title: `${s.forename} ${s.surname} — no consent to give ${m.name}`,
+          action: `The centre holds ${m.name} for this student and has no signed consent. Nobody may give it until the guardian signs.`,
+          due: s.arrival,
+          route: 'students',
+          source: 'Health · consent',
+        }, s.guardian.name));
+      });
+  });
+
+  /* A dose that was due and was never recorded either way. */
+  records.administrations
+    ?.filter((a) => !a.givenAt && !a.refused)
+    .slice(0, 6)
+    .forEach((a) => {
+      const s = records.students.find((x) => x.id === a.studentId);
+      if (!s) return;
+      out.push(seedChases({
+        id: `dose-${a.id}`,
+        severity: 'safeguarding',
+        title: `${s.forename} ${s.surname} — ${a.due} dose not recorded`,
+        action: 'Nobody recorded whether this was given or missed. Find out before the next dose is due.',
+        due: a.day,
+        route: 'students',
+        source: 'Health · medication round',
+      }, 'The welfare officer'));
     });
 
   /* Documents a parent has sent that nobody has looked at. This one is

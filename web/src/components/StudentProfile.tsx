@@ -1,16 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Drawer, DrawerTabs } from './Drawer';
 import { IconCheck, IconClose, IconEdit } from '../lib/icons';
 import { useStore } from '../lib/store';
 import { invoiceRef, owed } from '../data/finance';
+import {
+  HEALTH_COPY, SEVERITY_COPY, healthBlocks, healthFor,
+  type Administration, type Health,
+} from '../data/health';
 import { LEVEL_COPY } from '../data/incidents';
 import {
-  SLOTS, activityById, dayName, fmtDate, fmtDateLong, fmtMoney, groupById,
+  DEMO_TODAY, SLOTS, activityById, dayName, fmtDate, fmtDateLong, fmtMoney, groupById,
   isOnSite, nights, occupants, readiness, roomById, roomLabel, staffById,
   wardenFor, type DocState, type Student,
 } from '../data/seed';
 
-type Tab = 'record' | 'stay' | 'guardian' | 'week' | 'money' | 'history';
+/* Who is signed in at the dashboard. Matches the name the audit trail uses. */
+const OPERATOR_NAME = 'Ismail';
+
+/* The demo clock's date, for telling "not yet arrived" from "has left". */
+const TODAY_ISO = (() => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${DEMO_TODAY.getFullYear()}-${p(DEMO_TODAY.getMonth() + 1)}-${p(DEMO_TODAY.getDate())}`;
+})();
+
+type Tab = 'record' | 'health' | 'stay' | 'guardian' | 'week' | 'money' | 'history';
 
 const DOC_COPY: Record<DocState, { label: string; mark: string }> = {
   in: { label: 'In', mark: 'mark--clear' },
@@ -25,7 +38,7 @@ const DOC_NAMES: Record<string, string> = {
 };
 
 function Editor({ s, onDone }: { s: Student; onDone: () => void }) {
-  const { saveStudent } = useStore();
+  const { saveStudent, role } = useStore();
   const [dietary, setDietary] = useState(s.dietary ?? '');
   const [medical, setMedical] = useState(s.medical ?? '');
   const [phone, setPhone] = useState(s.guardian.phone);
@@ -65,24 +78,30 @@ function Editor({ s, onDone }: { s: Student; onDone: () => void }) {
             </select>
           </label>
         ))}
-        <label className="editor__f">
-          <span className="label">Dietary</span>
-          <input
-            className="field"
-            value={dietary}
-            placeholder="None recorded"
-            onChange={(e) => setDietary(e.target.value)}
-          />
-        </label>
-        <label className="editor__f">
-          <span className="label">Medical</span>
-          <input
-            className="field"
-            value={medical}
-            placeholder="None recorded"
-            onChange={(e) => setMedical(e.target.value)}
-          />
-        </label>
+        {/* Reading welfare notes is gated; changing them has to be gated too,
+            or a role that cannot see the data can still overwrite it. */}
+        {role.welfareDetail && (
+          <>
+            <label className="editor__f">
+              <span className="label">Dietary</span>
+              <input
+                className="field"
+                value={dietary}
+                placeholder="None recorded"
+                onChange={(e) => setDietary(e.target.value)}
+              />
+            </label>
+            <label className="editor__f">
+              <span className="label">Medical summary</span>
+              <input
+                className="field"
+                value={medical}
+                placeholder="None recorded"
+                onChange={(e) => setMedical(e.target.value)}
+              />
+            </label>
+          </>
+        )}
       </div>
 
       <label className="check">
@@ -144,6 +163,8 @@ export function StudentProfile({
 }) {
   const {
     students, sessions, reminders, payments, incidents, audit, role,
+    health, administrations, verifyHealth, queryHealth, recordDose,
+    logWelfareView,
   } = useStore();
   const [tab, setTab] = useState<Tab>('record');
   const [editing, setEditing] = useState(false);
@@ -176,8 +197,17 @@ export function StudentProfile({
      on a student record either — the same rule, enforced in both places. */
   const seesMoney = role.sections.includes('finance');
 
+  const clinical = healthFor(health, s.id);
+  const doses = administrations.filter((a) => a.studentId === s.id);
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'record', label: 'Record' },
+    ...(role.welfareDetail && clinical
+      ? [{
+          id: 'health' as Tab,
+          label: `Health${clinical.state === 'verified' ? '' : ' ·'}`,
+        }]
+      : []),
     { id: 'stay', label: 'Stay and room' },
     { id: 'guardian', label: 'Guardian' },
     { id: 'week', label: 'Their week' },
@@ -193,7 +223,11 @@ export function StudentProfile({
       sub={
         <>
           {s.age} · {s.band} · {groupById(s.groupId).name} · {s.country}
-          {isOnSite(s) ? ' · on site' : ' · not yet arrived'}
+          {isOnSite(s)
+            ? ' · on site'
+            : s.arrival > TODAY_ISO
+              ? ' · not yet arrived'
+              : ' · has left'}
         </>
       }
       tag={
@@ -305,6 +339,22 @@ export function StudentProfile({
             </>
           )}
         </>
+      )}
+
+      {tab === 'health' && clinical && role.welfareDetail && (
+        <HealthPanel
+          studentId={s.id}
+          onOpen={logWelfareView}
+          record={clinical}
+          doses={doses}
+          canRecord={role.canEditRecords}
+          givenByName={OPERATOR_NAME}
+          canEdit={role.welfareEdit}
+          roleName={role.name}
+          onVerify={() => verifyHealth(s.id)}
+          onQuery={(why) => queryHealth(s.id, why)}
+          onDose={recordDose}
+        />
       )}
 
       {tab === 'stay' && (
@@ -518,5 +568,252 @@ export function StudentProfile({
         </>
       )}
     </Drawer>
+  );
+}
+
+/* ── The clinical record ──────────────────────────────────────────────────
+   Read by the centre, changed only by head office. The split is the point:
+   seasonal staff need to know what a child is allergic to and what was given
+   this morning; nobody at the centre should be able to edit a dose.
+   ──────────────────────────────────────────────────────────────────────── */
+function HealthPanel({
+  studentId,
+  onOpen,
+  record,
+  doses,
+  canRecord,
+  canEdit,
+  roleName,
+  givenByName,
+  onVerify,
+  onQuery,
+  onDose,
+}: {
+  studentId: string;
+  onOpen: (id: string) => void;
+  record: Health;
+  doses: Administration[];
+  canRecord: boolean;
+  canEdit: boolean;
+  roleName: string;
+  /* Who is at the dashboard. A dose is given by a person, not by a role. */
+  givenByName: string;
+  onVerify: () => void;
+  onQuery: (why: string) => void;
+  onDose: (
+    id: string,
+    given: boolean,
+    by: string,
+    witness: string | null,
+    note?: string,
+  ) => void;
+}) {
+  const [why, setWhy] = useState('');
+  const [asking, setAsking] = useState(false);
+  const blocks = healthBlocks(record);
+
+  /* Opening this panel is a read of special category data, and a read is an
+     event. Logged once per role per student per session, not per render. */
+  useEffect(() => {
+    onOpen(studentId);
+  }, [studentId, onOpen]);
+
+  return (
+    <>
+      <div className={`alert${record.state === 'verified' ? '' : ' alert--critical'}`}>
+        <p className="label">
+          <span className={`mark ${HEALTH_COPY[record.state].mark}`}>
+            {HEALTH_COPY[record.state].label}
+          </span>
+        </p>
+        <p className="meta">{HEALTH_COPY[record.state].note}</p>
+        <p className="meta" style={{ marginTop: 8 }}>
+          {record.source === 'booking'
+            ? `Filled in by the family with the booking on ${fmtDate(record.declaredAt)}.`
+            : `Entered by head office on ${fmtDate(record.declaredAt)}, after speaking to the family.`}
+          {record.verifiedBy &&
+            ` Verified by ${record.verifiedBy} on ${fmtDate(record.verifiedAt!)}.`}
+        </p>
+        {record.query && (
+          <p className="meta" style={{ marginTop: 8 }}>
+            {record.query}
+          </p>
+        )}
+      </div>
+
+      {blocks.length > 0 && (
+        <div className="alert alert--warn">
+          <p className="label">Before anybody acts on this</p>
+          <ul className="log">
+            {blocks.map((b) => (
+              <li key={b}>{b}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="label">Allergies</p>
+      {record.allergies.length === 0 ? (
+        <p className="meta">None declared.</p>
+      ) : (
+        <ul className="log">
+          {record.allergies.map((a) => (
+            <li key={a.id}>
+              <strong>{a.what}</strong>{' '}
+              <span className={`mark ${SEVERITY_COPY[a.severity].mark}`}>
+                {SEVERITY_COPY[a.severity].label}
+              </span>
+              <span className="meta" style={{ display: 'block' }}>
+                {a.reaction}
+              </span>
+              <span className="meta" style={{ display: 'block' }}>
+                {a.treatment}
+              </span>
+              {a.autoInjector && (
+                <span className="meta" style={{ display: 'block' }}>
+                  Auto-injector: {a.keptWhere}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="label">Medication</p>
+      {record.medications.length === 0 ? (
+        <p className="meta">None held by the centre.</p>
+      ) : (
+        <ul className="log">
+          {record.medications.map((m) => (
+            <li key={m.id}>
+              <strong>{m.name}</strong> · {m.dose} · {m.route}
+              <span className="meta" style={{ display: 'block' }}>
+                {m.asRequired
+                  ? 'As required — no routine round'
+                  : `Due ${m.times.join(', ')}`}
+                {m.withFood && ' · with food'} ·{' '}
+                {m.holder === 'self-carry'
+                  ? 'carried by the student'
+                  : 'held by the centre'}
+              </span>
+              {m.notes && (
+                <span className="meta" style={{ display: 'block' }}>
+                  {m.notes}
+                </span>
+              )}
+              {!m.consent && (
+                <span className="mark mark--critical">No consent to give this</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="label">Today&rsquo;s round</p>
+      {doses.length === 0 ? (
+        <p className="meta">
+          Nothing routine due today. As-required medication is recorded when it
+          is given.
+        </p>
+      ) : (
+        <ul className="log">
+          {doses.map((d) => {
+            const med = record.medications.find((m) => m.id === d.medicationId);
+            return (
+              <li key={d.id}>
+                <span className="num">{d.due}</span> · {med?.name ?? 'Dose'}{' '}
+                {d.givenAt ? (
+                  <span className="mark mark--clear">Given {d.givenAt}</span>
+                ) : d.refused ? (
+                  <span className="mark mark--overdue">Refused</span>
+                ) : (
+                  <span className="mark mark--critical">Not recorded</span>
+                )}
+                <span className="meta" style={{ display: 'block' }}>
+                  {d.givenBy
+                    ? `${d.givenBy}${d.witness ? `, witnessed by ${d.witness}` : ', unwitnessed'}`
+                    : d.note ?? 'Nobody has recorded this dose either way.'}
+                </span>
+                {canRecord && !d.givenAt && med?.consent && (
+                  <span className="markbtn" style={{ marginTop: 6 }}>
+                    <button
+                      className="btn"
+                      onClick={() => onDose(d.id, true, givenByName, null)}
+                    >
+                      Record as given
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() =>
+                        onDose(d.id, false, givenByName, null, 'Recorded as not given at the dashboard.')
+                      }
+                    >
+                      Not given
+                    </button>
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {canEdit ? (
+        <div className="editor editor--flush">
+          <p className="label">Head office</p>
+          <p className="meta">
+            Verifying says the centre may work to this record. Querying sends it
+            back to the family and leaves the child treated as having the
+            condition in the meantime.
+          </p>
+          {asking ? (
+            <>
+              <input
+                className="field"
+                value={why}
+                placeholder="What does not add up?"
+                onChange={(e) => setWhy(e.target.value)}
+              />
+              <div className="editor__actions">
+                <button
+                  className="btn btn--primary"
+                  disabled={why.trim().length < 4}
+                  onClick={() => {
+                    onQuery(why.trim());
+                    setWhy('');
+                    setAsking(false);
+                  }}
+                >
+                  Send the query
+                </button>
+                <button className="btn" onClick={() => setAsking(false)}>
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="editor__actions">
+              <button
+                className="btn btn--primary"
+                disabled={record.state === 'verified'}
+                onClick={onVerify}
+              >
+                <IconCheck />
+                Verify this record
+              </button>
+              <button className="btn" onClick={() => setAsking(true)}>
+                Query it with the family
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <p className="meta" style={{ marginTop: 14 }}>
+          {roleName} can read this and record what was given. Entering,
+          verifying and correcting the record belongs to head office — the
+          centre never edits a dose.
+        </p>
+      )}
+    </>
   );
 }
