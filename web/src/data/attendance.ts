@@ -20,7 +20,9 @@
    and the screen says so rather than implying a live connection.
    ──────────────────────────────────────────────────────────────────────── */
 
-import { SESSIONS, STUDENTS, demoStamp, type Session, type Student } from './seed';
+import {
+  DEMO_TODAY, SESSIONS, STUDENTS, demoStamp, type Session, type Student,
+} from './seed';
 
 export type Mark = 'present' | 'absent' | 'late' | 'excused';
 
@@ -136,6 +138,14 @@ export const absentees = (reg: Register | null) =>
     : [];
 
 export const isTaken = (reg: Register | null) => Boolean(reg && reg.takenBy);
+
+/* Has this session started on the demo clock? Registers are only outstanding
+   for sessions that have actually run — counting the afternoon's as missing
+   reported fifteen failures that were nothing of the kind. Shared, so the
+   dashboard and the attendance screen cannot drift apart on it. */
+export const hasRun = (s: Session, now: Date = DEMO_TODAY) =>
+  Number(s.start.slice(0, 2)) * 60 + Number(s.start.slice(3)) <=
+  now.getHours() * 60 + now.getMinutes();
 
 /* A session that ran and was never registered. The thing an inspector asks
    about, and the reason this screen exists. */

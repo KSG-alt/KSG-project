@@ -141,9 +141,23 @@ export const mins = (t: string) =>
    earlier still. */
 export const AFTER_LANDING = 35;
 
+/* How long before a departure a group of children has to be at the desk. Two
+   and a half hours is what an airline asks for a group with hold bags and
+   unaccompanied-minor paperwork, not the ninety minutes a single adult with
+   hand luggage gets away with. */
+export const BEFORE_DEPARTURE = 150;
+
 export function leaveBy(f: Flight) {
   const ap = airportBy(f.airport);
-  return clock(Math.max(0, mins(f.at) + f.delay + AFTER_LANDING - ap.minutes - 15));
+  /* Arriving: be at the gate for the meet, which is AFTER_LANDING past the
+     wheels down. Leaving: be at the desk BEFORE_DEPARTURE before the flight.
+     Running the arrivals formula on a departure had a coach leaving the centre
+     an hour AFTER the flight it was taking children to. */
+  const target =
+    f.direction === 'in'
+      ? mins(f.at) + f.delay + AFTER_LANDING
+      : mins(f.at) - BEFORE_DEPARTURE;
+  return clock(Math.max(0, target - ap.minutes - 15));
 }
 
 export const DEMO_DAY = (() => {

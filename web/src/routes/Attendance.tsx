@@ -4,7 +4,7 @@ import { StudentProfile } from '../components/StudentProfile';
 import { OPERATOR_ID, useStore } from '../lib/store';
 import { IconCheck } from '../lib/icons';
 import {
-  MARK_COPY, absentees, counted, registerFor, rollFor, unclosed,
+  MARK_COPY, absentees, counted, hasRun, registerFor, rollFor, unclosed,
   type Mark, type Register,
 } from '../data/attendance';
 import {
@@ -15,12 +15,6 @@ type View = 'today' | 'gaps' | 'absent' | 'devices';
 
 const TODAY = `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
 
-/* A session that has not started yet has no missing register — it has no
-   register. The count and the list have to agree on that, or the screen
-   reports fifteen failures that are just the afternoon. */
-const NOW = DEMO_TODAY.getHours() * 60 + DEMO_TODAY.getMinutes();
-const hasRun = (s: Session) =>
-  Number(s.start.slice(0, 2)) * 60 + Number(s.start.slice(3)) <= NOW;
 
 export function Attendance() {
   const {

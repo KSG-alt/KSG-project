@@ -341,6 +341,22 @@ export function selfCheck() {
     );
   });
 
+  /* A departure run has to leave before the flight it is taking children to.
+     The arrivals formula run on a departure had a coach setting off an hour
+     after take-off. */
+  const outDay = [...new Set(students.map((s) => s.leaving))].sort(
+    (a, b) =>
+      students.filter((s) => s.leaving === b).length -
+      students.filter((s) => s.leaving === a).length,
+  )[0];
+  const going = buildRuns(outDay, 'out', students, SEED_STAFF, flights);
+  going.runs.forEach((r) => {
+    console.assert(
+      mins(r.leaveCentre) + airportBy(r.airport).minutes <= mins(r.meetFrom) - 60,
+      `${r.id}: leaves at ${r.leaveCentre} for a flight at ${r.meetFrom}`,
+    );
+  });
+
   const expected = students.filter((s) => s.arrival === busiest).length;
   console.assert(
     plan.studentsMoved === expected,

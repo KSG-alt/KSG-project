@@ -561,7 +561,7 @@ function RunRow({
           </span>
         </span>
         <span className="run__meet meta num">
-          meet {run.meetFrom}
+          {run.direction === 'in' ? 'meet' : 'fly'} {run.meetFrom}
           {run.meetTo !== run.meetFrom ? `–${run.meetTo}` : ''}
         </span>
         <span className="run__marks">
@@ -593,6 +593,17 @@ function RunRow({
                 <div className="pairs__pair">
                   <dt>Terminal</dt>
                   <dd>{ap.name} — check the board, terminals move</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>{run.direction === 'in' ? 'At the gate' : 'At the desk'}</dt>
+                  <dd className="num">
+                    {run.direction === 'in'
+                      ? `${run.meetFrom} for the first flight`
+                      : `${(() => {
+                          const at = mins(run.meetFrom) - 150;
+                          return `${String(Math.floor(at / 60) % 24).padStart(2, '0')}:${String(at % 60).padStart(2, '0')}`;
+                        })()} — two and a half hours before the first flight`}
+                  </dd>
                 </div>
                 <div className="pairs__pair">
                   <dt>Back by</dt>
