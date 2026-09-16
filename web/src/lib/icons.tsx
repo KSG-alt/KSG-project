@@ -233,6 +233,17 @@ export function IconAttendance() {
   );
 }
 
+export function IconOffice() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 20.5h16" />
+      <path d="M5.5 20.5V6.2a1.4 1.4 0 0 1 1.4-1.4h5.2a1.4 1.4 0 0 1 1.4 1.4v14.3" />
+      <path d="M13.5 20.5v-9h4.1a1.4 1.4 0 0 1 1.4 1.4v7.6" />
+      <path d="M8 8.2h2.5M8 11.4h2.5M8 14.6h2.5M16 14.6h0.8" />
+    </svg>
+  );
+}
+
 export function IconPortal() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

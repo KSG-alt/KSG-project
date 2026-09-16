@@ -95,15 +95,21 @@ export interface RoleDef {
 export const ALL_SECTIONS = [
   'home', 'reminders', 'students', 'arrivals', 'transfers', 'attendance',
   'portal', 'rooms', 'staff', 'timetable', 'bookings', 'finance', 'incidents',
-  'audit', 'setup', 'kadia',
+  'audit', 'setup', 'office', 'kadia',
 ];
+
+/* Head office looks down at every centre. A centre administrator runs one and
+   has no business in the others' records, so the section is not theirs — the
+   first place in this platform where the person it was built for is NOT the
+   person with the most access. */
+const CENTRE_SECTIONS = ALL_SECTIONS.filter((s) => s !== 'office');
 
 export const ROLES: RoleDef[] = [
   {
     id: 'admin',
     name: 'Centre administrator',
     who: 'Runs the queue. The person this product is built for.',
-    sections: ALL_SECTIONS,
+    sections: CENTRE_SECTIONS,
     welfareDetail: true,
     welfareEdit: false,
     canEditRecords: true,

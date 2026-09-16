@@ -249,6 +249,17 @@ const MED_KINDS: Omit<Medication, 'id' | 'from' | 'to' | 'consent'>[] = [
 
 const WELFARE = ['Nadia Rahman', 'Kebba Sarr', 'Tomas Halvorsen'];
 
+/* Why head office sent one back. Real queries are mundane and specific — a
+   dose that does not match the letter, a pen that expires mid-season, a form
+   nobody signed — rather than a generic doubt. */
+const QUERIES = [
+  'The dose on the booking form and the dose on the GP letter do not match. Asked the family for the letter again.',
+  'The auto-injector expires three days into their stay. Asked the family to send in an in-date pen with them.',
+  'The form names the medication but not the dose. Cannot hold it at a centre on that.',
+  'Declared at booking by the agent rather than the family, and the consent is unsigned. Gone back to the parents directly.',
+  'Two forms arrived a week apart with different allergies on them. Asked which is current.',
+];
+
 /* Roughly one child in seven arrives with something clinical, which is what a
    centre of two hundred actually sees. The seed is deliberate rather than
    random so the same children have the same conditions every run. */
@@ -322,10 +333,7 @@ export function buildHealth(students: Student[] = STUDENTS): Health[] {
       verifiedBy: state === 'verified' ? WELFARE[Math.floor(r() * WELFARE.length)] : null,
       verifiedAt: state === 'verified' ? back(3 + Math.floor(r() * 20)) : null,
       state,
-      query:
-        state === 'queried'
-          ? 'The dose on the booking form and the dose on the GP letter do not match. Asked the family for the letter again.'
-          : null,
+      query: state === 'queried' ? QUERIES[Math.floor(r() * QUERIES.length)] : null,
     });
   });
 

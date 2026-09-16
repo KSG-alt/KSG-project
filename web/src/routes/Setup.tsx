@@ -3,7 +3,9 @@ import { SectionHead } from '../components/SectionHead';
 import { Import } from '../components/Import';
 import { IconCheck } from '../lib/icons';
 import { useStore } from '../lib/store';
-import { CHANNELS, ROLES, SITES, siteCounts, type RoleId } from '../data/centre';
+import {
+  ALL_SECTIONS, CHANNELS, ROLES, SITES, siteCounts, type RoleId,
+} from '../data/centre';
 import { ESCALATION_DEFAULTS, type Severity } from '../lib/reminders';
 import { GROUPS } from '../data/seed';
 
@@ -402,7 +404,9 @@ export function Setup() {
           <p className="meta" style={{ maxWidth: '66ch', marginBottom: 20 }}>
             Change the role and the whole interface changes with it — sections
             disappear from the menu, and special category data stops being
-            shown. Try <strong>Activity staff</strong> and open any student.
+            shown. Try <strong>Activity staff</strong> and open any student, or{' '}
+            <strong>Head office welfare</strong> and open Head office, which a
+            centre administrator cannot reach at all.
           </p>
 
           <div className="roles">
@@ -416,7 +420,7 @@ export function Setup() {
                 <span className="rolecard__name">{r.name}</span>
                 <span className="meta rolecard__who">{r.who}</span>
                 <span className="meta rolecard__sees">
-                  {r.sections.length} of 16 sections ·{' '}
+                  {r.sections.length} of {ALL_SECTIONS.length} sections ·{' '}
                   {r.welfareDetail ? 'sees welfare notes' : 'no welfare notes'} ·{' '}
                   {r.canEditRecords ? 'can edit' : 'read only'}
                   {r.welfareEdit

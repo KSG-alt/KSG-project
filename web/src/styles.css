@@ -632,9 +632,14 @@ p.mark::before {
   transition: transform 260ms var(--spring), box-shadow 180ms var(--ease-ui);
 }
 
-.fig:hover {
+button.fig:hover {
   transform: translateY(-2px);
   box-shadow: var(--edge-strong), var(--shadow-2);
+}
+
+/* The same tile, reporting rather than navigating. */
+span.fig {
+  cursor: default;
 }
 
 .fig:active {

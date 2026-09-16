@@ -19,9 +19,10 @@ import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
   IconArrivals, IconAudit, IconRooms, IconTimetable, IconFinance,
-  IconIncidents, IconSetup, IconTransfers, IconPortal, IconAttendance,
+  IconIncidents, IconOffice, IconSetup, IconTransfers, IconPortal, IconAttendance,
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
+import { Office } from './routes/Office';
 import { StoreProvider, useStore } from './lib/store';
 import { ROLES } from './data/centre';
 import { DEMO_TODAY, fmtDateLong } from './data/seed';
@@ -29,7 +30,7 @@ import { DEMO_TODAY, fmtDateLong } from './data/seed';
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
   | 'reminders' | 'rooms' | 'arrivals' | 'audit' | 'finance' | 'incidents'
-  | 'setup' | 'transfers' | 'portal' | 'attendance';
+  | 'setup' | 'transfers' | 'portal' | 'attendance' | 'office';
 
 export const NAV: {
   id: Route;
@@ -50,6 +51,7 @@ export const NAV: {
   { id: 'finance', label: 'Payments', blurb: 'What landed, who it belongs to, what is still owed', icon: IconFinance },
   { id: 'incidents', label: 'Incidents', blurb: 'What happened, who was told, and how fast', icon: IconIncidents },
   { id: 'audit', label: 'Audit trail', blurb: 'Every action, timestamped and attributed, for inspection', icon: IconAudit },
+  { id: 'office', label: 'Head office', blurb: 'The senior team across every centre — verification, consent, clinical load', icon: IconOffice },
   { id: 'setup', label: 'Centre setup', blurb: 'Sites, ratios, escalation, access and import', icon: IconSetup },
   { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
 ];
@@ -73,6 +75,7 @@ const TITLE: Record<Route, string> = {
   kadia: 'Ask Kadia',
   audit: 'Audit trail',
   setup: 'Centre setup',
+  office: 'Head office',
 };
 
 function Shell() {
@@ -195,6 +198,7 @@ function Shell() {
           {route === 'finance' && <Finance />}
           {route === 'incidents' && <Incidents />}
           {route === 'audit' && <Audit />}
+          {route === 'office' && <Office />}
           {route === 'setup' && <Setup />}
           {route === 'kadia' && <Kadia />}
           <footer className="page__foot">
