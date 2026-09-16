@@ -416,7 +416,7 @@ export function Setup() {
                 <span className="rolecard__name">{r.name}</span>
                 <span className="meta rolecard__who">{r.who}</span>
                 <span className="meta rolecard__sees">
-                  {r.sections.length} of 13 sections ·{' '}
+                  {r.sections.length} of 16 sections ·{' '}
                   {r.welfareDetail ? 'sees welfare notes' : 'no welfare notes'} ·{' '}
                   {r.canEditRecords ? 'can edit' : 'read only'}
                 </span>

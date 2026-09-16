@@ -214,3 +214,30 @@ export function IconMap() {
     </svg>
   );
 }
+
+export function IconTransfers() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.2 15.4 20 9.6c1-.35 1.6-1.4 1.3-2.4-.35-1-1.45-1.55-2.45-1.2l-4.5 1.55-6.2-3.3-1.9.65 3.7 4.3-4.2 1.45-2.5-1.5-1.5.5 2.1 3.3z" />
+      <path d="M4 19.5h16" />
+    </svg>
+  );
+}
+
+export function IconAttendance() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="4" y="3.5" width="16" height="17" rx="2.5" />
+      <path d="M8.2 9.2l1.5 1.5 3-3M8.2 15.4l1.5 1.5 3-3M15.8 9.2h.01M15.8 15.4h.01" />
+    </svg>
+  );
+}
+
+export function IconPortal() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3.4v11M8.4 7l3.6-3.6L15.6 7" />
+      <path d="M4.5 14.2v4.3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-4.3" />
+    </svg>
+  );
+}

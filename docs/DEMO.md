@@ -36,6 +36,17 @@ build, not a slideshow of it.
   and the working-time limit, then tells you everything it could not do. This
   works without an API key.
 - Try to confirm a booking with no receipt and be blocked.
+- Plan the arrival day. **Transfers** builds vehicle runs from the flights —
+  one airport each, a D1 holder on anything that needs one, a named meeter on
+  any run carrying an unaccompanied minor. The waiting control shows the real
+  trade-off: 28 runs and 89.7h of vehicle time if nobody waits, 14 runs and
+  44.5h if they will wait 150 minutes.
+- Take a register. **Attendance** shows today's sessions, which were counted,
+  which group was counted out and never counted back, and who was not there.
+  Taking one closes its reminder; closing it closes the second one.
+- Look at **Document portal**: what parents have sent and not been checked,
+  and what has been chased twice and never opened. "What a parent sees" is the
+  page behind the link.
 - Plan the beds by asking. The chat beside the plan takes a specification —
   "never two of the same language", "just fill the gaps, leave everyone else
   alone", "replan the 8–11 band, ages within 1 year" — drafts it, and names
@@ -83,9 +94,11 @@ The blocked-arrival and outstanding-document counts come from the seed's
 generated rates. They demonstrate that the checks work; they are not a claim
 about what a real centre's numbers look like.
 
-Three things are deliberately shown as unbuilt rather than faked: the Google
-connection, sending a queued chase, and writing an imported spreadsheet to the
-roll. Each says so on the screen. The ratio verdict is a stand-in for the rota
+Five things are deliberately shown as unbuilt rather than faked: the Google
+connection, sending a queued chase, writing an imported spreadsheet to the
+roll, the parent portal's sending and file storage, and the staff app the
+registers would be taken on. Each says so on its own screen. Nothing in this
+demonstration reaches a parent, and nothing syncs between devices. Each says so on the screen. The ratio verdict is a stand-in for the rota
 engine David owns, and `web/src/lib/ratio.ts` says so at the top.
 
 ## Regenerating it

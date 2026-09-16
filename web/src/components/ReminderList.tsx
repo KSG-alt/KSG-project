@@ -11,6 +11,9 @@ import type { Route } from '../App';
 const ROUTE_LABEL: Record<Route, string> = {
   home: 'Home',
   finance: 'Payments',
+  transfers: 'Transfers',
+  attendance: 'Attendance',
+  portal: 'Document portal',
   incidents: 'Incidents',
   setup: 'Centre setup',
   students: 'Students',

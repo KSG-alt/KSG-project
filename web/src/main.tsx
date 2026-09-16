@@ -7,6 +7,7 @@ import { selfCheck as scheduleCheck } from './lib/schedule';
 import { selfCheck as planCheck } from './lib/runplan';
 import { selfCheck as venueCheck } from './data/venues';
 import { selfCheck as roomCheck } from './lib/allocate';
+import { selfCheck as transferCheck } from './lib/transfers';
 
 /* The import parser is the one place a silent wrong answer moves a child's
    arrival date. It checks itself in dev; console.assert stays quiet when it
@@ -17,6 +18,7 @@ if (import.meta.env.DEV) {
   planCheck();
   venueCheck();
   roomCheck();
+  transferCheck();
 }
 
 createRoot(document.getElementById('root')!).render(

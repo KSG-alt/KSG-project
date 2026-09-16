@@ -6,11 +6,16 @@ import {
 import { buildAudit, entry, type AuditEntry } from './audit';
 import { buildOutbox, queue, type OutboxItem } from './outbox';
 import {
-  BOOKINGS, GROUPS, SESSIONS, STAFF, STUDENTS, demoIso, demoStamp,
+  BOOKINGS, DEMO_TODAY, GROUPS, SESSIONS, STAFF, STUDENTS, demoIso, demoStamp,
   type Booking, type Session, type Staff, type Student,
 } from '../data/seed';
 import { buildPayments, type Payment } from '../data/finance';
 import { buildDuties, type Duty } from '../data/duty';
+import { buildFlights, type Flight } from '../data/travel';
+import { buildRequests, DOC_LABEL, type DocRequest } from '../data/portal';
+import {
+  blankRegister, buildRegisters, rollFor, type Mark, type Register,
+} from '../data/attendance';
 import { DEFAULT_RULES, type Move, type RoomingRules } from './allocate';
 import { fillDuty } from './schedule';
 import { buildIncidents, type Incident } from '../data/incidents';
@@ -44,6 +49,24 @@ interface Store {
      reminder chasing it on another. */
   bookings: Booking[];
   updateBookings: (fn: (all: Booking[]) => Booking[]) => void;
+
+  /* Flights, so a delay entered once moves every run that depends on it. */
+  flights: Flight[];
+  updateFlights: (fn: (all: Flight[]) => Flight[]) => void;
+
+  /* Document requests. Accepting one marks the document in on the student
+     record, which is what closes its reminder. */
+  /* Registers. Taking one is the most repeated safeguarding act there is. */
+  registers: Register[];
+  takeRegister: (sessionId: string) => void;
+  closeRegister: (sessionId: string) => void;
+  markOne: (sessionId: string, studentId: string, mark: Mark) => void;
+
+  requests: DocRequest[];
+  sendRequest: (id: string) => void;
+  remindRequest: (id: string) => void;
+  acceptRequest: (id: string) => void;
+  rejectRequest: (id: string, reason: string) => void;
 
   /* Duty shifts carry most of a seasonal contract's hours, so they are rota'd
      state like sessions, not a display detail. */
@@ -94,9 +117,20 @@ const Ctx = createContext<Store | null>(null);
 /* The demo clock, not the wall clock — see seed.ts. */
 const today = demoIso;
 
+/* Not a staff id. Used when a register is taken at the dashboard for a
+   session nobody was rota'd onto. */
+export const OPERATOR_ID = 'operator';
+
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<Session[]>(SESSIONS);
   const [bookings, setBookings] = useState<Booking[]>(BOOKINGS);
+  const [flights, setFlights] = useState<Flight[]>(() => buildFlights());
+  const [requests, setRequests] = useState<DocRequest[]>(() => buildRequests());
+  /* Seeded up to the demo clock, so the day is part-done when you open it —
+     which is what a real morning looks like. */
+  const [registers, setRegisters] = useState<Register[]>(() =>
+    buildRegisters(demoIso(), DEMO_TODAY.getHours() * 60 + 30),
+  );
   /* The duty rota arrives staffed, like the activity rota does. An empty duty
      board on first load reads as a broken screen rather than a starting point. */
   const [duties, setDutyState] = useState<Duty[]>(
@@ -123,13 +157,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [removed, setRemoved] = useState<string[]>([]);
 
   const reminders = useMemo(() => {
-    const derived = buildReminders({ students, staff, sessions, bookings });
+    const derived = buildReminders({
+      students, staff, sessions, bookings, registers, requests, flights,
+    });
     return derived
       .filter((r) => !removed.includes(r.id))
       .map((r) => (touched[r.id] ? { ...r, ...touched[r.id] } : r));
     /* escalation is a dependency because the thresholds live in module state
        — without it the queue would not re-rank when they change. */
-  }, [students, staff, sessions, bookings, touched, removed, escalation]);
+  }, [
+    students, staff, sessions, bookings, registers, requests, flights,
+    touched, removed, escalation,
+  ]);
   const [rooming, setRoomingState] = useState<RoomingRules>(DEFAULT_RULES);
   const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
   const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
@@ -230,6 +269,177 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
       bookings,
       updateBookings: (fn) => setBookings((all) => fn(all)),
+
+      flights,
+      updateFlights: (fn) => setFlights((all) => fn(all)),
+
+      registers,
+      takeRegister: (sessionId) => {
+        const session = sessions.find((x) => x.id === sessionId);
+        if (!session) return;
+        const roll = rollFor(session, students);
+        /* A register has to name who took it. If nobody is rota'd on the
+           session, the person taking it is whoever is at this dashboard —
+           recording null there left the register reading as never taken. */
+        const leader = session.staffIds[0] ?? OPERATOR_ID;
+        const marks: Record<string, Mark> = {};
+        roll.forEach((s) => {
+          marks[s.id] = 'present';
+        });
+        setRegisters((all) => {
+          const next: Register = {
+            ...blankRegister(session),
+            takenBy: leader,
+            takenAt: demoStamp(),
+            marks,
+          };
+          return all.some((r) => r.sessionId === sessionId)
+            ? all.map((r) => (r.sessionId === sessionId ? next : r))
+            : [...all, next];
+        });
+        append(
+          entry(
+            'safeguarding',
+            'Register taken',
+            `${session.start} · ${session.groupId}`,
+            `${roll.length} marked present to start. Taken on the dashboard.`,
+          ),
+        );
+      },
+      closeRegister: (sessionId) => {
+        const reg = registers.find((r) => r.sessionId === sessionId);
+        const session = sessions.find((x) => x.id === sessionId);
+        if (!reg || !session) return;
+        const gone = Object.values(reg.marks).filter((m) => m === 'absent').length;
+        setRegisters((all) =>
+          all.map((r) =>
+            r.sessionId === sessionId
+              ? { ...r, closedBy: r.takenBy, closedAt: demoStamp() }
+              : r,
+          ),
+        );
+        append(
+          entry(
+            'safeguarding',
+            'Register closed',
+            `${session.start} · ${session.groupId}`,
+            gone > 0
+              ? `Counted back with ${gone} unaccounted for.`
+              : 'Counted back, everybody present.',
+          ),
+        );
+      },
+      markOne: (sessionId, studentId, mark) => {
+        const session = sessions.find((x) => x.id === sessionId);
+        setRegisters((all) =>
+          all.map((r) =>
+            r.sessionId === sessionId
+              ? { ...r, marks: { ...r.marks, [studentId]: mark } }
+              : r,
+          ),
+        );
+        /* Only an absence is worth a line in the trail. Marking thirty
+           students present would bury the one that matters. */
+        if (mark === 'absent') {
+          const s = students.find((x) => x.id === studentId);
+          append(
+            entry(
+              'safeguarding',
+              'Marked not present',
+              s ? `${s.forename} ${s.surname}` : studentId,
+              `Not at ${session?.start ?? 'the session'}. Find them before the next one starts.`,
+            ),
+          );
+        }
+      },
+
+      requests,
+      sendRequest: (id) => {
+        const r = requests.find((x) => x.id === id);
+        setRequests((all) =>
+          all.map((x) =>
+            x.id === id ? { ...x, state: 'sent' as const, sentAt: today() } : x,
+          ),
+        );
+        if (r) {
+          const s = students.find((x) => x.id === r.studentId);
+          append(
+            entry(
+              'record',
+              'Document link queued',
+              s ? `${s.forename} ${s.surname}` : r.studentId,
+              `${DOC_LABEL[r.kind]} requested from ${s?.guardian.name ?? 'the guardian'}. Queued — no sending service is connected.`,
+            ),
+          );
+        }
+      },
+      remindRequest: (id) => {
+        const r = requests.find((x) => x.id === id);
+        setRequests((all) =>
+          all.map((x) => (x.id === id ? { ...x, reminders: x.reminders + 1 } : x)),
+        );
+        if (r) {
+          const s = students.find((x) => x.id === r.studentId);
+          append(
+            entry(
+              'record',
+              'Document reminder queued',
+              s ? `${s.forename} ${s.surname}` : r.studentId,
+              `Reminder ${r.reminders + 1} for the ${DOC_LABEL[r.kind].toLowerCase()}.`,
+            ),
+          );
+        }
+      },
+      acceptRequest: (id) => {
+        const r = requests.find((x) => x.id === id);
+        if (!r) return;
+        setRequests((all) =>
+          all.map((x) =>
+            x.id === id
+              ? { ...x, state: 'accepted' as const, decidedAt: today(), reason: null }
+              : x,
+          ),
+        );
+        /* The document is now in. That is what makes its reminder disappear —
+           the queue derives from the record, not from this screen. */
+        setStudents((all) =>
+          all.map((x) =>
+            x.id === r.studentId
+              ? { ...x, docs: { ...x.docs, [r.kind]: 'in' as const } }
+              : x,
+          ),
+        );
+        const s = students.find((x) => x.id === r.studentId);
+        append(
+          entry(
+            r.kind === 'passport' ? 'record' : 'safeguarding',
+            'Document accepted',
+            s ? `${s.forename} ${s.surname}` : r.studentId,
+            `${DOC_LABEL[r.kind]} checked and accepted. ${r.filename ?? ''}`.trim(),
+          ),
+        );
+      },
+      rejectRequest: (id, reason) => {
+        const r = requests.find((x) => x.id === id);
+        setRequests((all) =>
+          all.map((x) =>
+            x.id === id
+              ? { ...x, state: 'rejected' as const, decidedAt: today(), reason }
+              : x,
+          ),
+        );
+        if (r) {
+          const s = students.find((x) => x.id === r.studentId);
+          append(
+            entry(
+              'record',
+              'Document sent back',
+              s ? `${s.forename} ${s.surname}` : r.studentId,
+              `${DOC_LABEL[r.kind]} rejected: ${reason}`,
+            ),
+          );
+        }
+      },
 
       duties,
       setDuties: (next) => {
@@ -460,8 +670,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       log: append,
     };
   }, [
-    reminders, sessions, bookings, duties, audit, outbox, students, staff,
-    payments, incidents, site, role, escalation, bandRules, rooming,
+    reminders, sessions, bookings, flights, requests, registers, duties, audit,
+    outbox, students, staff, payments, incidents, site, role, escalation,
+    bandRules, rooming,
   ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

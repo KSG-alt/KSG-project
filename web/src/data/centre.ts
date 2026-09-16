@@ -86,8 +86,9 @@ export interface RoleDef {
 }
 
 export const ALL_SECTIONS = [
-  'home', 'reminders', 'students', 'arrivals', 'rooms', 'staff', 'timetable',
-  'bookings', 'finance', 'incidents', 'audit', 'setup', 'kadia',
+  'home', 'reminders', 'students', 'arrivals', 'transfers', 'attendance',
+  'portal', 'rooms', 'staff', 'timetable', 'bookings', 'finance', 'incidents',
+  'audit', 'setup', 'kadia',
 ];
 
 export const ROLES: RoleDef[] = [
@@ -112,8 +113,8 @@ export const ROLES: RoleDef[] = [
     name: 'Safeguarding lead',
     who: 'Owns DBS, incidents and the audit trail. No finance.',
     sections: [
-      'home', 'reminders', 'students', 'arrivals', 'rooms', 'staff',
-      'timetable', 'incidents', 'audit', 'kadia',
+      'home', 'reminders', 'students', 'arrivals', 'transfers', 'attendance',
+      'portal', 'rooms', 'staff', 'timetable', 'incidents', 'audit', 'kadia',
     ],
     welfareDetail: true,
     canEditRecords: true,
@@ -122,7 +123,8 @@ export const ROLES: RoleDef[] = [
     id: 'activity',
     name: 'Activity staff',
     who: 'Reads their own rota and the group lists. Nothing else.',
-    sections: ['home', 'students', 'timetable', 'kadia'],
+    /* Activity staff take registers — that is most of what the app is for. */
+    sections: ['home', 'students', 'timetable', 'attendance', 'kadia'],
     welfareDetail: false,
     canEditRecords: false,
   },

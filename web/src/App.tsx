@@ -12,11 +12,14 @@ import { Arrivals } from './routes/Arrivals';
 import { Finance } from './routes/Finance';
 import { Incidents } from './routes/Incidents';
 import { Setup } from './routes/Setup';
+import { Transfers } from './routes/Transfers';
+import { Portal } from './routes/Portal';
+import { Attendance } from './routes/Attendance';
 import { MenuOverlay } from './components/MenuOverlay';
 import {
   IconBookings, IconKadia, IconMenu, IconReminders, IconStaff, IconStudents,
   IconArrivals, IconAudit, IconRooms, IconTimetable, IconFinance,
-  IconIncidents, IconSetup,
+  IconIncidents, IconSetup, IconTransfers, IconPortal, IconAttendance,
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { StoreProvider, useStore } from './lib/store';
@@ -26,7 +29,7 @@ import { DEMO_TODAY, fmtDateLong } from './data/seed';
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
   | 'reminders' | 'rooms' | 'arrivals' | 'audit' | 'finance' | 'incidents'
-  | 'setup';
+  | 'setup' | 'transfers' | 'portal' | 'attendance';
 
 export const NAV: {
   id: Route;
@@ -37,6 +40,9 @@ export const NAV: {
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
   { id: 'arrivals', label: 'New arrivals', blurb: 'Everyone still to come, and whether they can be admitted', icon: IconArrivals },
+  { id: 'transfers', label: 'Transfers', blurb: 'Flights, runs and who meets each one', icon: IconTransfers },
+  { id: 'attendance', label: 'Attendance', blurb: 'Who was counted, by whom, and who was not there', icon: IconAttendance },
+  { id: 'portal', label: 'Document portal', blurb: 'What parents have sent, and what is waiting on us', icon: IconPortal },
   { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
   { id: 'staff', label: 'Staff', blurb: 'Details, qualifications, DBS and availability', icon: IconStaff },
   { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
@@ -55,6 +61,9 @@ const TITLE: Record<Route, string> = {
   reminders: 'Reminders',
   students: 'Students',
   arrivals: 'New arrivals',
+  transfers: 'Transfers',
+  attendance: 'Attendance',
+  portal: 'Document portal',
   rooms: 'Room allocations',
   staff: 'Staff',
   timetable: 'Timetable',
@@ -176,6 +185,9 @@ function Shell() {
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
           {route === 'arrivals' && <Arrivals />}
+          {route === 'transfers' && <Transfers />}
+          {route === 'attendance' && <Attendance />}
+          {route === 'portal' && <Portal />}
           {route === 'rooms' && <Rooms />}
           {route === 'staff' && <Staff />}
           {route === 'timetable' && <Timetable />}

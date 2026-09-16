@@ -11,6 +11,9 @@ import {
   type Student,
 } from '../data/seed';
 import { checkRatio } from './ratio';
+import type { Register } from '../data/attendance';
+import type { DocRequest } from '../data/portal';
+import type { Flight } from '../data/travel';
 import type { Route } from '../App';
 
 export type Severity = 'safeguarding' | 'overdue' | 'admin';
@@ -135,6 +138,10 @@ export interface Records {
   staff: Staff[];
   sessions: Session[];
   bookings: Booking[];
+  /* Optional so the seed set and every existing caller still work. */
+  registers?: Register[];
+  requests?: DocRequest[];
+  flights?: Flight[];
 }
 
 export const SEED_RECORDS: Records = {
@@ -280,6 +287,94 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
       route: 'bookings',
       source: `Bookings · ${b.reference}`,
     }, b.supplier));
+  });
+
+  /* A session that ran and was never registered. The question an inspector
+     asks, and the one nobody can answer afterwards. */
+  /* Only a session that has actually run can be missing a register. */
+  records.registers
+    ?.filter((r) => !r.takenBy)
+    .forEach((r) => {
+      const sess = SESSIONS.find((x) => x.id === r.sessionId);
+      if (!sess) return;
+      out.push(seedChases({
+        id: `reg-${r.sessionId}`,
+        severity: 'safeguarding',
+        title: `${activityById(sess.activityId).name} at ${sess.start} was never registered`,
+        action: `Nobody counted ${groupById(sess.groupId).name} at that session. Find out who was there before the next one starts.`,
+        due: iso(DEMO_TODAY),
+        route: 'attendance',
+        source: `Attendance · ${groupById(sess.groupId).name}`,
+      }, 'The session leader'));
+    });
+
+  /* A group counted out and never counted back. */
+  records.registers
+    ?.filter((r) => r.takenBy && !r.closedBy)
+    .slice(0, 6)
+    .forEach((r) => {
+      const sess = SESSIONS.find((x) => x.id === r.sessionId);
+      if (!sess) return;
+      out.push(seedChases({
+        id: `regclose-${r.sessionId}`,
+        severity: 'safeguarding',
+        title: `${groupById(sess.groupId).name} was never counted back from ${activityById(sess.activityId).name}`,
+        action: 'The register was taken and never closed. Confirm the group came back as a whole.',
+        due: iso(DEMO_TODAY),
+        route: 'attendance',
+        source: `Attendance · ${sess.start}`,
+      }, 'The session leader'));
+    });
+
+  /* Documents a parent has sent that nobody has looked at. This one is
+     waiting on US, which makes it the cheapest row in the whole queue to
+     clear and the most embarrassing to leave. */
+  const waiting = records.requests?.filter((r) => r.state === 'uploaded') ?? [];
+  if (waiting.length) {
+    out.push(seedChases({
+      id: 'portal-waiting',
+      severity: 'admin',
+      title: `${waiting.length} documents uploaded and not yet checked`,
+      action: 'Parents have sent these and are waiting on us. Accept or send them back with a reason.',
+      due: shift(-1),
+      route: 'portal',
+      source: 'Document portal',
+    }, 'Nobody — this one is ours'));
+  }
+
+  /* Links chased twice and never opened: the address is wrong. */
+  const unopened = records.requests?.filter(
+    (r) => r.state === 'sent' && r.reminders >= 2,
+  ) ?? [];
+  if (unopened.length) {
+    out.push(seedChases({
+      id: 'portal-unopened',
+      severity: 'overdue',
+      title: `${unopened.length} document links chased twice and never opened`,
+      action: 'A link chased twice and never opened usually means the email address is wrong. Check it before chasing a third time.',
+      due: shift(-2),
+      route: 'portal',
+      source: 'Document portal',
+    }, 'Guardians'));
+  }
+
+  /* A student landing with no flight on file cannot be met. */
+  const noFlight = (records.students ?? []).filter((s) => {
+    if (daysFromToday(s.arrival) < 0 || daysFromToday(s.arrival) > 14) return false;
+    return !records.flights?.some(
+      (f) => f.studentId === s.id && f.direction === 'in',
+    );
+  });
+  noFlight.slice(0, 5).forEach((s) => {
+    out.push(seedChases({
+      id: `flight-${s.id}`,
+      severity: 'safeguarding',
+      title: `${s.forename} ${s.surname} arrives ${whenLabel(s.arrival)} with no flight on file`,
+      action: 'Without a flight number and a landing time nobody can be sent to meet them. Get it from the agent today.',
+      due: shift(-1),
+      route: 'transfers',
+      source: `Transfers · ${s.country}`,
+    }, `${s.guardian.name} · ${s.guardian.phone}`));
   });
 
   const rank: Record<Severity, number> = { safeguarding: 0, overdue: 1, admin: 2 };
