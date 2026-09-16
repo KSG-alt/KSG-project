@@ -58,6 +58,22 @@ const LANGUAGE_BY_COUNTRY: Record<string, string> = {
   Mexico: 'Spanish',
 };
 
+/* Dialling codes, so a family in Mexico does not have a British mobile. The
+   number the centre rings at midnight is an international one, and the screens
+   that show it should look like the phone bill. */
+const DIAL_BY_COUNTRY: Record<string, string> = {
+  Spain: '+34', Italy: '+39', Japan: '+81', France: '+33', Germany: '+49',
+  Poland: '+48', Brazil: '+55', 'Türkiye': '+90', Norway: '+47',
+  Netherlands: '+31', Portugal: '+351', Mexico: '+52',
+};
+
+/* One draw, grouped the way a number is written down, so the seeded order of
+   everything downstream does not move when the format changes. */
+const intlPhone = (country: string, n: number) => {
+  const digits = String(Math.floor(n * 90000000) + 10000000);
+  return `${DIAL_BY_COUNTRY[country] ?? '+44'} ${digits.slice(0, 3)} ${digits.slice(3)}`;
+};
+
 const STREETS = [
   'Station Road', 'Park Avenue', 'Hill Street', 'Market Square',
   'Garden Lane', 'Church Road', 'Mill Street', 'Orchard Way',
@@ -244,13 +260,13 @@ function buildStudents(): Student[] {
       guardian: {
         name: `${guardianForename} ${guardianSurname}`,
         relationship: RELATIONS[Math.floor(r() * RELATIONS.length)],
-        phone: `+44 7700 9${String(Math.floor(r() * 90000) + 10000)}`,
-        altPhone: `+44 20 7${String(Math.floor(r() * 900000) + 100000)}`,
+        phone: intlPhone(country, r()),
+        altPhone: intlPhone(country, r()),
         email: `${guardianForename[0].toLowerCase()}.${guardianSurname.toLowerCase()}@example-family.test`,
         language: LANGUAGE_BY_COUNTRY[country] ?? 'English',
         address: `${Math.floor(r() * 180) + 1} ${STREETS[Math.floor(r() * STREETS.length)]}, ${country}`,
         emergencyName: `${FORENAMES[Math.floor(r() * FORENAMES.length)]} ${SURNAMES[Math.floor(r() * SURNAMES.length)]}`,
-        emergencyPhone: `+44 7700 9${String(Math.floor(r() * 90000) + 10000)}`,
+        emergencyPhone: intlPhone(country, r()),
         consentToTravel: r() < 0.86,
       },
     });

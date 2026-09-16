@@ -4,14 +4,83 @@ import { StudentProfile } from '../components/StudentProfile';
 import { StaffProfile } from '../components/StaffProfile';
 import { useStore } from '../lib/store';
 import {
-  buildRuns, VEHICLES, WAIT_OPTIONS, type Run, type Wait,
+  buildRuns, chargeOf, VEHICLES, WAIT_OPTIONS, type Run, type Wait,
 } from '../lib/transfers';
+import {
+  agentFor, RECEIPTS_ARE_NOT_FILES, type ChargeState,
+} from '../data/suppliers';
 import {
   AIRPORTS, airportBy, flightDay, mins, type Flight,
 } from '../data/travel';
-import { DEMO_TODAY, fmtDate, fmtDateLong, groupById } from '../data/seed';
+import {
+  DEMO_TODAY, fmtDate, fmtDateLong, fmtMoney, groupById, type Student,
+} from '../data/seed';
 
-type View = 'day' | 'flights' | 'season';
+type View = 'day' | 'flights' | 'money' | 'season';
+
+const CHARGE: Record<ChargeState, { label: string; mark: string }> = {
+  receipted: { label: 'Receipt attached', mark: 'mark--clear' },
+  invoiced: { label: 'Invoiced, no receipt', mark: 'mark--idle' },
+  missing: { label: 'No receipt', mark: 'mark--overdue' },
+  disputed: { label: 'Query it', mark: 'mark--critical' },
+};
+
+/* Who the centre rings about this child, and in what language. The agent is
+   first when there is one, because that is who the family actually deals
+   with — and at 23:40 the agent is the one who speaks to both sides. */
+function Contacts({ s }: { s: Student }) {
+  const agent = agentFor(s);
+  return (
+    <span className="meta contacts">
+      <span className="contacts__line">
+        Parent: {s.guardian.name} · <span className="num">{s.guardian.phone}</span>
+        {s.guardian.language !== 'English' && ` · speaks ${s.guardian.language}`}
+      </span>
+      <span className="contacts__line">
+        {agent ? (
+          <>
+            Agent: {agent.name}, {agent.contact} ·{' '}
+            <span className="num">{agent.phone}</span> · out of hours{' '}
+            <span className="num">{agent.outOfHours}</span>
+          </>
+        ) : (
+          'Booked direct — no agent to ring, call the parents.'
+        )}
+      </span>
+    </span>
+  );
+}
+
+/* The flight itself, under the name. Which number, which terminal, when it
+   actually lands and whether the child is travelling alone — the four things
+   the meeter reads off a phone in a car park. */
+function FlightLine({ f }: { f: Flight | undefined }) {
+  if (!f) {
+    return (
+      <span className="meta contacts contacts__line" style={{ color: 'var(--oxide)' }}>
+        No flight on the record. Ring the agent before the vehicle goes.
+      </span>
+    );
+  }
+  const ap = airportBy(f.airport);
+  const landing = f.delay > 0 ? mins(f.at) + f.delay : mins(f.at);
+  const clock = `${String(Math.floor(landing / 60) % 24).padStart(2, '0')}:${String(landing % 60).padStart(2, '0')}`;
+  return (
+    <span className="meta contacts contacts__line">
+      <span className="num">{f.number}</span> · {ap.name} terminal{' '}
+      <span className="num">{f.terminal}</span> · lands{' '}
+      <span className="num">{f.at}</span>
+      {f.delay > 0 && (
+        <span style={{ color: 'var(--oxide)' }}>
+          {' '}
+          +{f.delay} min, in at <span className="num">{clock}</span>
+        </span>
+      )}
+      {f.status === 'unknown' && ' · no status from the airline'}
+      {f.unaccompanied && ' · travelling alone, released to the named meeter only'}
+    </span>
+  );
+}
 
 const STATUS: Record<Flight['status'], { label: string; mark: string }> = {
   scheduled: { label: 'Scheduled', mark: 'mark--idle' },
@@ -68,6 +137,10 @@ export function Transfers() {
     [day, direction, students, staff, flights],
   );
 
+  /* Every run's bill for this day, in run order. */
+  const charges = useMemo(() => plan.runs.map((r) => chargeOf(r)), [plan]);
+  const noReceipt = charges.filter((c) => c.receipt === null).length;
+
   const named = (id: string) => {
     const s = staff.find((x) => x.id === id);
     return s ? `${s.forename} ${s.surname}` : 'Unknown';
@@ -76,6 +149,7 @@ export function Transfers() {
   const tabs: { id: View; label: string }[] = [
     { id: 'day', label: `Runs ${plan.runs.length}` },
     { id: 'flights', label: 'Flights' },
+    { id: 'money', label: `Receipts ${noReceipt ? `${noReceipt} missing` : 'all in'}` },
     { id: 'season', label: `Changeover days ${days.filter(([, c]) => c.in + c.out > 4).length}` },
   ];
 
@@ -83,7 +157,7 @@ export function Transfers() {
     <>
       <SectionHead
         title="Transfers"
-        count={`${plan.studentsMoved} travelling · ${plan.runs.length} runs · ${plan.vehicleHours}h of vehicle time`}
+        count={`${plan.studentsMoved} travelling · ${plan.runs.length} runs · ${plan.vehicleHours}h of vehicle time · ${fmtMoney(plan.costPence)}`}
       >
         <select
           className="field"
@@ -159,12 +233,13 @@ export function Transfers() {
                 {o.wait === 0 ? 'None' : `${o.wait} min`}
               </span>
               <span className="meta">
-                {o.plan.runs.length} runs · {o.plan.vehicleHours}h of vehicle
+                {o.plan.runs.length} runs · {o.plan.vehicleHours}h ·{' '}
+                {fmtMoney(o.plan.costPence)}
               </span>
               <span className="meta wait__save">
                 {o.wait === 0
                   ? 'a vehicle per landing'
-                  : `${options[0].plan.runs.length - o.plan.runs.length} fewer runs · ${(options[0].plan.vehicleHours - o.plan.vehicleHours).toFixed(1)}h saved`}
+                  : `${options[0].plan.runs.length - o.plan.runs.length} fewer runs · ${fmtMoney(options[0].plan.costPence - o.plan.costPence)} saved`}
               </span>
             </button>
           ))}
@@ -273,6 +348,132 @@ export function Transfers() {
         </div>
       )}
 
+      {view === 'money' && (
+        charges.length === 0 ? (
+          <p className="meta reminders__empty">
+            No runs on {fmtDateLong(day)}, so nothing to settle.
+          </p>
+        ) : (
+          <>
+            <p className="meta section__lede">
+              One line per vehicle, priced off the supplier&rsquo;s rate card
+              and the hours the run actually takes. Waiting time is where a
+              transfer bill goes wrong: a late flight past the free allowance
+              is chargeable, and an invoice with waiting on it that nobody
+              agreed is the one to query before finance pays it.{' '}
+              {RECEIPTS_ARE_NOT_FILES}
+            </p>
+
+            {charges.some((c) => c.state === 'disputed' || c.receipt === null) && (
+              <div className="alert alert--warn">
+                <p className="label">
+                  {charges.filter((c) => c.receipt === null).length} of{' '}
+                  {charges.length} runs have no receipt against them
+                </p>
+                <ul className="log">
+                  {charges
+                    .filter((c) => c.why)
+                    .slice(0, 5)
+                    .map((c) => (
+                      <li key={c.runId}>
+                        <strong>{c.supplier.name} {c.reference}</strong> — {c.why}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="tablewrap">
+              <table className="reg">
+                <thead>
+                  <tr>
+                    <th>Run</th>
+                    <th>Supplier</th>
+                    <th>Driver</th>
+                    <th>Reference</th>
+                    <th>Hours</th>
+                    <th>Quoted</th>
+                    <th>Waiting</th>
+                    <th>Charged</th>
+                    <th>Receipt</th>
+                  </tr>
+                </thead>
+                <tbody className="stagger">
+                  {charges.map((c, i) => {
+                    const r = plan.runs[i];
+                    return (
+                      <tr key={c.runId}>
+                        <td>
+                          <span className="num">{r.leaveCentre}</span>{' '}
+                          {airportBy(r.airport).name}
+                          <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {c.vehicle} · {r.studentIds.length}{' '}
+                            {r.studentIds.length === 1 ? 'student' : 'students'}
+                          </span>
+                        </td>
+                        <td>
+                          {c.supplier.name}
+                          <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {c.supplier.dispatch}
+                          </span>
+                        </td>
+                        <td>
+                          {c.driver.name}
+                          <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                            {c.driver.reg} · {c.driver.phone}
+                          </span>
+                        </td>
+                        <td className="num meta">{c.reference}</td>
+                        <td className="num">{c.hours}</td>
+                        <td className="num">{fmtMoney(c.quotedPence)}</td>
+                        <td className="num">
+                          {c.waitPence > 0 ? (
+                            <>
+                              {fmtMoney(c.waitPence)}
+                              <span className="meta" style={{ display: 'block', color: 'var(--oxide)' }}>
+                                {c.waitMins} min
+                              </span>
+                            </>
+                          ) : (
+                            <span className="meta" style={{ color: 'var(--ink-3)' }}>—</span>
+                          )}
+                        </td>
+                        <td className="num">{fmtMoney(c.chargedPence)}</td>
+                        <td>
+                          <span className={`mark ${CHARGE[c.state].mark}`}>
+                            {CHARGE[c.state].label}
+                          </span>
+                          {c.receipt && (
+                            <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+                              {c.receipt.filename}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr>
+                    <td colSpan={5} style={{ fontWeight: 600 }}>
+                      {charges.length} vehicles on {fmtDateLong(day)}
+                    </td>
+                    <td className="num">
+                      {fmtMoney(charges.reduce((n, c) => n + c.quotedPence, 0))}
+                    </td>
+                    <td className="num">
+                      {fmtMoney(charges.reduce((n, c) => n + c.waitPence, 0))}
+                    </td>
+                    <td className="num" style={{ fontWeight: 600 }}>
+                      {fmtMoney(plan.costPence)}
+                    </td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      )}
+
       {view === 'season' && (
         <div className="tablewrap">
           <table className="reg">
@@ -335,13 +536,15 @@ function RunRow({
   onStudent: (id: string) => void;
   onStaff: (id: string) => void;
 }) {
-  const { students } = useStore();
+  const { students, staff, flights } = useStore();
   const [open, setOpen] = useState(false);
   const ap = airportBy(run.airport);
+  const charge = chargeOf(run);
   const load = run.studentIds
     .map((id) => students.find((s) => s.id === id))
     .filter((s): s is NonNullable<typeof s> => Boolean(s));
   const short = run.staffIds.length < 2;
+  const meeter = staff.find((x) => x.id === run.meeterId) ?? null;
 
   return (
     <li className="run">
@@ -441,12 +644,122 @@ function RunRow({
                       {s.forename} {s.surname}
                     </button>
                     <span className="meta"> · {s.country} · {s.age}</span>
+                    <FlightLine
+                      f={flights.find(
+                        (x: Flight) =>
+                          x.studentId === s.id && x.direction === run.direction,
+                      )}
+                    />
+                    <Contacts s={s} />
                   </li>
                 ))}
                 {load.length > 10 && (
                   <li className="meta">…and {load.length - 10} more</li>
                 )}
               </ul>
+            </section>
+          </div>
+
+          <div className="inc__cols">
+            <section>
+              <p className="label">Who is driving it</p>
+              <dl className="pairs">
+                <div className="pairs__pair">
+                  <dt>Supplier</dt>
+                  <dd>{charge.supplier.name}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Dispatch</dt>
+                  <dd className="num">{charge.supplier.dispatch}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Out of hours</dt>
+                  <dd className="num">{charge.supplier.outOfHours}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Driver</dt>
+                  <dd>
+                    {charge.driver.name} ·{' '}
+                    <span className="num">{charge.driver.phone}</span>
+                  </dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Vehicle</dt>
+                  <dd className="num">{charge.driver.reg}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Our account</dt>
+                  <dd className="num">{charge.supplier.account}</dd>
+                </div>
+              </dl>
+              {meeter && (
+                <p className="meta" style={{ marginTop: 10 }}>
+                  {meeter.forename} {meeter.surname} meets the flight on{' '}
+                  <span className="num">{meeter.phone}</span> — the number the
+                  driver and the parents both get given.
+                </p>
+              )}
+            </section>
+
+            <section>
+              <p className="label">What it costs</p>
+              <dl className="pairs">
+                <div className="pairs__pair">
+                  <dt>Reference</dt>
+                  <dd className="num">{charge.reference}</dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Hire</dt>
+                  <dd className="num">
+                    {charge.hours}h at {fmtMoney(charge.supplier.rates[run.vehicle] ?? 0)}/h
+                    {' '}= {fmtMoney(charge.quotedPence)}
+                  </dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Waiting</dt>
+                  <dd className="num">
+                    {charge.waitPence > 0
+                      ? `${charge.waitMins} min — ${fmtMoney(charge.waitPence)}`
+                      : `None chargeable (${charge.supplier.waitFreeMins} min free)`}
+                  </dd>
+                </div>
+                <div className="pairs__pair">
+                  <dt>Charged</dt>
+                  <dd className="num" style={{ fontWeight: 600 }}>
+                    {fmtMoney(charge.chargedPence)}
+                  </dd>
+                </div>
+              </dl>
+              {charge.why && (
+                <p className="meta" style={{ marginTop: 10, color: 'var(--ink-2)' }}>
+                  {charge.why}
+                </p>
+              )}
+            </section>
+
+            <section>
+              <p className="label">The receipt</p>
+              <p>
+                <span className={`mark ${CHARGE[charge.state].mark}`}>
+                  {CHARGE[charge.state].label}
+                </span>
+              </p>
+              {charge.receipt ? (
+                <p className="meta" style={{ marginTop: 10 }}>
+                  {charge.receipt.filename} · {Math.round(charge.receipt.bytes / 1024)} KB
+                  · attached {fmtDate(charge.receipt.attachedAt)} by{' '}
+                  {charge.receipt.attachedBy}
+                </p>
+              ) : (
+                <p className="meta" style={{ marginTop: 10 }}>
+                  Nothing attached against {charge.reference}. Finance will not
+                  pay a transfer line without one, and August is when they go
+                  missing.
+                </p>
+              )}
+              <p className="meta" style={{ marginTop: 10, color: 'var(--ink-3)' }}>
+                {RECEIPTS_ARE_NOT_FILES}
+              </p>
             </section>
           </div>
         </div>

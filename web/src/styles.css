@@ -2464,6 +2464,24 @@ p.mark::before {
   box-shadow: inset 0 0 0 1px rgba(192, 52, 26, 0.18);
 }
 
+.alert--warn {
+  background: rgba(176, 106, 38, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(176, 106, 38, 0.2);
+}
+
+/* Parent and agent numbers under a name on a transfer run. Two short lines,
+   not a table — they are read once, out loud, into a phone. */
+.contacts {
+  display: block;
+  margin: 2px 0 0;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+
+.contacts__line {
+  display: block;
+}
+
 .alert .label {
   margin: 0 0 8px;
 }

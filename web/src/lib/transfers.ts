@@ -24,6 +24,7 @@ import {
 import {
   AIRPORTS, airportBy, flightDay, leaveBy, mins, type Flight,
 } from '../data/travel';
+import { chargeFor } from '../data/suppliers';
 import {
   STAFF as SEED_STAFF, STUDENTS as SEED_STUDENTS, isAway, type Staff,
   type Student,
@@ -54,6 +55,9 @@ export interface Run {
   meeterId: string | null;
   flightNumbers: string[];
   unaccompanied: number;
+  /* The worst delay on this run's flights, in minutes. The vehicle waits
+     through it and, past the supplier's free allowance, charges for it. */
+  delay: number;
 }
 
 export interface TransferPlan {
@@ -61,6 +65,9 @@ export interface TransferPlan {
   unmet: { where: string; problem: string }[];
   studentsMoved: number;
   vehicleHours: number;
+  /* What the day's runs will be invoiced at, waiting time included. Fewer
+     runs is the point of waiting; this is the number that says by how much. */
+  costPence: number;
   /* The longest anybody waits airside under this plan, in minutes. The number
      that decides whether the saving is worth it. */
   longestWait: number;
@@ -110,7 +117,10 @@ export function buildRuns(
     .filter((x): x is { s: Student; f: Flight } => Boolean(x));
 
   if (!travelling.length) {
-    return { runs: [], unmet: [], studentsMoved: 0, vehicleHours: 0, longestWait: 0 };
+    return {
+      runs: [], unmet: [], studentsMoved: 0, vehicleHours: 0, longestWait: 0,
+      costPence: 0,
+    };
   }
 
   /* Who can staff a run today. Duty roles are excluded from activity sessions
@@ -243,6 +253,7 @@ export function buildRuns(
           meeterId: meeter?.id ?? null,
           flightNumbers: Array.from(new Set(load.map((t) => t.f.number))),
           unaccompanied,
+          delay: load.reduce((n, t) => Math.max(n, t.f.delay), 0),
         });
       }
     });
@@ -259,6 +270,7 @@ export function buildRuns(
     runs,
     unmet,
     longestWait,
+    costPence: runs.reduce((n, r) => n + chargeOf(r).chargedPence, 0),
     studentsMoved: runs.reduce((n, r) => n + r.studentIds.length, 0),
     vehicleHours:
       Math.round(
@@ -269,6 +281,18 @@ export function buildRuns(
       ) / 10,
   };
 }
+
+/* What a run will be invoiced at. Here rather than at the screen so the plan
+   can total it, and so a run costs the same wherever it is shown. */
+export const chargeOf = (r: Run) =>
+  chargeFor({
+    id: r.id,
+    day: r.day,
+    airport: r.airport,
+    vehicle: r.vehicle,
+    spread: mins(r.meetTo) - mins(r.meetFrom),
+    delay: r.delay,
+  });
 
 /* One runnable check on the three invariants that would fail quietly: a run
    never carries more than its vehicle seats, nobody is on two runs at once,
