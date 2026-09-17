@@ -746,8 +746,16 @@ export const sessionsFor = (staffId: string, sessions: Session[] = SESSIONS) =>
       (a, b) => a.day.localeCompare(b.day) || a.start.localeCompare(b.start),
     );
 
-export const weeklyHours = (staffId: string, sessions: Session[] = SESSIONS) =>
-  sessionsFor(staffId, sessions).length * SLOT_HOURS;
+/* Hours in one week. `days` says which week — default is the week on screen
+   today, and a draft of next week passes its own days rather than counting
+   both weeks as one. */
+export const weeklyHours = (
+  staffId: string,
+  sessions: Session[] = SESSIONS,
+  days: string[] = WEEK_DAYS,
+) =>
+  sessionsFor(staffId, sessions).filter((s) => days.includes(s.day)).length *
+  SLOT_HOURS;
 
 export const dayHours = (
   staffId: string,

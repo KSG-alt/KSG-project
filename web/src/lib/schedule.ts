@@ -284,7 +284,14 @@ export function generate(spec: Spec, all: Session[]): Draft {
      the working-time limit. Counted off the sessions we are keeping. */
   const hours = new Map<string, number>();
   const base = [...otherDays, ...keep];
-  STAFF.forEach((s) => hours.set(s.id, weeklyHours(s.id, base)));
+  /* The week the day belongs to, so a Tuesday in next week is not counted
+     against this week's limit. */
+  const ownWeek = weekDaysFor(
+    Math.round(
+      (new Date(day).getTime() - new Date(WEEK_DAYS[0]).getTime()) / (7 * 86400000),
+    ),
+  );
+  STAFF.forEach((s) => hours.set(s.id, weeklyHours(s.id, base, ownWeek)));
 
   const eligible = (band: string) =>
     STAFF.filter(
@@ -650,7 +657,7 @@ export function selfCheck() {
 
 import { WEEK_DAYS } from '../data/seed';
 import {
-  DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover, type Duty,
+  DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover, weekDaysFor, type Duty,
 } from '../data/duty';
 
 const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
@@ -660,6 +667,10 @@ const overlaps = (aS: string, aE: string, bS: string, bE: string) =>
 export interface WeekDraft {
   sessions: Session[];
   duties: Duty[];
+  /* The activity days this draft covers, and the duty days that go with them,
+     so a report of it does not have to assume the week on screen today. */
+  days: string[];
+  dutyDays: string[];
   activityHours: number;
   dutyHours: number;
   /* Per person, so the screen can show who is short and who is over. */
@@ -690,6 +701,8 @@ export function generateWeek(
   all: Session[],
   duties: Duty[],
   target: HoursTarget = { mode: 'contract' },
+  /* The activity days to draft. Next week is the same six days, seven ahead. */
+  days: string[] = WEEK_DAYS,
 ): WeekDraft {
   const unmet: Unmet[] = [];
   const notes: string[] = [];
@@ -698,7 +711,7 @@ export function generateWeek(
      hours and double-bookings carry across the week rather than each day
      being planned as if it were alone. */
   let sessions = all;
-  WEEK_DAYS.forEach((day) => {
+  days.forEach((day) => {
     const d = generate({ ...spec, day }, sessions);
     sessions = d.sessions;
     unmet.push(...d.unmet);
@@ -707,11 +720,26 @@ export function generateWeek(
     });
   });
 
-  const filled = fillDuty(sessions, duties, target);
+  /* Duty rows for the same week, so a week drafted seven days out does not
+     fill this week's shifts. */
+  const dutyDays = [...days];
+  {
+    const sunday = new Date(days[days.length - 1]);
+    sunday.setDate(sunday.getDate() + 1);
+    const p = (n: number) => String(n).padStart(2, '0');
+    dutyDays.push(`${sunday.getFullYear()}-${p(sunday.getMonth() + 1)}-${p(sunday.getDate())}`);
+  }
+  const weekDuties = duties.filter((d) => dutyDays.includes(d.day));
+  const otherDuties = duties.filter((d) => !dutyDays.includes(d.day));
+  const filledWeek = fillDuty(sessions, weekDuties, target, dutyDays);
+  const filled = {
+    duties: [...otherDuties, ...filledWeek.duties],
+    unmet: filledWeek.unmet,
+  };
 
   const rows = STAFF.map((s) => {
-    const activity = weeklyHours(s.id, sessions);
-    const duty = dutyHours(s.id, filled.duties);
+    const activity = weeklyHours(s.id, sessions, days);
+    const duty = dutyHours(s.id, filledWeek.duties);
     return {
       staffId: s.id,
       name: `${s.forename} ${s.surname}`,
@@ -726,8 +754,10 @@ export function generateWeek(
   return {
     sessions,
     duties: filled.duties,
-    activityHours: rows.reduce((n, r) => n + weeklyHours(r.staffId, sessions), 0),
-    dutyHours: rows.reduce((n, r) => n + dutyHours(r.staffId, filled.duties), 0),
+    days,
+    dutyDays,
+    activityHours: rows.reduce((n, r) => n + weeklyHours(r.staffId, sessions, days), 0),
+    dutyHours: rows.reduce((n, r) => n + dutyHours(r.staffId, filledWeek.duties), 0),
     hours: rows,
     short: rows.filter((r) => !r.blocked && r.total < r.contracted - 2).length,
     blocked: rows.filter((r) => r.blocked).length,
@@ -743,9 +773,10 @@ export function fillDuty(
   sessions: Session[],
   duties: Duty[],
   target: HoursTarget = { mode: 'contract' },
+  /* Which week's duty rows these are. Defaults to the week on screen today. */
+  week: string[] = dutyWeek(),
 ): { duties: Duty[]; unmet: Unmet[] } {
   const unmet: Unmet[] = [];
-  const week = dutyWeek();
 
   /* Start from empty rather than adding to whatever was there, or a second
      run doubles everyone's hours. */
@@ -769,7 +800,10 @@ export function fillDuty(
     .forEach((s) => s.staffIds.forEach((id) => commit(id, s.day, s.start, s.end)));
 
   const hours = new Map<string, number>();
-  STAFF.forEach((s) => hours.set(s.id, weeklyHours(s.id, sessions)));
+  /* Activity hours for THIS week, not for whichever week the app happens to
+     be sitting in. Filling next week's duty against this week's activity
+     hours fills it for the wrong people. */
+  STAFF.forEach((s) => hours.set(s.id, weeklyHours(s.id, sessions, week)));
 
   const clashes = (id: string, day: string, start: string, end: string) =>
     (committed.get(id) ?? []).some(
@@ -849,8 +883,8 @@ export function weekReport(w: WeekDraft, t: HoursTarget, p?: Parsed) {
   const lines: string[] = [];
 
   lines.push(
-    `Drafted the week: ${w.sessions.filter((s) => WEEK_DAYS.includes(s.day)).length} ` +
-      `activity sessions and ${w.duties.length} duty shifts.`,
+    `Drafted the week: ${w.sessions.filter((s) => w.days.includes(s.day)).length} ` +
+      `activity sessions and ${w.duties.filter((d) => w.dutyDays.includes(d.day)).length} duty shifts.`,
   );
   lines.push(
     '',

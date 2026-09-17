@@ -87,19 +87,34 @@ export interface Duty {
 
 /* The rota week is Monday to Saturday of activity days; Sunday is changeover
    and carries its own duties, so the duty week is seven days. */
-export function dutyWeek(): string[] {
-  const sunday = new Date(WEEK_DAYS[WEEK_DAYS.length - 1]);
+/* Offset 0 is the week on screen today; 1 is the week after it, which is the
+   week a centre is actually planning. */
+export function weekDaysFor(offset = 0): string[] {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return WEEK_DAYS.map((d) => {
+    const x = new Date(d);
+    x.setDate(x.getDate() + offset * 7);
+    return `${x.getFullYear()}-${p(x.getMonth() + 1)}-${p(x.getDate())}`;
+  });
+}
+
+export function dutyWeek(offset = 0): string[] {
+  const days = weekDaysFor(offset);
+  const sunday = new Date(days[days.length - 1]);
   sunday.setDate(sunday.getDate() + 1);
   const p = (n: number) => String(n).padStart(2, '0');
   const iso = `${sunday.getFullYear()}-${p(sunday.getMonth() + 1)}-${p(sunday.getDate())}`;
-  return [...WEEK_DAYS, iso];
+  return [...days, iso];
 }
 
-export const isChangeover = (day: string) => !WEEK_DAYS.includes(day);
+/* A changeover day is the Sunday that closes a duty week, whichever week it
+   belongs to. */
+export const isChangeover = (day: string) =>
+  new Date(day).getDay() === 0;
 
-export function buildDuties(): Duty[] {
+export function buildDuties(days: string[] = dutyWeek()): Duty[] {
   const out: Duty[] = [];
-  dutyWeek().forEach((day) => {
+  days.forEach((day) => {
     const changeover = isChangeover(day);
     DUTY_PATTERNS.forEach((p) => {
       if (p.days === 'activity-days' && changeover) return;

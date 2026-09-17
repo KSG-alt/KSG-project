@@ -10,7 +10,9 @@ import {
   generate, generateWeek, parseSpec, report, weekReport, type HoursTarget,
   type Spec,
 } from '../lib/schedule';
-import { DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover } from '../data/duty';
+import {
+  DUTY_PATTERNS, buildDuties, dutyHours, dutyWeek, isChangeover, weekDaysFor,
+} from '../data/duty';
 import { rollFor } from '../data/attendance';
 import { OPERATOR } from '../lib/side';
 import type { ToolSpec } from '../lib/anthropic';
@@ -40,6 +42,12 @@ export function Timetable() {
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [guide, setGuide] = useState<string | null>(null);
   const [view, setView] = useState<'day' | 'week' | 'duty' | 'hours'>('day');
+  /* 0 is the week the demo clock sits in; 1 is the one after it, which is the
+     week a centre is actually planning on a Thursday. Next week starts empty
+     until somebody drafts it — that is the job, not a bug. */
+  const [weekOffset, setWeekOffset] = useState(0);
+  const weekDays = useMemo(() => weekDaysFor(weekOffset), [weekOffset]);
+  const dutyDays = useMemo(() => dutyWeek(weekOffset), [weekOffset]);
   /* One day on screen; the rota underneath runs the whole week. */
   const sessions = useMemo(
     () => allSessions.filter((s) => s.day === TODAY_ISO),
@@ -371,11 +379,25 @@ export function Timetable() {
     return report(d, parsed);
   }
 
-  function draftWeek(spec: Omit<Spec, 'day'>, target: HoursTarget, parsed?: ReturnType<typeof parseSpec>) {
-    const w = generateWeek(spec, live.current, duties, target);
+  function draftWeek(
+    spec: Omit<Spec, 'day'>,
+    target: HoursTarget,
+    parsed?: ReturnType<typeof parseSpec>,
+    offset = weekOffset,
+  ) {
+    const days = weekDaysFor(offset);
+    const duty = dutyWeek(offset);
+    /* A week nobody has planned yet has no duty rows either. Build them on
+       first use rather than shipping empty shifts for every week of a season
+       that may never be drafted. */
+    const withRows = duty.some((d) => duties.some((x) => x.day === d))
+      ? duties
+      : [...duties, ...buildDuties(duty)];
+    const w = generateWeek(spec, live.current, withRows, target, days);
+    if (offset !== weekOffset) setWeekOffset(offset);
     setSessions(
       () => w.sessions,
-      `Week redrafted by Kadia — ${w.sessions.filter((x) => WEEK_DAYS.includes(x.day)).length} sessions across ${WEEK_DAYS.length} days and ${fmtHours(w.activityHours + w.dutyHours)} rota'd, ${w.unmet.length} left unresolved. Drafted, not approved.`,
+      `${offset === 0 ? 'This week' : 'Next week'} redrafted by Kadia — ${w.sessions.filter((x) => days.includes(x.day)).length} sessions across ${days.length} days and ${fmtHours(w.activityHours + w.dutyHours)} rota'd, ${w.unmet.length} left unresolved. Drafted, not approved.`,
     );
     setDuties(w.duties);
     setApproved(false);
@@ -409,13 +431,17 @@ export function Timetable() {
     );
     if (wholeWeek) {
       const flat = /\b(40 ?h|40 hours|everyone (on|to) 40|same hours|level)\b/.test(t);
+      /* "Draft next week" is the common ask on a Thursday, and it has to mean
+         the week after this one rather than redrafting the week in progress. */
+      const nextWeek = /\b(next|following|coming) week\b/.test(t);
       const { day: _drop, ...rest } = parsed.spec;
       const text = draftWeek(
         rest,
         flat ? { mode: 'flat', flat: 40 } : { mode: 'contract' },
         parsed,
+        nextWeek ? 1 : weekOffset,
       );
-      setView('hours');
+      setView(nextWeek ? 'week' : 'hours');
       return { text, source: 'the rota builder' };
     }
 
@@ -508,6 +534,47 @@ export function Timetable() {
           </button>
         ))}
       </div>
+
+      {view !== 'day' && (
+        <div className="weekbar">
+          <div className="weekbar__pick">
+            {[0, 1].map((o) => (
+              <button
+                key={o}
+                className={`tab${weekOffset === o ? ' tab--on' : ''}`}
+                onClick={() => setWeekOffset(o)}
+              >
+                {o === 0 ? 'This week' : 'Next week'}
+              </button>
+            ))}
+            <span className="meta">
+              {fmtDate(weekDays[0])} – {fmtDate(weekDays[weekDays.length - 1])} ·{' '}
+              {allSessions.filter(
+                (x) => weekDays.includes(x.day) && x.status !== 'cancelled',
+              ).length}{' '}
+              sessions ·{' '}
+              {duties.filter((d) => dutyDays.includes(d.day) && d.staffIds.length).length}{' '}
+              duty shifts staffed
+            </span>
+          </div>
+
+          {allSessions.filter((x) => weekDays.includes(x.day)).length === 0 ? (
+            <p className="meta weekbar__note">
+              Nothing is drafted for this week yet. Draft it, then read the
+              hours against everybody&rsquo;s contract before anyone is told.
+            </p>
+          ) : null}
+
+          <button
+            className="btn btn--primary"
+            onClick={() =>
+              draftWeek({}, { mode: 'contract' }, undefined, weekOffset)
+            }
+          >
+            Draft {weekOffset === 0 ? 'this' : 'next'} week to contracted hours
+          </button>
+        </div>
+      )}
 
       <div className="tt">
         <div className="tt__grid" hidden={view !== 'day'}>
@@ -635,7 +702,7 @@ export function Timetable() {
                   <h3 className="wk__name">{g.name}</h3>
                   <span className="meta">
                     {g.band} · 1:{g.ratio} ·{' '}
-                    {allSessions.filter((x) => x.groupId === g.id && WEEK_DAYS.includes(x.day) && x.status !== 'cancelled').length}{' '}
+                    {allSessions.filter((x) => x.groupId === g.id && weekDays.includes(x.day) && x.status !== 'cancelled').length}{' '}
                     sessions
                   </span>
                 </div>
@@ -650,7 +717,7 @@ export function Timetable() {
                       </tr>
                     </thead>
                     <tbody>
-                      {WEEK_DAYS.map((d) => (
+                      {weekDays.map((d) => (
                         <tr key={d}>
                           <th scope="row" className="wk__day">
                             {dayName(d)}
@@ -693,13 +760,13 @@ export function Timetable() {
         {view === 'duty' && (
           <div className="duty">
             <p className="meta section__lede">
-              Activity sessions come to {(allSessions.filter((x) => WEEK_DAYS.includes(x.day) && x.status !== 'cancelled').length * 1.5).toFixed(0)}h
+              Activity sessions come to {(allSessions.filter((x) => weekDays.includes(x.day) && x.status !== 'cancelled').length * 1.5).toFixed(0)}h
               across the week. A seasonal contract is 25 to 40 hours, so most of
               it is duty — meals, free time, the evening programme, nights, and
               changeover-day transfers. The rota has to schedule it, or it lands
               in a WhatsApp message on Sunday night.
             </p>
-            {dutyWeek().map((d) => (
+            {dutyDays.map((d) => (
               <section key={d} className="duty__day">
                 <div className="duty__head">
                   <h3 className="duty__date">
@@ -765,8 +832,11 @@ export function Timetable() {
         {view === 'hours' && (() => {
           const rows = staff
             .map((p2) => {
-              const act = weeklyHours(p2.id, allSessions);
-              const dut = dutyHours(p2.id, duties);
+              const act = weeklyHours(p2.id, allSessions, weekDays);
+              const dut = dutyHours(
+                p2.id,
+                duties.filter((d) => dutyDays.includes(d.day)),
+              );
               return { p: p2, act, dut, total: act + dut };
             })
             .sort((x, y) => x.total - y.total);
@@ -1008,11 +1078,25 @@ export function Timetable() {
             </div>
           ) : (
             <div className="panel">
-              <span className="label">Shape the day by chat</span>
+              <span className="label">
+                {view === 'day'
+                  ? 'Shape the day by chat'
+                  : view === 'week'
+                    ? 'Shape the week by chat'
+                    : view === 'duty'
+                      ? 'Shape the duty rota by chat'
+                      : 'Ask about the hours'}
+              </span>
               <p className="meta" style={{ margin: '10px 0 0', color: 'var(--ink-3)' }}>
-                Pick a session on the grid to edit it by hand, or tell Kadia what
-                the day should look like. It reads the real timetable and writes
-                real changes — a person still approves the day.
+                {view === 'day'
+                  ? 'Pick a session on the grid to edit it by hand, or tell Kadia what the day should look like.'
+                  : view === 'week'
+                    ? 'Ask for a whole week — this one or the next — and it drafts six days of activity and seven of duty against ratios, qualifications, availability and contracts.'
+                    : view === 'duty'
+                      ? 'Duty carries most of a seasonal contract. Ask for it to be filled to everyone’s contracted hours, or levelled at a flat number.'
+                      : 'Ask who is short, who is over, and why — then ask for the week to be redrafted against contracts.'}{' '}
+                It reads the real timetable and writes real changes — a person
+                still approves.
               </p>
             </div>
           )}
@@ -1036,12 +1120,33 @@ Keep replies to a few short sentences. Use British English.`}
             tools={tools}
             greeting="Ask me to draft the day, with whatever the centre needs — no kayaking, English for every group, nothing off site. I build it and tell you what I could not do."
             placeholder="e.g. Redraft the day, no kayaking, English for every group"
-            suggestions={[
-              'Generate the timetable with no off-site sessions',
-              'Redraft the day — no kayaking, and English for every group',
-              'Rebuild Kestrel’s day, mornings only',
-              'Which sessions are below ratio, and who could cover?',
-            ]}
+            suggestions={
+              view === 'day'
+                ? [
+                    'Generate the timetable with no off-site sessions',
+                    'Redraft the day — no kayaking, and English for every group',
+                    'Rebuild Kestrel’s day, mornings only',
+                    'Which sessions are below ratio, and who could cover?',
+                  ]
+                : view === 'week'
+                  ? [
+                      'Draft next week and fill everyone to their contracted hours',
+                      'Draft next week with nothing off site',
+                      'Redraft this week, no kayaking',
+                      'Which sessions are below ratio, and who could cover?',
+                    ]
+                  : view === 'duty'
+                    ? [
+                        'Draft the week and fill the duty rota to contract',
+                        'Draft next week and put everyone on 40 hours',
+                        'Who is on night duty this week?',
+                      ]
+                    : [
+                        'Draft the week and fill everyone to their contracted hours',
+                        'Draft next week and put everyone on 40 hours',
+                        'How many hours is each staff member working this week?',
+                      ]
+            }
             localCommands={localTimetableCommand}
           />
 
