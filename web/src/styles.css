@@ -2675,76 +2675,91 @@ span.fig {
 }
 
 /* ── Ask Kadia, as a small window ──────────────────────────────────────────
-   Closed, it is one slim line — an outline, not a panel. Open, it becomes a
-   card with the conversation in it. The difference between the two states is
-   the whole point: it should cost nothing to leave on screen.
+   Shut, it is a pill the width of its own words — a control, not a panel.
+   Open, it is a card: one header line, the automations as chips, and the
+   conversation under them.
    ────────────────────────────────────────────────────────────────────────── */
 
-.dock {
-  margin: 0 0 14px;
+.dock--shut {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 10px;
+}
+
+.dock__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px 5px 6px;
+  background: var(--white);
+  border: none;
   border-radius: var(--r-pill);
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--rule);
-  transition: box-shadow 200ms var(--ease-ui), background 200ms var(--ease-ui),
-    border-radius 200ms var(--ease-ui);
+  box-shadow: var(--edge), var(--shadow-1);
+  color: var(--ink-2);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: 0.012em;
+  cursor: pointer;
+  transition: color 160ms var(--ease-ui), box-shadow 200ms var(--ease-ui),
+    transform 260ms var(--spring);
+}
+
+.dock__pill:hover {
+  color: var(--ink);
+  box-shadow: var(--edge-strong), var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.dock__pill:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* The one spot of colour: small, and the same butter as the second action
+   button everywhere else. */
+.dock__spark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--butter);
+  color: var(--ink);
+}
+
+.dock__spark svg {
+  width: 13px;
+  height: 13px;
 }
 
 .dock--open {
-  border-radius: var(--r-lg);
+  margin: 0 0 14px;
   background: var(--white);
+  border-radius: var(--r-lg);
   box-shadow: var(--edge), var(--shadow-1);
+  animation: expand 220ms var(--ease-ui) both;
 }
 
 .dock__bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 38px;
-  padding: 0 6px 0 12px;
-}
-
-.dock--open .dock__bar {
-  padding: 4px 8px 0 14px;
-}
-
-.dock__open {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  background: none;
-  border: none;
-  text-align: left;
-  color: var(--ink-2);
-  cursor: pointer;
-  transition: color 160ms var(--ease-ui);
-}
-
-.dock__open:hover {
-  color: var(--ink);
-}
-
-.dock__open svg {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 auto;
-  opacity: 0.75;
+  padding: 9px 8px 9px 11px;
 }
 
 .dock__title {
-  font-size: var(--t-xs);
-  font-weight: 500;
-  letter-spacing: 0.01em;
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--t-xs);
+  font-weight: 500;
 }
 
 .dock__hint {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2753,19 +2768,45 @@ span.fig {
   color: var(--ink-3);
 }
 
-.dock__hint::before {
-  content: '·';
-  margin-right: 6px;
+.dock__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background 160ms var(--ease-ui), color 160ms var(--ease-ui);
+}
+
+.dock__close:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.dock__close svg {
+  width: 13px;
+  height: 13px;
+}
+
+.dock__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0 11px 10px;
 }
 
 .dock__chip {
-  flex: 0 0 auto;
-  max-width: 44%;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 4px 11px;
-  margin: 4px 0;
+  padding: 4px 10px;
   background: var(--paper-2);
   border: none;
   border-radius: var(--r-pill);
@@ -2780,33 +2821,8 @@ span.fig {
   color: var(--paper);
 }
 
-.dock__close {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: var(--r-pill);
-  color: var(--ink-3);
-  cursor: pointer;
-}
-
-.dock__close:hover {
-  background: var(--paper-2);
-  color: var(--ink);
-}
-
-.dock__close svg {
-  width: 14px;
-  height: 14px;
-}
-
 .dock__body .chat {
-  height: 320px;
+  height: 290px;
   margin: 0;
   border: none;
   border-radius: 0 0 var(--r-lg) var(--r-lg);
@@ -2815,11 +2831,8 @@ span.fig {
   border-top: 1px solid var(--rule-faint);
 }
 
-/* A phone has no room for a hint and a chip beside the title. It keeps the
-   line; everything else is behind the tap. */
 @media (max-width: 720px) {
-  .dock__hint,
-  .dock__chip {
+  .dock__hint {
     display: none;
   }
 }

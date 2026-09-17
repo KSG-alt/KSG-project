@@ -1,12 +1,12 @@
-/* ── The small window ─────────────────────────────────────────────────────
-   One slim line at the top of a screen: what it can be asked for, and the
-   automations this screen actually runs. It opens when there is something to
-   say and gets out of the way when there is not — a chat panel held open all
-   day takes the best space on the screen and gives nothing back until
-   somebody types in it.
+/* ── Ask Kadia, as a small window ─────────────────────────────────────────
+   Closed it is a pill the width of its own words, sitting quietly at the
+   right of whatever it belongs to. Open it becomes a card with the
+   conversation in it and the automations this screen runs as one-click
+   chips.
 
-   Clicking a chip opens it and asks for that automation in the same motion,
-   so the common jobs are one click and the uncommon ones are a sentence.
+   The restraint is the design: a chat held open all day takes the best
+   space on the screen and gives nothing back until somebody types in it, so
+   closed it should read as a control, not a panel.
    ──────────────────────────────────────────────────────────────────────── */
 
 import { useState, type ReactNode } from 'react';
@@ -28,51 +28,49 @@ export function AskDock({
 }) {
   const [open, setOpen] = useState(false);
 
-  return (
-    <div className={`dock${open ? ' dock--open' : ''}`}>
-      <div className="dock__bar">
+  if (!open) {
+    return (
+      <div className="dock dock--shut">
         <button
-          className="dock__open"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          title={open ? 'Close Ask Kadia' : `${title} — ${hint}`}
+          className="dock__pill"
+          onClick={() => setOpen(true)}
+          title={`${title} — ${hint}`}
         >
-          <IconKadia />
-          <span className="dock__title">{title}</span>
-          {!open && <span className="dock__hint">{hint}</span>}
+          <span className="dock__spark">
+            <IconKadia />
+          </span>
+          Ask Kadia
         </button>
+      </div>
+    );
+  }
 
-        {!open &&
-          chips.slice(0, 2).map((c) => (
-            <button
-              key={c}
-              className="dock__chip"
-              title={c}
-              onClick={() => {
-                setOpen(true);
-                onAsk(c);
-              }}
-            >
-              {c.length > 34 ? `${c.slice(0, 32)}…` : c}
-            </button>
-          ))}
+  return (
+    <div className="dock dock--open">
+      <div className="dock__bar">
+        <span className="dock__spark">
+          <IconKadia />
+        </span>
+        <span className="dock__title">{title}</span>
+        <span className="dock__hint">{hint}</span>
+        <button
+          className="dock__close"
+          onClick={() => setOpen(false)}
+          aria-label="Close Ask Kadia"
+        >
+          <IconClose />
+        </button>
+      </div>
 
-        {open && (
-          <button
-            className="dock__close"
-            onClick={() => setOpen(false)}
-            aria-label="Close Ask Kadia"
-          >
-            <IconClose />
+      <div className="dock__chips">
+        {chips.map((c) => (
+          <button key={c} className="dock__chip" title={c} onClick={() => onAsk(c)}>
+            {c}
           </button>
-        )}
+        ))}
       </div>
 
-      {/* Kept mounted once opened, so closing the window does not throw the
-          conversation away. */}
-      <div className="dock__body" hidden={!open}>
-        {children}
-      </div>
+      <div className="dock__body">{children}</div>
     </div>
   );
 }

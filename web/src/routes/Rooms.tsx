@@ -552,12 +552,7 @@ Keep replies to a few short sentences. Use British English.`}
                   tools={tools}
                   greeting="Tell me how the rooms should work — mix the languages, keep ages close, just fill the gaps. I draft it and tell you what I could not do."
                   placeholder="e.g. Plan the beds, never two of the same language"
-                  suggestions={[
-                    'Plan the beds and never put two of the same language together',
-                    'Just fill the gaps, leave everyone else alone',
-                    'Replan the 8–11 band from scratch, ages within 1 year',
-                    'Plan the beds without reusing any bed between stays',
-                  ]}
+                  suggestions={[]}
                   localCommands={localRoomCommand}
                   ask={ask}
                 />

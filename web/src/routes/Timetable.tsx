@@ -1011,33 +1011,9 @@ Keep replies to a few short sentences. Use British English.`}
             tools={tools}
             greeting="Ask me to draft the day, with whatever the centre needs — no kayaking, English for every group, nothing off site. I build it and tell you what I could not do."
             placeholder="e.g. Redraft the day, no kayaking, English for every group"
-            suggestions={
-              view === 'day'
-                ? [
-                    'Generate the timetable with no off-site sessions',
-                    'Redraft the day — no kayaking, and English for every group',
-                    'Rebuild Kestrel’s day, mornings only',
-                    'Which sessions are below ratio, and who could cover?',
-                  ]
-                : view === 'week'
-                  ? [
-                      'Draft next week and fill everyone to their contracted hours',
-                      'Draft next week with nothing off site',
-                      'Redraft this week, no kayaking',
-                      'Which sessions are below ratio, and who could cover?',
-                    ]
-                  : view === 'duty'
-                    ? [
-                        'Draft the week and fill the duty rota to contract',
-                        'Draft next week and put everyone on 40 hours',
-                        'Who is on night duty this week?',
-                      ]
-                    : [
-                        'Draft the week and fill everyone to their contracted hours',
-                        'Draft next week and put everyone on 40 hours',
-                        'How many hours is each staff member working this week?',
-                      ]
-            }
+            /* The dock's chips are the one list of automations; a second list
+               inside the chat is the same thing said twice. */
+            suggestions={[]}
             localCommands={localTimetableCommand}
             ask={ask}
           />

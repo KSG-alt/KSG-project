@@ -189,11 +189,7 @@ export function Arrivals() {
             })}
             greeting="Ask for beds in words — I plan them and show you what moves. Nothing is applied until you say so."
             placeholder="e.g. Give everyone arriving Sunday a bed, ages within a year"
-            suggestions={[
-              'Give every student with no bed one',
-              'Plan the beds and never put two of the same language together',
-              'Plan the beds without reusing any bed between stays',
-            ]}
+            suggestions={[]}
             localCommands={localBedCommand}
             ask={ask}
           />
