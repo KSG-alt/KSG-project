@@ -252,7 +252,7 @@ export function Office() {
                       <span className="fig__n num">{waitingOnThem(requests).length}</span>
                       <span className="fig__label">documents chased</span>
                       <span className="fig__note meta">
-                        {waitingOnUs(requests).length} waiting on us
+                        {waitingOnUs(requests).length} to verify
                       </span>
                     </span>
                     <span className="fig">

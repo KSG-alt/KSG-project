@@ -184,7 +184,7 @@ export function Home({
     {
       n: String(waitingOnThem(requests).length),
       label: 'documents chased',
-      note: `${waitingOnUs(requests).length} waiting on us to check`,
+      note: `${waitingOnUs(requests).length} waiting for verification`,
       go: 'portal',
     },
     {

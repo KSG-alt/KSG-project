@@ -4,12 +4,15 @@ import { StudentProfile } from '../components/StudentProfile';
 import { useStore } from '../lib/store';
 import { IconCheck, IconClose, IconSend } from '../lib/icons';
 import {
-  DOC_LABEL, DOC_WHY, STATE_COPY, linkFor, neverOpened, waitingOnThem,
+  DOC_LABEL, STATE_COPY, accepted, linkFor, neverOpened, waitingOnThem,
   waitingOnUs, type DocRequest,
 } from '../data/portal';
 import { fmtDate, fmtDateLong } from '../data/seed';
 
-type View = 'us' | 'them' | 'all' | 'preview';
+/* Three piles, and only three: the ones that need chasing, the ones the
+   centre can clear today, and the evidence of what came in. An "everything"
+   tab is a pile nobody is working from. */
+type View = 'them' | 'us' | 'accepted';
 
 export function Portal() {
   const {
@@ -26,9 +29,11 @@ export function Portal() {
 
   const rows = useMemo(() => {
     const base =
-      view === 'us' ? waitingOnUs(requests)
-      : view === 'them' ? waitingOnThem(requests)
-      : requests;
+      view === 'us'
+        ? waitingOnUs(requests)
+        : view === 'them'
+          ? waitingOnThem(requests)
+          : accepted(requests);
     return base.filter((r) => {
       if (!q) return true;
       const s = named(r.studentId);
@@ -42,24 +47,16 @@ export function Portal() {
   const stale = requests.filter((r) => r.state === 'sent' && r.reminders >= 2).length;
 
   const tabs: { id: View; label: string }[] = [
-    { id: 'us', label: `Waiting on us ${waitingOnUs(requests).length}` },
     { id: 'them', label: `Waiting on them ${waitingOnThem(requests).length}` },
-    { id: 'all', label: `Everything ${requests.length}` },
-    { id: 'preview', label: 'What a parent sees' },
+    { id: 'us', label: `Waiting for verification ${waitingOnUs(requests).length}` },
+    { id: 'accepted', label: `Accepted ${accepted(requests).length}` },
   ];
-
-  const sample = requests.find((r) => r.state === 'sent') ?? requests[0];
 
   return (
     <>
       <SectionHead
         title="Document portal"
-        /* Accepted requests leave the board the moment they are accepted —
-           the document goes in on the student record and the row is done — so
-           an "accepted" counter on this screen can only ever read zero on
-           open. Never opened is the number worth carrying instead: chased
-           twice and never opened is usually a wrong address. */
-        count={`${waitingOnUs(requests).length} to check · ${waitingOnThem(requests).length} outstanding · ${neverOpened(requests).length} never opened`}
+        count={`${waitingOnThem(requests).length} outstanding · ${waitingOnUs(requests).length} to verify · ${accepted(requests).length} accepted · ${neverOpened(requests).length} never opened`}
       >
         <input
           className="field"
@@ -73,11 +70,13 @@ export function Portal() {
 
       <p className="meta section__lede">
         Every chase needs somewhere for the answer to go. One link per document
-        per student, and the states split the work the way it actually divides:{' '}
-        <strong>waiting on us</strong> is a pile an admin can clear this
-        morning, <strong>waiting on them</strong> is a pile that needs chasing,
-        and &ldquo;sent but never opened&rdquo; is a different problem from
-        &ldquo;opened and ignored&rdquo;.
+        per student, in three piles that match how the work divides:{' '}
+        <strong>waiting on them</strong> needs chasing,{' '}
+        <strong>waiting for verification</strong> is what a parent has sent and
+        nobody has checked — the pile an admin clears this morning — and{' '}
+        <strong>accepted</strong> is the evidence: what came in, who checked it
+        and when. Sent but never opened is a different problem from opened and
+        ignored, so it is counted separately.
       </p>
 
       <div className="alert">
@@ -108,21 +107,19 @@ export function Portal() {
         ))}
       </div>
 
-      {view !== 'preview' && notSent > 0 && (
+      {view !== 'accepted' && notSent > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 14 }}>
           {notSent} documents have never been asked for at all
         </p>
       )}
-      {view !== 'preview' && stale > 0 && (
+      {view !== 'accepted' && stale > 0 && (
         <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
           {stale} links chased twice and never opened — the address is probably
           wrong. Check it before chasing a third time.
         </p>
       )}
 
-      {view === 'preview' && sample && <ParentView req={sample} />}
-
-      {view !== 'preview' && (
+      {(
         rows.length === 0 ? (
           <p className="meta reminders__empty">Nothing in this pile.</p>
         ) : (
@@ -158,6 +155,16 @@ export function Portal() {
                   )}
 
                   <div className="req__actions">
+                    {r.state === 'accepted' && (
+                      <>
+                        <span className="meta req__file">{r.filename}</span>
+                        <span className="meta">
+                          checked in{r.decidedAt ? ` ${fmtDate(r.decidedAt)}` : ''} ·
+                          marked on the student record
+                        </span>
+                      </>
+                    )}
+
                     {r.state === 'uploaded' && (
                       <>
                         <span className="meta req__file">{r.filename}</span>
@@ -236,82 +243,11 @@ export function Portal() {
         )
       )}
 
-      {view !== 'preview' && rows.length > 60 && (
+      {rows.length > 60 && (
         <p className="meta" style={{ marginTop: 18 }}>
           Showing 60 of {rows.length}. Narrow with search.
         </p>
       )}
-    </>
-  );
-}
-
-/* What the parent would get. Shown here so the copy can be argued about — a
-   parent who does not read English first has to be able to act on it. */
-function ParentView({ req }: { req: DocRequest }) {
-  const { students } = useStore();
-  const s = students.find((x) => x.id === req.studentId);
-  if (!s) return null;
-
-  return (
-    <>
-      <p className="meta section__lede">
-        The page behind the link, as {s.guardian.name} would see it. It is a
-        mock-up inside this dashboard, not a live page — but the words are the
-        real thing to argue about, because a parent who does not read English
-        first has to be able to act on them.
-      </p>
-
-      <div className="parent">
-        <div className="parent__chrome">
-          <span className="num">{linkFor(req)}</span>
-        </div>
-        <div className="parent__page">
-          <p className="parent__from">Ashcombe Park summer school</p>
-          <h2 className="parent__title">
-            {DOC_LABEL[req.kind]} for {s.forename}
-          </h2>
-          <p className="parent__lede">{DOC_WHY[req.kind]}</p>
-
-          <dl className="pairs parent__facts">
-            <div className="pairs__pair">
-              <dt>Student</dt>
-              <dd>{s.forename} {s.surname}</dd>
-            </div>
-            <div className="pairs__pair">
-              <dt>Arrives</dt>
-              <dd>{fmtDateLong(s.arrival)}</dd>
-            </div>
-            <div className="pairs__pair">
-              <dt>Needed by</dt>
-              <dd>{fmtDateLong(s.arrival)} — before they travel</dd>
-            </div>
-          </dl>
-
-          <div className="parent__drop">
-            <p className="parent__droptitle">Take a photo or choose a file</p>
-            <p className="meta">
-              A clear photo of every page is fine. PDF, JPG or PNG, up to 10 MB.
-            </p>
-            <button className="btn btn--primary" disabled>
-              Choose a file
-            </button>
-          </div>
-
-          <p className="meta parent__foot">
-            Any problem, reply to the message this link came in, or call the
-            centre on 020 7946 0000. We will not ask you for payment details on
-            this page, ever.
-          </p>
-        </div>
-      </div>
-
-      <p className="meta" style={{ marginTop: 18, color: 'var(--ink-3)', maxWidth: '66ch' }}>
-        Three things this page does on purpose: it says why the document is
-        needed rather than just demanding it, it names the date it is needed by
-        against the student&rsquo;s own arrival, and it states that payment is
-        never asked for here — because the moment a centre sends parents links,
-        somebody else starts sending them fake ones.
-      </p>
     </>
   );
 }

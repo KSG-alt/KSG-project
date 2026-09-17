@@ -248,7 +248,7 @@ export function OfficeHome({
                 <dt>Documents</dt>
                 <dd>
                   {waitingOnThem(requests).length} chased ·{' '}
-                  {waitingOnUs(requests).length} waiting on us
+                  {waitingOnUs(requests).length} to verify
                 </dd>
               </div>
               <div className="pairs__pair">

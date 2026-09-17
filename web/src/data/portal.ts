@@ -109,7 +109,30 @@ export function buildRequests(students: Student[] = STUDENTS): DocRequest[] {
 
   students.forEach((s) => {
     (Object.entries(s.docs) as [DocKind, DocState][]).forEach(([kind, doc]) => {
-      if (doc === 'in') return;
+      /* A document already in arrived through this portal too: it was sent,
+         opened, uploaded and accepted, and the record of that is the evidence
+         a centre needs when somebody asks who checked it and when. Without
+         these rows the accepted pile is always empty on open, which reads as
+         a centre that has never received anything. */
+      if (doc === 'in') {
+        const sent = 8 + Math.floor(r() * 30);
+        const uploaded = Math.max(1, sent - 2 - Math.floor(r() * 5));
+        out.push({
+          id: `req-${s.id}-${kind}`,
+          studentId: s.id,
+          kind,
+          state: 'accepted',
+          token: token(r),
+          sentAt: back(sent),
+          openedAt: back(Math.max(uploaded, sent - 1 - Math.floor(r() * 3))),
+          uploadedAt: back(uploaded),
+          decidedAt: back(Math.max(0, uploaded - 1 - Math.floor(r() * 2))),
+          filename: `${kind}-${s.surname.toLowerCase()}.${r() < 0.5 ? 'pdf' : 'jpg'}`,
+          reason: null,
+          reminders: Math.floor(r() * 2),
+        });
+        return;
+      }
       const roll = r();
       const state: RequestState =
         roll < 0.08
@@ -155,10 +178,14 @@ export function buildRequests(students: Student[] = STUDENTS): DocRequest[] {
   return out;
 }
 
-/* The two piles that matter. Waiting on us is the one an admin can clear
-   today; waiting on them is the one that needs chasing. */
+/* The three piles. Waiting for verification is the one an admin can clear
+   today, waiting on them is the one that needs chasing, and accepted is the
+   evidence: what came in, who checked it, and when. */
 export const waitingOnUs = (rs: DocRequest[]) =>
   rs.filter((x) => x.state === 'uploaded');
+
+export const accepted = (rs: DocRequest[]) =>
+  rs.filter((x) => x.state === 'accepted');
 
 export const waitingOnThem = (rs: DocRequest[]) =>
   rs.filter((x) => x.state !== 'uploaded' && x.state !== 'accepted');
