@@ -347,6 +347,12 @@ export interface Staff {
   quals: string[];
   bands: AgeBand[];
   contractedHours: number;
+  /* The engagement itself: seasonal staff are hired for a stretch of the
+     season, not for all of it. A leader who starts in week three and a
+     teacher who leaves before the last changeover are both ordinary, and
+     rota'ing either outside those dates is the same kind of error as rota'ing
+     somebody who is away. */
+  contract: { from: string; to: string };
   safeguardingLead?: boolean;
   /* Days this person told the centre they cannot work. The rota builder is
      specced to flag against availability as well as qualifications and
@@ -360,62 +366,65 @@ export interface Away {
   reason: string;
 }
 
+/* Most of the team is hired for the whole season. */
+const FULL_SEASON = { from: iso(SEASON_START), to: iso(SEASON_END) };
+
 const NAMED_STAFF: Staff[] = [
   {
     id: 'st-01', forename: 'Kebba', surname: 'Sarr', role: 'Safeguarding lead',
     dob: '1989-03-14', age: 38, phone: '07700 900081', email: 'k.sarr@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8827 3390', issued: '2026-11-02', expires: '2028-11-02' },
     quals: ['Designated Safeguarding Lead', 'Paediatric first aid', 'Prevent awareness'],
-    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [], safeguardingLead: true,
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [], contract: FULL_SEASON, safeguardingLead: true,
   },
   {
     id: 'st-02', forename: 'Tomas', surname: 'Halvorsen', role: 'Activity manager',
     dob: '1994-07-22', age: 33, phone: '07700 900117', email: 't.halvorsen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 9034 1182', issued: '2027-01-19', expires: '2029-01-19' },
     quals: ['Beach lifeguard', 'Paediatric first aid', 'Level 2 coaching'],
-    bands: ['12–14', '15–17'], contractedHours: 40, away: [],
+    bands: ['12–14', '15–17'], contractedHours: 40, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-03', forename: 'Marta', surname: 'Salgado', role: 'Group leader',
     dob: '2001-11-08', age: 25, phone: '07700 900244', email: 'm.salgado@example-centre.test',
     dbs: { state: 'expiring', certificate: 'DBS 0041 7719 5540', issued: '2025-08-01', expires: '2027-07-31' },
     quals: ['Paediatric first aid', 'TEFL'],
-    bands: ['8–11', '12–14'], contractedHours: 37.5, away: [],
+    bands: ['8–11', '12–14'], contractedHours: 37.5, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-04', forename: 'Idris', surname: 'Okonjo', role: 'Group leader',
     dob: '2003-02-27', age: 24, phone: '07700 900318', email: 'i.okonjo@example-centre.test',
     dbs: { state: 'pending', certificate: null, issued: null, expires: null },
     quals: ['Paediatric first aid'],
-    bands: ['12–14'], contractedHours: 37.5, away: [],
+    bands: ['12–14'], contractedHours: 37.5, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-05', forename: 'Freya', surname: 'Lindqvist', role: 'Group leader',
     dob: '2002-05-30', age: 25, phone: '07700 900402', email: 'f.lindqvist@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8102 7741', issued: '2026-04-11', expires: '2028-04-11' },
     quals: ['Paediatric first aid', 'Duke of Edinburgh supervisor'],
-    bands: ['15–17'], contractedHours: 37.5, away: [],
+    bands: ['15–17'], contractedHours: 37.5, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-06', forename: 'Ravi', surname: 'Iyer', role: 'Activity instructor',
     dob: '1998-09-12', age: 28, phone: '07700 900556', email: 'r.iyer@example-centre.test',
     dbs: { state: 'missing', certificate: null, issued: null, expires: null },
     quals: ['Level 2 archery'],
-    bands: ['12–14', '15–17'], contractedHours: 30, away: [],
+    bands: ['12–14', '15–17'], contractedHours: 30, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-07', forename: 'Anouk', surname: 'Jansen', role: 'Welfare officer',
     dob: '1991-12-03', age: 35, phone: '07700 900613', email: 'a.jansen@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 8890 2214', issued: '2026-06-28', expires: '2028-06-28' },
     quals: ['Mental health first aid', 'Paediatric first aid'],
-    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [],
+    bands: ['8–11', '12–14', '15–17'], contractedHours: 40, away: [], contract: FULL_SEASON,
   },
   {
     id: 'st-08', forename: 'Luca', surname: 'Moretti', role: 'Group leader',
     dob: '2000-04-18', age: 27, phone: '07700 900728', email: 'l.moretti@example-centre.test',
     dbs: { state: 'cleared', certificate: 'DBS 0041 7994 6603', issued: '2026-09-15', expires: '2028-09-15' },
     quals: ['Paediatric first aid', 'Minibus D1'],
-    bands: ['8–11'], contractedHours: 37.5, away: [],
+    bands: ['8–11'], contractedHours: 37.5, away: [], contract: FULL_SEASON,
   },
 ];
 
@@ -475,6 +484,19 @@ function buildStaff(): Staff[] {
       bands: bandSets[Math.floor(r() * bandSets.length)],
       contractedHours: [37.5, 37.5, 40, 30, 25][Math.floor(r() * 5)],
       away: [],
+      /* Seven in ten are hired for the whole season. The rest start a week or
+         two in or leave before the last changeover, which is what a seasonal
+         roster actually looks like and what makes the last fortnight the hard
+         one to staff. */
+      contract: (() => {
+        const roll = r();
+        const lateWeeks = roll < 0.7 ? 0 : roll < 0.85 ? 1 : roll < 0.9 ? 2 : 0;
+        const earlyWeeks = roll < 0.7 ? 0 : roll < 0.85 ? 0 : roll < 0.95 ? 1 : 2;
+        return {
+          from: iso(addDays(SEASON_START, lateWeeks * 7)),
+          to: iso(addDays(SEASON_END, -earlyWeeks * 7)),
+        };
+      })(),
     });
   }
   return out;
@@ -676,6 +698,20 @@ function seedAway() {
   });
 }
 seedAway();
+
+/* Whether this day falls inside the person's engagement. Outside it they are
+   not staff yet, or not staff any more — which is stronger than being away. */
+export const inContract = (s: Staff, day: string) =>
+  day >= s.contract.from && day <= s.contract.to;
+
+export const contractWeeks = (s: Staff) =>
+  Math.round(
+    (new Date(s.contract.to).getTime() - new Date(s.contract.from).getTime()) /
+      (7 * 86400000),
+  );
+
+export const contractLabel = (s: Staff) =>
+  `${fmtDate(s.contract.from)} – ${fmtDate(s.contract.to)} · ${contractWeeks(s)} weeks`;
 
 export const isAway = (s: Staff, day: string) =>
   s.away.some((a) => day >= a.from && day <= a.to);

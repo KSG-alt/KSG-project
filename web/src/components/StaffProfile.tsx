@@ -4,11 +4,18 @@ import { IconCheck, IconClose, IconEdit } from '../lib/icons';
 import { useStore } from '../lib/store';
 import { LEVEL_COPY } from '../data/incidents';
 import { dutiesFor, dutyHours } from '../data/duty';
+
 import {
-  DEMO_TODAY, SLOTS, WEEKLY_LIMIT, WEEK_DAYS, activityById, dayHours, dayName,
-  fmtDate, fmtDateLong, fmtHours, groupById, isAway, sessionsFor, weeklyHours,
-  type Away, type DbsState, type Staff,
+  DEMO_TODAY, SLOTS, WEEKLY_LIMIT, WEEK_DAYS, activityById, contractWeeks,
+  dayHours, dayName, fmtDate, fmtDateLong, fmtHours, groupById, inContract,
+  isAway, sessionsFor, weeklyHours, type Away, type DbsState, type Staff,
 } from '../data/seed';
+
+/* The demo clock's date, for reading a contract against today. */
+const TODAY_ISO = (() => {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${DEMO_TODAY.getFullYear()}-${p(DEMO_TODAY.getMonth() + 1)}-${p(DEMO_TODAY.getDate())}`;
+})();
 
 type Tab = 'record' | 'week' | 'away' | 'history';
 
@@ -298,6 +305,40 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
               </p>
             </div>
           )}
+
+          <p className="label">Contract</p>
+          <dl className="pairs">
+            <div className="pairs__pair">
+              <dt>Engaged</dt>
+              <dd className="num">
+                {fmtDateLong(rec.contract.from)} – {fmtDateLong(rec.contract.to)}
+              </dd>
+            </div>
+            <div className="pairs__pair">
+              <dt>Length</dt>
+              <dd className="num">{contractWeeks(rec)} weeks</dd>
+            </div>
+            <div className="pairs__pair">
+              <dt>Contracted hours</dt>
+              <dd className="num">{fmtHours(rec.contractedHours)} a week</dd>
+            </div>
+            <div className="pairs__pair">
+              <dt>Today</dt>
+              <dd>
+                {inContract(rec, TODAY_ISO) ? (
+                  <span className="mark mark--clear">In contract</span>
+                ) : rec.contract.from > TODAY_ISO ? (
+                  <span className="mark mark--idle">
+                    Starts {fmtDate(rec.contract.from)}
+                  </span>
+                ) : (
+                  <span className="mark mark--critical">
+                    Finished {fmtDate(rec.contract.to)}
+                  </span>
+                )}
+              </dd>
+            </div>
+          </dl>
 
           <p className="label">Contact</p>
           <dl className="pairs">

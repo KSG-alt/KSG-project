@@ -20,7 +20,7 @@ import { BAND_RULES } from '../data/centre';
 import { buildDuties, type Duty } from '../data/duty';
 import {
   SESSIONS, STAFF, STUDENTS, WEEKLY_LIMIT, WEEK_DAYS, activityById, groupById,
-  isAway, weeklyHours, type Session, type Staff, type Student,
+  inContract, isAway, weeklyHours, type Session, type Staff, type Student,
 } from '../data/seed';
 
 export interface Candidate {
@@ -122,6 +122,16 @@ export function findCover(
         const name = `${x.forename} ${x.surname}`;
         if (x.dbs.state !== 'cleared') {
           blocked.push({ name, reason: `DBS is ${x.dbs.state}. Cannot be with students at all.` });
+          return;
+        }
+        if (!inContract(x, day)) {
+          blocked.push({
+            name,
+            reason:
+              day < x.contract.from
+                ? `Contract starts ${x.contract.from}. Not staff yet.`
+                : `Contract ended ${x.contract.to}. Already gone.`,
+          });
           return;
         }
         if (isAway(x, day)) {
@@ -329,6 +339,10 @@ export function selfCheck() {
     g.candidates.forEach((c) => {
       console.assert(c.staff.id !== busiest.id, `${g.id}: proposed the person who is off`);
       console.assert(c.staff.dbs.state === 'cleared', `${g.id}: proposed ${c.staff.forename} with an uncleared DBS`);
+      console.assert(
+        inContract(c.staff, day),
+        `${g.id}: proposed ${c.staff.forename}, whose contract does not cover ${day}`,
+      );
     });
     /* Nobody appears as both a candidate and a blocked name for one gap. */
     g.candidates.forEach((c) => {

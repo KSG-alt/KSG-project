@@ -4,13 +4,62 @@ import { StaffProfile, DBS_COPY } from '../components/StaffProfile';
 import { useStore } from '../lib/store';
 import { dutyHours } from '../data/duty';
 import {
-  DEMO_TODAY, WEEKLY_LIMIT, fmtDate, fmtHours, isAway, sessionsFor,
-  weeklyHours,
+  DEMO_TODAY, SEASON_END, SEASON_START, WEEKLY_LIMIT, contractWeeks, fmtDate,
+  fmtHours, inContract, isAway, sessionsFor, weeklyHours,
 } from '../data/seed';
 
 const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
 
-type View = 'all' | 'blocked' | 'clashes' | 'hours';
+type View = 'all' | 'blocked' | 'clashes' | 'hours' | 'contract';
+
+const SEASON_ISO = {
+  from: `${SEASON_START.getFullYear()}-${String(SEASON_START.getMonth() + 1).padStart(2, '0')}-${String(SEASON_START.getDate()).padStart(2, '0')}`,
+  to: `${SEASON_END.getFullYear()}-${String(SEASON_END.getMonth() + 1).padStart(2, '0')}-${String(SEASON_END.getDate()).padStart(2, '0')}`,
+};
+
+/* How long this person is actually engaged for, and whether that is the whole
+   season. The last fortnight of a season is hard to staff precisely because
+   this column is not the same for everybody. */
+function ContractMark({
+  from,
+  to,
+  weeks,
+}: {
+  from: string;
+  to: string;
+  weeks: number;
+}) {
+  const whole = from <= SEASON_ISO.from && to >= SEASON_ISO.to;
+  const ended = to < `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
+  const started = from <= `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
+  return (
+    <>
+      <span
+        className={`mark ${
+          ended ? 'mark--critical' : !started ? 'mark--idle' : whole ? 'mark--clear' : 'mark--overdue'
+        }`}
+      >
+        {weeks} weeks
+      </span>
+      <span className="meta num" style={{ display: 'block', color: 'var(--ink-3)' }}>
+        {fmtDate(from)} – {fmtDate(to)}
+      </span>
+      {!whole && (
+        <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
+          {ended
+            ? 'contract finished'
+            : !started
+              ? 'not started yet'
+              : from > SEASON_ISO.from && to < SEASON_ISO.to
+                ? 'joins late, leaves early'
+                : from > SEASON_ISO.from
+                  ? 'joins after the season opens'
+                  : 'leaves before the season ends'}
+        </span>
+      )}
+    </>
+  );
+}
 
 /* Rota'd hours against the contract. Payroll is out of scope (DECISIONS 0001)
    — this is the rota's own number, not pay. */
@@ -51,11 +100,23 @@ export function Staff() {
     sessionsFor(s.id, sessions).some((x) => isAway(s, x.day)),
   );
 
+  /* Rota'd on a day outside their engagement — before they start or after
+     they finish. Stronger than an availability clash: on those days they are
+     not staff at all. */
+  const outside = staff.filter((s) =>
+    sessionsFor(s.id, sessions).some((x) => !inContract(s, x.day)),
+  );
+
+  const partSeason = staff.filter(
+    (s) => s.contract.from > SEASON_ISO.from || s.contract.to < SEASON_ISO.to,
+  );
+
   const rows = staff
     .filter((s) => {
       if (view === 'blocked') return blocked.includes(s);
       if (view === 'clashes') return clashing.includes(s);
       if (view === 'hours') return total(s.id) > s.contractedHours;
+      if (view === 'contract') return partSeason.includes(s);
       return true;
     })
     .filter(
@@ -71,13 +132,14 @@ export function Staff() {
     { id: 'blocked', label: `Cannot be rota’d ${blocked.length}` },
     { id: 'clashes', label: `Availability clashes ${clashing.length}` },
     { id: 'hours', label: `Over contract ${staff.filter((s) => total(s.id) > s.contractedHours).length}` },
+    { id: 'contract', label: `Part season ${partSeason.length}` },
   ];
 
   return (
     <>
       <SectionHead
         title="Staff"
-        count={`${staff.length} on the roster · ${fmtHours(totalHours)} rota'd this week, activity and duty`}
+        count={`${staff.length} on the roster · ${fmtHours(totalHours)} rota'd this week · ${partSeason.length} on part-season contracts`}
       >
         <input
           className="field"
@@ -107,6 +169,13 @@ export function Staff() {
         <p className="mark mark--critical" style={{ marginBottom: 14 }}>
           {blocked.length} staff without a cleared DBS. They cannot be rota&rsquo;d
           with students.
+        </p>
+      )}
+
+      {outside.length > 0 && (
+        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+          {outside.length} staff are rota&rsquo;d on a day outside their
+          contract — before they start or after they finish.
         </p>
       )}
 
@@ -145,6 +214,7 @@ export function Staff() {
                 <th>Age</th>
                 <th style={{ width: '15%' }}>Role</th>
                 <th style={{ width: '12%' }}>Hours / week</th>
+                <th style={{ width: '14%' }}>Contract</th>
                 <th>Bands</th>
                 <th style={{ width: '20%' }}>DBS</th>
                 <th style={{ width: '14%' }}>Availability</th>
@@ -185,6 +255,13 @@ export function Staff() {
                         {fmtHours(dutyHours(s.id, duties))} duty · of{' '}
                         {fmtHours(s.contractedHours)}
                       </span>
+                    </td>
+                    <td>
+                      <ContractMark
+                        from={s.contract.from}
+                        to={s.contract.to}
+                        weeks={contractWeeks(s)}
+                      />
                     </td>
                     <td className="num meta">{s.bands.join(', ')}</td>
                     <td>

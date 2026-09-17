@@ -13,8 +13,8 @@
 
 import {
   ACTIVITIES, GROUPS, SESSIONS, SLOTS, SLOT_HOURS, STAFF, STUDENTS,
-  WEEKLY_LIMIT, activityById, groupById, isAway, weeklyHours, type Activity,
-  type Session,
+  WEEKLY_LIMIT, activityById, groupById, inContract, isAway, weeklyHours,
+  type Activity, type Session,
 } from '../data/seed';
 import { guideFor } from '../data/guides';
 import { roundTrip, routeLicences, venueFor } from '../data/venues';
@@ -292,6 +292,8 @@ export function generate(spec: Spec, all: Session[]): Draft {
         s.dbs.state === 'cleared' &&
         s.bands.includes(band as never) &&
         !DUTY_ROLES.includes(s.role) &&
+        /* Not yet started, or already finished, is not a staffing option. */
+        inContract(s, day) &&
         !isAway(s, day),
     );
 
@@ -590,6 +592,24 @@ export const groupName = (id: string) => groupById(id).name;
 /* One runnable check on the clause reader — the part that fails silently and
    produces a day missing an instruction nobody notices was given. */
 export function selfCheck() {
+  /* Nobody is drafted onto a day their engagement does not cover. Rota'ing
+     somebody who has already gone home reads as a full rota and is a hole. */
+  {
+    const day = WEEK_DAYS[2];
+    const d = generate({ day }, SESSIONS);
+    d.sessions
+      .filter((x) => x.day === day && x.origin === 'ai-draft')
+      .forEach((x) =>
+        x.staffIds.forEach((id) => {
+          const person = STAFF.find((p) => p.id === id);
+          console.assert(
+            person && inContract(person, day),
+            `${x.id}: ${person?.forename ?? id} drafted outside their contract`,
+          );
+        }),
+      );
+  }
+
   const day = '2027-07-12';
   const a = parseSpec('Redraft the day — no kayaking, and English for every group', day);
   console.assert(
@@ -781,6 +801,7 @@ export function fillDuty(
 
     const pool = STAFF.filter((s) => {
       if (s.dbs.state !== 'cleared') return false;
+      if (!inContract(s, duty.day)) return false;
       if (isAway(s, duty.day)) return false;
       if (clashes(s.id, duty.day, duty.start, duty.end)) return false;
       if (tooSoon(s.id, duty.day, duty.start)) return false;
