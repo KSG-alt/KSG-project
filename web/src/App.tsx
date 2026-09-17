@@ -83,7 +83,7 @@ function Shell() {
   const [route, setRoute] = useState<Route>(START);
   const [menu, setMenu] = useState(false);
   const [tick, setTick] = useState(0);
-  const { open, role, setRole, site, incidents } = useStore();
+  const { role, setRole, site } = useStore();
 
   const go = (r: Route) => {
     /* A reminder can point at a section this build does not carry — head
@@ -108,11 +108,7 @@ function Shell() {
     return () => window.removeEventListener('keydown', onKey);
   }, [route, menu]);
 
-  const critical = open.filter((r) => r.severity === 'safeguarding').length;
   const allowed = (r: Route) => role.sections.includes(r) && inSide(r);
-  const untold = incidents.filter(
-    (i) => i.level !== 'logged' && !i.dslInformedAt,
-  ).length;
 
   return (
     <>
@@ -151,24 +147,6 @@ function Shell() {
               <span className="bar__rolelong">as </span>
               {role.name.toLowerCase().replace('centre ', '')}
               <span className="bar__rolelong"> · leave</span>
-            </button>
-          )}
-          {untold > 0 && allowed('incidents') && (
-            <button
-              className="bar__count bar__count--critical"
-              onClick={() => go('incidents')}
-            >
-              {untold} untold
-            </button>
-          )}
-          {open.length > 0 && allowed('reminders') && (
-            <button
-              className={`bar__count bar__count--queue${
-                critical ? ' bar__count--critical' : ''
-              }`}
-              onClick={() => go('reminders')}
-            >
-              {open.length} outstanding
             </button>
           )}
           <span className="label bar__date">
