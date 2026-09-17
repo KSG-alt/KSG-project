@@ -648,7 +648,7 @@ export function roomReport(
 
   if (p.sharedBeds > 0) {
     lines.push(
-      `${p.sharedBeds} beds take a second student once the first has left — capacity you already had.`,
+      `${p.sharedBeds} bed${p.sharedBeds === 1 ? '' : 's'} take${p.sharedBeds === 1 ? 's' : ''} a second student once the first has left — capacity you already had.`,
     );
   }
 

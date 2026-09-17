@@ -2641,6 +2641,47 @@ span.fig {
   font-size: var(--t-xs);
 }
 
+/* ── The bed planner on the arrivals screen ────────────────────────────── */
+
+.planner {
+  margin: 0 0 26px;
+  padding: 18px 20px;
+  background: var(--paper-2);
+  border-radius: var(--r-lg);
+}
+
+.planner__head {
+  max-width: 76ch;
+}
+
+.planner__head .label {
+  margin: 0 0 6px;
+}
+
+.planner__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.planner__out {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--white);
+  border-radius: var(--r-sm);
+  box-shadow: var(--edge);
+}
+
+.planner__chat {
+  margin-top: 16px;
+}
+
+.planner__chat .chat {
+  height: 300px;
+}
+
 /* ── Payments: the platform suggests, a person decides ─────────────────── */
 
 .matches {
