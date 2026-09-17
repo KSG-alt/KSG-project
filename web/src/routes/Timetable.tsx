@@ -463,6 +463,67 @@ export function Timetable() {
         <ActivityGuide session={guideSession} onClose={() => setGuide(null)} />
       )}
 
+      <AskDock
+        title="Ask Kadia"
+        hint={
+          view === 'day'
+            ? 'draft the day, re-slot a session, find cover'
+            : view === 'week'
+              ? 'draft this week or next, to contract'
+              : view === 'duty'
+                ? 'fill the duty rota, level the hours'
+                : 'who is short, who is over, and why'
+        }
+        chips={
+          view === 'day'
+            ? [
+                'Redraft the day, nothing off site',
+                'Which sessions are below ratio?',
+              ]
+            : view === 'week'
+              ? [
+                  'Draft next week and fill everyone to their contracted hours',
+                  'Draft next week with nothing off site',
+                ]
+              : view === 'duty'
+                ? [
+                    'Draft the week and fill the duty rota to contract',
+                    'Draft next week and put everyone on 40 hours',
+                  ]
+                : [
+                    'Draft the week and fill everyone to their contracted hours',
+                    'How many hours is each staff member working this week?',
+                  ]
+        }
+        onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+      >
+      <Chat
+        system={`You shape a summer-school day timetable for a UK activity centre. Today is ${fmtDateLong(
+          DEMO_TODAY.toISOString(),
+        )}.
+
+Always call read_timetable before you change anything, and call list_options when you need valid slots, staff or activities. Use session ids exactly as read_timetable gives them.
+
+To build a whole day, call generate_timetable with the specifications the user gave — which groups, which slots, what to avoid, what every group must get, how much can be off site. It returns a could_not_do list: always report that list. A day with unmet constraints is not a finished day, and saying so is the point.
+
+Rules you must respect:
+- Never assign a staff member whose DBS is not "cleared".
+- An activity with a requiresQual needs a staff member holding that qualification.
+- Never assign somebody who is away that day, and never book one person into two groups in the same slot.
+- Cancelling re-slots that one group only. Never move other groups.
+- You draft; a human approves. Say plainly what you changed and what still needs a person's decision.
+Keep replies to a few short sentences. Use British English.`}
+        tools={tools}
+        greeting="Ask me to draft the day, with whatever the centre needs — no kayaking, English for every group, nothing off site. I build it and tell you what I could not do."
+        placeholder="e.g. Redraft the day, no kayaking, English for every group"
+        /* The dock's chips are the one list of automations; a second list
+           inside the chat is the same thing said twice. */
+        suggestions={[]}
+        localCommands={localTimetableCommand}
+        ask={ask}
+      />
+      </AskDock>
+
       <SectionHead title="Timetable" count={fmtDateLong(DEMO_TODAY.toISOString())}>
         <span className={`mark ${approved ? 'mark--clear' : 'mark--current'}`}>
           {approved
@@ -958,66 +1019,6 @@ export function Timetable() {
         })()}
 
         <aside className="tt__side">
-          <AskDock
-            title="Ask Kadia"
-            hint={
-              view === 'day'
-                ? 'draft the day, re-slot a session, find cover'
-                : view === 'week'
-                  ? 'draft this week or next, to contract'
-                  : view === 'duty'
-                    ? 'fill the duty rota, level the hours'
-                    : 'who is short, who is over, and why'
-            }
-            chips={
-              view === 'day'
-                ? [
-                    'Redraft the day, nothing off site',
-                    'Which sessions are below ratio?',
-                  ]
-                : view === 'week'
-                  ? [
-                      'Draft next week and fill everyone to their contracted hours',
-                      'Draft next week with nothing off site',
-                    ]
-                  : view === 'duty'
-                    ? [
-                        'Draft the week and fill the duty rota to contract',
-                        'Draft next week and put everyone on 40 hours',
-                      ]
-                    : [
-                        'Draft the week and fill everyone to their contracted hours',
-                        'How many hours is each staff member working this week?',
-                      ]
-            }
-            onAsk={(text) => setAsk({ text, nonce: Date.now() })}
-          >
-          <Chat
-            system={`You shape a summer-school day timetable for a UK activity centre. Today is ${fmtDateLong(
-              DEMO_TODAY.toISOString(),
-            )}.
-
-Always call read_timetable before you change anything, and call list_options when you need valid slots, staff or activities. Use session ids exactly as read_timetable gives them.
-
-To build a whole day, call generate_timetable with the specifications the user gave — which groups, which slots, what to avoid, what every group must get, how much can be off site. It returns a could_not_do list: always report that list. A day with unmet constraints is not a finished day, and saying so is the point.
-
-Rules you must respect:
-- Never assign a staff member whose DBS is not "cleared".
-- An activity with a requiresQual needs a staff member holding that qualification.
-- Never assign somebody who is away that day, and never book one person into two groups in the same slot.
-- Cancelling re-slots that one group only. Never move other groups.
-- You draft; a human approves. Say plainly what you changed and what still needs a person's decision.
-Keep replies to a few short sentences. Use British English.`}
-            tools={tools}
-            greeting="Ask me to draft the day, with whatever the centre needs — no kayaking, English for every group, nothing off site. I build it and tell you what I could not do."
-            placeholder="e.g. Redraft the day, no kayaking, English for every group"
-            /* The dock's chips are the one list of automations; a second list
-               inside the chat is the same thing said twice. */
-            suggestions={[]}
-            localCommands={localTimetableCommand}
-            ask={ask}
-          />
-          </AskDock>
 
           {sel ? (
             <div className="panel">

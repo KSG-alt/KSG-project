@@ -127,6 +127,29 @@ export function Arrivals() {
 
   return (
     <>
+      <AskDock
+        title="Ask Kadia to plan the beds"
+        hint="in words — it shows every move before anything is applied"
+        chips={[
+          'Give every student with no bed one',
+          'Give everyone arriving 19 July a bed',
+          'Plan the beds and never put two of the same language together',
+        ]}
+        onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+      >
+      <Chat
+        system={KADIA_SYSTEM}
+        tools={kadiaTools({
+          students, staff, sessions, bookings, incidents, payments, duties,
+        })}
+        greeting="Ask for beds in words — I plan them and show you what moves. Nothing is applied until you say so."
+        placeholder="e.g. Give everyone arriving Sunday a bed, ages within a year"
+        suggestions={[]}
+        localCommands={localBedCommand}
+        ask={ask}
+      />
+      </AskDock>
+
       <SectionHead
         title="New arrivals"
         count={
@@ -171,31 +194,6 @@ export function Arrivals() {
       {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
 
       <div className="planner">
-        <div className="planner__chat">
-          <AskDock
-            title="Ask Kadia to plan the beds"
-            hint="in words — it shows every move before anything is applied"
-            chips={[
-              'Give every student with no bed one',
-              'Give everyone arriving 19 July a bed',
-              'Plan the beds and never put two of the same language together',
-            ]}
-            onAsk={(text) => setAsk({ text, nonce: Date.now() })}
-          >
-          <Chat
-            system={KADIA_SYSTEM}
-            tools={kadiaTools({
-              students, staff, sessions, bookings, incidents, payments, duties,
-            })}
-            greeting="Ask for beds in words — I plan them and show you what moves. Nothing is applied until you say so."
-            placeholder="e.g. Give everyone arriving Sunday a bed, ages within a year"
-            suggestions={[]}
-            localCommands={localBedCommand}
-            ask={ask}
-          />
-          </AskDock>
-        </div>
-
         <div className="planner__head">
           <p className="label">Beds for these arrivals</p>
           <p className="meta">

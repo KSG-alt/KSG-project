@@ -78,6 +78,9 @@ export function Rooms() {
     const p = propose(live.current.students, rules, ROOMS, nextMode, scope);
     setMode(nextMode);
     setProposal(p);
+    /* A plan asked for from the room list is still a plan: show it where it
+       can be read and applied rather than leaving it behind a tab. */
+    setView('plan');
     return p;
   }
 
@@ -258,6 +261,39 @@ export function Rooms() {
 
   return (
     <>
+      <AskDock
+              title="Ask Kadia to plan the beds"
+              hint="it drafts; you apply. Nobody is moved without you"
+              chips={[
+                'Just fill the gaps, leave everyone else alone',
+                'Plan the beds and never put two of the same language together',
+                'Replan the 8–11 band from scratch, ages within 1 year',
+              ]}
+              onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+            >
+              <Chat
+                system={`You plan bed allocations for a residential summer school. Today is ${fmtDateLong(
+                  DEMO_TODAY.toISOString(),
+                )}.
+
+Call rooming_state before you answer anything about how the beds stand. Call plan_beds to draft an allocation — it returns what would change and what it could not do, and it applies nothing.
+
+Rules you must respect:
+- A room holds one age band.
+- A language school separates first languages on purpose. Two speakers of one language in a room is a bad outcome, not a neutral one.
+- 'fill-gaps' is the safe default: it places students with no bed and moves nobody who has one. Only use 'from-scratch' when the user has asked to replan, and say plainly how many settled students it would move.
+- Rooming by gender is NOT configured and you must not invent a policy for it. If asked, say it is specified by the centre in October and the planner does not consider it.
+- You draft; a person applies. Never call apply_plan unless the user has clearly asked you to apply it, and always say how many students move.
+Keep replies to a few short sentences. Use British English.`}
+                tools={tools}
+                greeting="Tell me how the rooms should work — mix the languages, keep ages close, just fill the gaps. I draft it and tell you what I could not do."
+                placeholder="e.g. Plan the beds, never two of the same language"
+                suggestions={[]}
+                localCommands={localRoomCommand}
+                ask={ask}
+              />
+            </AskDock>
+
       <SectionHead
         title="Room allocations"
         count={`${filled} of ${beds} beds · ${used.length} rooms in use across 3 houses`}
@@ -293,7 +329,7 @@ export function Rooms() {
         ))}
       </div>
 
-      {openStudent && (
+            {openStudent && (
         <StudentProfile id={openStudent} onClose={() => setOpenStudent(null)} />
       )}
       {openStaff && (
@@ -524,40 +560,6 @@ export function Rooms() {
             )}
             </div>
 
-            <aside className="beds__side">
-              <AskDock
-                title="Ask Kadia to plan the beds"
-                hint="it drafts; you apply. Nobody is moved without you"
-                chips={[
-                  'Just fill the gaps, leave everyone else alone',
-                  'Plan the beds and never put two of the same language together',
-                  'Replan the 8–11 band from scratch, ages within 1 year',
-                ]}
-                onAsk={(text) => setAsk({ text, nonce: Date.now() })}
-              >
-                <Chat
-                  system={`You plan bed allocations for a residential summer school. Today is ${fmtDateLong(
-                    DEMO_TODAY.toISOString(),
-                  )}.
-
-Call rooming_state before you answer anything about how the beds stand. Call plan_beds to draft an allocation — it returns what would change and what it could not do, and it applies nothing.
-
-Rules you must respect:
-- A room holds one age band.
-- A language school separates first languages on purpose. Two speakers of one language in a room is a bad outcome, not a neutral one.
-- 'fill-gaps' is the safe default: it places students with no bed and moves nobody who has one. Only use 'from-scratch' when the user has asked to replan, and say plainly how many settled students it would move.
-- Rooming by gender is NOT configured and you must not invent a policy for it. If asked, say it is specified by the centre in October and the planner does not consider it.
-- You draft; a person applies. Never call apply_plan unless the user has clearly asked you to apply it, and always say how many students move.
-Keep replies to a few short sentences. Use British English.`}
-                  tools={tools}
-                  greeting="Tell me how the rooms should work — mix the languages, keep ages close, just fill the gaps. I draft it and tell you what I could not do."
-                  placeholder="e.g. Plan the beds, never two of the same language"
-                  suggestions={[]}
-                  localCommands={localRoomCommand}
-                  ask={ask}
-                />
-              </AskDock>
-            </aside>
           </div>
         );
       })()}

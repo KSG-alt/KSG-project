@@ -2870,16 +2870,6 @@ span.fig {
   box-shadow: var(--edge);
 }
 
-/* Ask Kadia sits at the top of the planner: it is the fastest way to use it,
-   so it should not be the thing you scroll to. */
-.planner__chat {
-  margin: 0 0 16px;
-}
-
-.planner__chat .chat {
-  height: 300px;
-}
-
 /* ── Payments: the platform suggests, a person decides ─────────────────── */
 
 .matches {
@@ -4323,7 +4313,7 @@ span.fig {
 
 .beds {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 372px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 30px;
   align-items: start;
 }

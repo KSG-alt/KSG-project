@@ -13,10 +13,9 @@
 
 import { useMemo } from 'react';
 import type { Route } from '../App';
-import { Chat } from '../components/Chat';
+import { GlobalAsk } from '../components/GlobalAsk';
 import { ReminderList } from '../components/ReminderList';
 import { IconArrow } from '../lib/icons';
-import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
 import { useStore } from '../lib/store';
 import { buildRuns } from '../lib/transfers';
 import { hasRun, registerFor } from '../data/attendance';
@@ -66,9 +65,6 @@ export function Home({
     requests, flights, duties,
   } = useStore();
 
-  const tools = kadiaTools({
-    students, staff, sessions, bookings, incidents, payments, duties,
-  });
   const critical = open.filter((r) => r.severity === 'safeguarding');
   const onSite = students.filter((s) => isOnSite(s));
 
@@ -231,6 +227,8 @@ export function Home({
       </header>
 
       <div className="stage">
+        {/* The same pill as every other section, in the same place. */}
+        <GlobalAsk route="home" />
         <div className="figs">
           {figures.map((f) => (
             <button
@@ -321,26 +319,6 @@ export function Home({
           </section>
         </div>
 
-        <section className="slab slab--chat" aria-label="Ask Kadia">
-          <div className="slab__head">
-            <h2 className="slab__title">Ask Kadia</h2>
-            <button className="btn btn--quiet" onClick={() => onGo('kadia')}>
-              Open full screen
-              <IconArrow />
-            </button>
-          </div>
-          <Chat
-            system={KADIA_SYSTEM}
-            tools={tools}
-            greeting="Ask anything about the centre — I read the real records."
-            placeholder="e.g. Who is arriving Sunday without documents?"
-            suggestions={[
-              'What needs my attention today?',
-              'Which staff cannot be rota’d, and why?',
-              'Which registers are missing?',
-            ]}
-          />
-        </section>
       </div>
     </main>
   );

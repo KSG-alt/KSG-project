@@ -11,9 +11,8 @@
 
 import { useMemo } from 'react';
 import type { Route } from '../App';
-import { Chat } from '../components/Chat';
+import { GlobalAsk } from '../components/GlobalAsk';
 import { IconArrow } from '../lib/icons';
-import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
 import { useStore } from '../lib/store';
 import { money } from '../lib/season';
 import { needsEscalation } from '../lib/reminders';
@@ -46,9 +45,6 @@ export function OfficeHome({
     administrations, open, duties,
   } = useStore();
 
-  const tools = kadiaTools({
-    students, staff, sessions, bookings, incidents, payments, duties,
-  });
 
   const purse = useMemo(
     () => money(students, payments, bookings),
@@ -165,6 +161,8 @@ export function OfficeHome({
       </header>
 
       <div className="stage">
+        {/* The same pill as every other section, in the same place. */}
+        <GlobalAsk route="home" />
         <div className="hero__grid">
           <section className="slab" aria-labelledby="desk-head">
             <div className="slab__head">
@@ -355,26 +353,6 @@ export function OfficeHome({
           </section>
         </div>
 
-        <section className="slab slab--chat" aria-label="Ask Kadia">
-          <div className="slab__head">
-            <h2 className="slab__title">Ask Kadia</h2>
-            <button className="btn btn--quiet" onClick={() => onGo('kadia')}>
-              Open full screen
-              <IconArrow />
-            </button>
-          </div>
-          <Chat
-            system={KADIA_SYSTEM}
-            tools={tools}
-            greeting="Ask across every centre — records, money, staffing, documents."
-            placeholder="e.g. Which children arrive this week without a verified health record?"
-            suggestions={[
-              'Which students owe money and arrive this week?',
-              'Which staff cannot be rota’d, and why?',
-              'How many hours is each staff member working this week?',
-            ]}
-          />
-        </section>
       </div>
     </main>
   );

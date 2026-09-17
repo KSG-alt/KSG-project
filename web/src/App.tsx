@@ -23,6 +23,7 @@ import {
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { Office } from './routes/Office';
+import { GlobalAsk } from './components/GlobalAsk';
 import { OfficeHome } from './routes/OfficeHome';
 import { OPERATOR, SIDE, START, inSide } from './lib/side';
 import { StoreProvider, useStore } from './lib/store';
@@ -192,6 +193,10 @@ function Shell() {
         )
       ) : (
         <main key={tick} id="main" className="page">
+          {/* One Ask Kadia on every section, in the same place. Screens with
+              a planner of their own carry their own dock instead. */}
+          <GlobalAsk route={route} />
+
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
           {route === 'arrivals' && <Arrivals />}
