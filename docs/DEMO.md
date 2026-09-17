@@ -1,12 +1,11 @@
 # The standalone demos
 
-Three files, one build. Double-click any of them, or attach one to an email.
+Two files, one build. Double-click any of them, or attach one to an email.
 No server, no install, no network.
 
 | File | Who it is for | Opens as |
 | --- | --- | --- |
 | `docs/kadia-demo-centre.html` | A centre director or administrator | The centre's day, as centre administrator |
-| `docs/kadia-demo-head-office.html` | The senior team | Its own home screen, as head office welfare |
 | `docs/kadia-demo.html` | Internal, and anyone who wants both halves | The centre's day, with Head office reachable by switching role |
 
 The two sides are the same application with a different audience. The centre

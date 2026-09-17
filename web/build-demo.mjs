@@ -19,7 +19,6 @@ const DIST = 'dist';
 const BUILDS = [
   { side: 'both', out: '../docs/kadia-demo.html', label: 'Centre and head office' },
   { side: 'centre', out: '../docs/kadia-demo-centre.html', label: 'Centre' },
-  { side: 'office', out: '../docs/kadia-demo-head-office.html', label: 'Head office' },
 ];
 
 const assets = await readdir(join(DIST, 'assets'));
