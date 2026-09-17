@@ -154,9 +154,6 @@ export function OfficeHome({
             Open head office
             <IconArrow />
           </button>
-          <button className="btn btn--butter" onClick={() => onGo('kadia')}>
-            Ask Kadia
-          </button>
         </div>
       </header>
 

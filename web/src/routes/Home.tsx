@@ -220,9 +220,6 @@ export function Home({
             Open reminders
             <IconArrow />
           </button>
-          <button className="btn btn--butter" onClick={() => onGo('kadia')}>
-            Ask Kadia
-          </button>
         </div>
       </header>
 
