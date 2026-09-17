@@ -169,11 +169,28 @@ export function Arrivals() {
       {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
 
       <div className="planner">
+        <div className="planner__chat">
+          <Chat
+            system={KADIA_SYSTEM}
+            tools={kadiaTools({
+              students, staff, sessions, bookings, incidents, payments, duties,
+            })}
+            greeting="Ask for beds in words — I plan them and show you what moves. Nothing is applied until you say so."
+            placeholder="e.g. Give everyone arriving Sunday a bed, ages within a year"
+            suggestions={[
+              'Give every student with no bed one',
+              'Plan the beds and never put two of the same language together',
+              'Plan the beds without reusing any bed between stays',
+            ]}
+            localCommands={localBedCommand}
+          />
+        </div>
+
         <div className="planner__head">
           <p className="label">Beds for these arrivals</p>
           <p className="meta">
             {noBed.length === 0
-              ? 'Everybody in this view has a bed. Replan an arrival day below if the beds need to move.'
+              ? 'Everybody in this view has a bed. Replan an arrival day if the beds need to move.'
               : `${noBed.length} of ${rows.length} in this view have no bed. A student with nowhere to sleep cannot be admitted, so this is the one that has to clear before the day itself.`}
           </p>
         </div>
@@ -261,22 +278,6 @@ export function Arrivals() {
           </div>
         )}
 
-        <div className="planner__chat">
-          <Chat
-            system={KADIA_SYSTEM}
-            tools={kadiaTools({
-              students, staff, sessions, bookings, incidents, payments, duties,
-            })}
-            greeting="Ask for beds in words — I plan them and show you what moves. Nothing is applied until you say so."
-            placeholder="e.g. Give everyone arriving Sunday a bed, ages within a year"
-            suggestions={[
-              'Give every student with no bed one',
-              'Plan the beds and never put two of the same language together',
-              'Plan the beds without reusing any bed between stays',
-            ]}
-            localCommands={localBedCommand}
-          />
-        </div>
       </div>
 
       {blocked.length > 0 && (

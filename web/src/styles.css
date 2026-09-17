@@ -1291,8 +1291,11 @@ span.fig {
   .tt {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Stacked, Ask Kadia goes above the grid rather than under a day's worth
+     of scrolling. */
   .tt__side {
     position: static;
+    order: -1;
   }
 }
 
@@ -2704,8 +2707,10 @@ span.fig {
   box-shadow: var(--edge);
 }
 
+/* Ask Kadia sits at the top of the planner: it is the fastest way to use it,
+   so it should not be the thing you scroll to. */
 .planner__chat {
-  margin-top: 16px;
+  margin: 0 0 16px;
 }
 
 .planner__chat .chat {
@@ -4187,6 +4192,7 @@ span.fig {
   }
   .beds__side {
     position: static;
+    order: -1;
   }
 }
 
