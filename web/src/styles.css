@@ -2674,17 +2674,23 @@ span.fig {
   font-size: var(--t-xs);
 }
 
-/* ── Ask Kadia, as a small window ──────────────────────────────────────── */
+/* ── Ask Kadia, as a small window ──────────────────────────────────────────
+   Closed, it is one slim line — an outline, not a panel. Open, it becomes a
+   card with the conversation in it. The difference between the two states is
+   the whole point: it should cost nothing to leave on screen.
+   ────────────────────────────────────────────────────────────────────────── */
 
 .dock {
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  background: var(--paper-2);
-  border-radius: var(--r-lg);
-  box-shadow: var(--edge);
+  margin: 0 0 14px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: box-shadow 200ms var(--ease-ui), background 200ms var(--ease-ui),
+    border-radius 200ms var(--ease-ui);
 }
 
 .dock--open {
+  border-radius: var(--r-lg);
   background: var(--white);
   box-shadow: var(--edge), var(--shadow-1);
 }
@@ -2692,59 +2698,78 @@ span.fig {
 .dock__bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 6px 0 12px;
+}
+
+.dock--open .dock__bar {
+  padding: 4px 8px 0 14px;
 }
 
 .dock__open {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
-  padding: 4px 2px;
+  padding: 0;
   background: none;
   border: none;
   text-align: left;
-  color: var(--ink);
+  color: var(--ink-2);
   cursor: pointer;
+  transition: color 160ms var(--ease-ui);
+}
+
+.dock__open:hover {
+  color: var(--ink);
 }
 
 .dock__open svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   flex: 0 0 auto;
+  opacity: 0.75;
 }
 
 .dock__title {
-  font-size: var(--t-sm);
+  font-size: var(--t-xs);
   font-weight: 500;
-}
-
-.dock__hint {
-  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dock__close {
-  flex: 0 0 auto;
+.dock__hint {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--t-xs);
+  color: var(--ink-3);
 }
 
-.dock__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+.dock__hint::before {
+  content: '·';
+  margin-right: 6px;
 }
 
 .dock__chip {
-  padding: 6px 12px;
-  background: var(--white);
+  flex: 0 0 auto;
+  max-width: 44%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 11px;
+  margin: 4px 0;
+  background: var(--paper-2);
   border: none;
   border-radius: var(--r-pill);
-  box-shadow: var(--edge-strong);
-  color: var(--ink);
+  color: var(--ink-2);
   font-size: var(--t-xs);
   cursor: pointer;
   transition: background 160ms var(--ease-ui), color 160ms var(--ease-ui);
@@ -2755,13 +2780,48 @@ span.fig {
   color: var(--paper);
 }
 
-.dock__body {
-  margin-top: 12px;
+.dock__close {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.dock__close:hover {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.dock__close svg {
+  width: 14px;
+  height: 14px;
 }
 
 .dock__body .chat {
-  height: 340px;
+  height: 320px;
   margin: 0;
+  border: none;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  background: transparent;
+  box-shadow: none;
+  border-top: 1px solid var(--rule-faint);
+}
+
+/* A phone has no room for a hint and a chip beside the title. It keeps the
+   line; everything else is behind the tap. */
+@media (max-width: 720px) {
+  .dock__hint,
+  .dock__chip {
+    display: none;
+  }
 }
 
 /* ── The bed planner on the arrivals screen ────────────────────────────── */

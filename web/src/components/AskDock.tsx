@@ -1,8 +1,9 @@
 /* ── The small window ─────────────────────────────────────────────────────
-   A chat panel that is always open takes the top of a screen and gives back
-   nothing until somebody types in it. This is the opposite: one line at the
-   top saying what it can do, a few chips for the automations this screen
-   actually runs, and a window that opens when there is something to say.
+   One slim line at the top of a screen: what it can be asked for, and the
+   automations this screen actually runs. It opens when there is something to
+   say and gets out of the way when there is not — a chat panel held open all
+   day takes the best space on the screen and gives nothing back until
+   somebody types in it.
 
    Clicking a chip opens it and asks for that automation in the same motion,
    so the common jobs are one click and the uncommon ones are a sentence.
@@ -34,15 +35,31 @@ export function AskDock({
           className="dock__open"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
+          title={open ? 'Close Ask Kadia' : `${title} — ${hint}`}
         >
           <IconKadia />
           <span className="dock__title">{title}</span>
-          <span className="meta dock__hint">{hint}</span>
+          {!open && <span className="dock__hint">{hint}</span>}
         </button>
+
+        {!open &&
+          chips.slice(0, 2).map((c) => (
+            <button
+              key={c}
+              className="dock__chip"
+              title={c}
+              onClick={() => {
+                setOpen(true);
+                onAsk(c);
+              }}
+            >
+              {c.length > 34 ? `${c.slice(0, 32)}…` : c}
+            </button>
+          ))}
 
         {open && (
           <button
-            className="btn btn--quiet dock__close"
+            className="dock__close"
             onClick={() => setOpen(false)}
             aria-label="Close Ask Kadia"
           >
@@ -50,23 +67,6 @@ export function AskDock({
           </button>
         )}
       </div>
-
-      {!open && (
-        <div className="dock__chips">
-          {chips.map((c) => (
-            <button
-              key={c}
-              className="dock__chip"
-              onClick={() => {
-                setOpen(true);
-                onAsk(c);
-              }}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Kept mounted once opened, so closing the window does not throw the
           conversation away. */}
