@@ -55,8 +55,16 @@ function rng(seed: number) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
+/* The roll is who is HERE on the day, not everybody ever booked into the
+   group. A register of thirty-five when twenty-five have arrived marks ten
+   children present who are still in another country. */
 export const rollFor = (session: Session, students: Student[] = STUDENTS) =>
-  students.filter((s) => s.groupId === session.groupId);
+  students.filter(
+    (s) =>
+      s.groupId === session.groupId &&
+      s.arrival <= session.day &&
+      s.leaving >= session.day,
+  );
 
 /* Registers for sessions that have already happened today, plus nothing for
    the ones still to come — which is the point: the screen has to show what

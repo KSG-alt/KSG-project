@@ -21,7 +21,8 @@ export function Bookings() {
   /* From the store, so a receipt attached here clears the reminder chasing
      it on the reminders screen. */
   const { bookings, updateBookings } = useStore();
-  const setBookings = (fn: (all: Booking[]) => Booking[]) => updateBookings(fn);
+  const setBookings = (fn: (all: Booking[]) => Booking[], note?: string) =>
+    updateBookings(fn, note);
   const [pending, setPending] = useState<string | null>(null);
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -37,23 +38,35 @@ export function Bookings() {
       attachedAt: DEMO_TODAY_ISO,
       attachedBy: 'Ismail',
     };
-    setBookings((all) => all.map((b) => (b.id === id ? { ...b, receipt } : b)));
+    const b = bookings.find((x) => x.id === id);
+    setBookings(
+      (all) => all.map((x) => (x.id === id ? { ...x, receipt } : x)),
+      b ? `Receipt ${receipt.filename} attached to ${b.reference} — ${b.supplier}, ${fmtMoney(b.costPence)}.` : undefined,
+    );
   }
 
   function detach(id: string) {
-    setBookings((all) =>
-      all.map((b) =>
-        b.id === id ? { ...b, receipt: null, status: 'draft' as const } : b,
-      ),
+    const b = bookings.find((x) => x.id === id);
+    setBookings(
+      (all) =>
+        all.map((x) =>
+          x.id === id ? { ...x, receipt: null, status: 'draft' as const } : x,
+        ),
+      b ? `Receipt removed from ${b.reference} — back to draft, and it cannot be confirmed until another is attached.` : undefined,
     );
   }
 
   function confirm(id: string) {
-    setBookings((all) =>
-      all.map((b) =>
-        /* The gate. A booking with no receipt cannot reach confirmed. */
-        b.id === id && b.receipt ? { ...b, status: 'confirmed' as const } : b,
-      ),
+    const b = bookings.find((x) => x.id === id);
+    setBookings(
+      (all) =>
+        all.map((x) =>
+          /* The gate. A booking with no receipt cannot reach confirmed. */
+          x.id === id && x.receipt ? { ...x, status: 'confirmed' as const } : x,
+        ),
+      b?.receipt
+        ? `${b.reference} confirmed — ${b.supplier}, ${fmtMoney(b.costPence)} against receipt ${b.receipt.filename}.`
+        : undefined,
     );
     setPending(null);
   }

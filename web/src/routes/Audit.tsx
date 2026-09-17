@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { useStore } from '../lib/store';
 import { CATEGORY_LABEL, toCsv, type AuditCategory } from '../lib/audit';
+import { demoIso } from '../data/seed';
 
 type Filter = AuditCategory | 'all';
 
@@ -40,7 +41,9 @@ export function Audit() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kadia-audit-trail-${new Date().toISOString().slice(0, 10)}.csv`;
+    /* The demo clock, not the wall clock. A 2027 season exported under
+       today's real date reads as broken data. */
+    a.download = `kadia-audit-trail-${demoIso()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

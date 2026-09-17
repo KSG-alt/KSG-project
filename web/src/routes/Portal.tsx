@@ -4,8 +4,8 @@ import { StudentProfile } from '../components/StudentProfile';
 import { useStore } from '../lib/store';
 import { IconCheck, IconClose, IconSend } from '../lib/icons';
 import {
-  DOC_LABEL, DOC_WHY, STATE_COPY, linkFor, waitingOnThem, waitingOnUs,
-  type DocRequest,
+  DOC_LABEL, DOC_WHY, STATE_COPY, linkFor, neverOpened, waitingOnThem,
+  waitingOnUs, type DocRequest,
 } from '../data/portal';
 import { fmtDate, fmtDateLong } from '../data/seed';
 
@@ -54,7 +54,12 @@ export function Portal() {
     <>
       <SectionHead
         title="Document portal"
-        count={`${waitingOnUs(requests).length} to check · ${waitingOnThem(requests).length} outstanding · ${requests.filter((r) => r.state === 'accepted').length} accepted`}
+        /* Accepted requests leave the board the moment they are accepted —
+           the document goes in on the student record and the row is done — so
+           an "accepted" counter on this screen can only ever read zero on
+           open. Never opened is the number worth carrying instead: chased
+           twice and never opened is usually a wrong address. */
+        count={`${waitingOnUs(requests).length} to check · ${waitingOnThem(requests).length} outstanding · ${neverOpened(requests).length} never opened`}
       >
         <input
           className="field"

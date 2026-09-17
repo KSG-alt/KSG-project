@@ -34,7 +34,14 @@ export function checkRatio(
 ): RatioVerdict {
   const { students, staff } = records;
   const group = GROUPS.find((g) => g.id === session.groupId)!;
-  const headcount = students.filter((s) => s.groupId === group.id).length;
+  /* Who is actually here on the day of the session. Counting everybody ever
+     booked into the group demanded staff for children still at home, and put
+     them on the register as present — a ratio computed against absent
+     children is not a ratio, and a register naming them is worse. */
+  const headcount = students.filter(
+    (s) =>
+      s.groupId === group.id && s.arrival <= session.day && s.leaving >= session.day,
+  ).length;
   const required = Math.ceil(headcount / group.ratio);
   const assigned = session.staffIds.length;
   const reasons: string[] = [];

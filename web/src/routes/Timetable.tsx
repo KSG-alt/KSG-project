@@ -11,6 +11,8 @@ import {
   type Spec,
 } from '../lib/schedule';
 import { DUTY_PATTERNS, dutyHours, dutyWeek, isChangeover } from '../data/duty';
+import { rollFor } from '../data/attendance';
+import { OPERATOR } from '../lib/side';
 import type { ToolSpec } from '../lib/anthropic';
 import {
   ACTIVITIES, DEMO_TODAY, GROUPS, SESSIONS, SLOTS, STAFF, WEEKLY_LIMIT,
@@ -60,6 +62,25 @@ export function Timetable() {
     [sessions],
   );
 
+  /* A group larger than the activity holds. Not a ratio breach and not a
+     reason to refuse the day — it is a reason to run the session in waves, or
+     to put the group somewhere that fits. Capacity has been in the activity
+     record all along and nothing read it, so thirty-nine children were
+     timetabled onto a sixteen-place climbing wall and the screen said nothing. */
+  const tooBig = useMemo(
+    () =>
+      sessions
+        .filter((s) => s.status !== 'cancelled')
+        .map((s) => ({
+          session: s,
+          roll: rollFor(s, students).length,
+          capacity: activityById(s.activityId).capacity,
+        }))
+        .filter((x) => x.roll > x.capacity)
+        .sort((a, b) => b.roll - b.capacity - (a.roll - a.capacity)),
+    [sessions, students],
+  );
+
   function note(line: string) {
     setLog((l) => [line, ...l].slice(0, 8));
   }
@@ -99,7 +120,11 @@ export function Timetable() {
         });
       }
       return next;
-    });
+    },
+    laterFree.length
+      ? `${activityById(target.activityId).name} cancelled for ${group.name} at ${target.start} — ${reason}. Re-slotted to ${laterFree[0]}; no other group touched.`
+      : `${activityById(target.activityId).name} cancelled for ${group.name} at ${target.start} — ${reason}. No free slot left today, nothing re-slotted.`,
+    );
 
     note(
       laterFree.length
@@ -112,17 +137,26 @@ export function Timetable() {
   function move(id: string, start: string) {
     const slot = SLOTS.find((sl) => sl.start === start);
     if (!slot) return;
-    setSessions((all) =>
-      all.map((s) =>
-        s.id === id ? { ...s, start: slot.start, end: slot.end, origin: 'manual' } : s,
-      ),
+    const target = live.current.find((s) => s.id === id);
+    setSessions(
+      (all) =>
+        all.map((s) =>
+          s.id === id ? { ...s, start: slot.start, end: slot.end, origin: 'manual' } : s,
+        ),
+      target
+        ? `${activityById(target.activityId).name} for ${groupById(target.groupId).name} moved from ${target.start} to ${slot.start} by hand.`
+        : undefined,
     );
     setApproved(false);
   }
 
   function setStaff(id: string, staffIds: string[]) {
-    setSessions((all) =>
-      all.map((s) => (s.id === id ? { ...s, staffIds, origin: 'manual' } : s)),
+    const target = live.current.find((s) => s.id === id);
+    setSessions(
+      (all) => all.map((s) => (s.id === id ? { ...s, staffIds, origin: 'manual' } : s)),
+      target
+        ? `${activityById(target.activityId).name} for ${groupById(target.groupId).name} at ${target.start} — staffing changed by hand to ${staffIds.length} on the session.`
+        : undefined,
     );
     setApproved(false);
   }
@@ -325,7 +359,10 @@ export function Timetable() {
      generate a timetable rather than only describe one. */
   function draft(spec: Spec, parsed?: ReturnType<typeof parseSpec>) {
     const d = generate(spec, live.current);
-    setSessions(() => d.sessions);
+    setSessions(
+      () => d.sessions,
+      `Day redrafted by Kadia — ${d.made} sessions made, ${d.replaced} replaced, ${d.unmet.length} left unresolved. Drafted, not approved.`,
+    );
     setApproved(false);
     note(
       `Redrafted — ${d.made} sessions made, ${d.replaced} replaced, ` +
@@ -336,7 +373,10 @@ export function Timetable() {
 
   function draftWeek(spec: Omit<Spec, 'day'>, target: HoursTarget, parsed?: ReturnType<typeof parseSpec>) {
     const w = generateWeek(spec, live.current, duties, target);
-    setSessions(() => w.sessions);
+    setSessions(
+      () => w.sessions,
+      `Week redrafted by Kadia — ${w.sessions.filter((x) => WEEK_DAYS.includes(x.day)).length} sessions across ${WEEK_DAYS.length} days and ${fmtHours(w.activityHours + w.dutyHours)} rota'd, ${w.unmet.length} left unresolved. Drafted, not approved.`,
+    );
     setDuties(w.duties);
     setApproved(false);
     note(
@@ -396,12 +436,20 @@ export function Timetable() {
 
       <SectionHead title="Timetable" count={fmtDateLong(DEMO_TODAY.toISOString())}>
         <span className={`mark ${approved ? 'mark--clear' : 'mark--current'}`}>
-          {approved ? 'Approved by Ismail' : `${drafted} sessions drafted, not approved`}
+          {approved
+            ? `Approved by ${OPERATOR}`
+            : `${drafted} sessions drafted, not approved`}
         </span>
         <button
           className="btn btn--primary"
           disabled={approved || breaches.length > 0}
-          onClick={() => setApproved(true)}
+          onClick={() => {
+            setApproved(true);
+            setSessions(
+              (all) => all,
+              `Day approved by ${OPERATOR} — ${sessions.filter((s) => s.status !== 'cancelled').length} sessions, ratios checked, ${tooBig.length} over capacity accepted.`,
+            );
+          }}
           title={
             breaches.length > 0
               ? 'Clear the ratio breaches before approving.'
@@ -418,6 +466,28 @@ export function Timetable() {
           ratio or staffed by an uncleared DBS. A person decides this, not the
           draft.
         </p>
+      )}
+
+      {tooBig.length > 0 && (
+        <div className="alert alert--warn">
+          <p className="label">
+            {tooBig.length} session{tooBig.length > 1 ? 's' : ''} put more
+            children in than the activity holds
+          </p>
+          <ul className="log">
+            {tooBig.slice(0, 4).map(({ session: s, roll, capacity }) => (
+              <li key={s.id}>
+                <strong>
+                  {activityById(s.activityId).name} · {groupById(s.groupId).name} at{' '}
+                  {s.start}
+                </strong>{' '}
+                — {roll} on the roll, it holds {capacity}. Run it in{' '}
+                {Math.ceil(roll / capacity)} waves, split the group, or put them
+                somewhere that fits.
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <div className="tabs" role="tablist" aria-label="Rota view">

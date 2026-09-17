@@ -13,7 +13,8 @@
 
 import {
   ACTIVITIES, GROUPS, SESSIONS, SLOTS, SLOT_HOURS, STAFF, STUDENTS,
-  WEEKLY_LIMIT, activityById, groupById, isAway, weeklyHours, type Session,
+  WEEKLY_LIMIT, activityById, groupById, isAway, weeklyHours, type Activity,
+  type Session,
 } from '../data/seed';
 import { guideFor } from '../data/guides';
 import { roundTrip, routeLicences, venueFor } from '../data/venues';
@@ -322,7 +323,11 @@ export function generate(spec: Spec, all: Session[]): Draft {
   const overCapacity = new Set<string>();
 
   groups.forEach((g, gi) => {
-    const headcount = STUDENTS.filter((s) => s.groupId === g.id).length;
+    /* On site on the day being drafted — staffing a group for children who
+       have not arrived buys nothing and costs a person. */
+    const headcount = STUDENTS.filter(
+      (s) => s.groupId === g.id && s.arrival <= day && s.leaving >= day,
+    ).length;
     const required = Math.ceil(headcount / g.ratio);
     const used = new Set<string>(
       keep.filter((s) => s.groupId === g.id).map((s) => s.activityId),
@@ -380,10 +385,20 @@ export function generate(spec: Spec, all: Session[]): Draft {
       const offset = rest.length
         ? (gi * 3 + si * 2 + gi) % rest.length
         : 0;
+      /* Within that rotation, anything big enough for the group goes first.
+         Capacity has been on the activity record from the start and nothing
+         read it, so a group of thirty-nine was drafted onto a sixteen-place
+         climbing wall. A group that fits nowhere still gets a session — it is
+         run in waves, and the screen says so — but it is the last resort
+         rather than the first pick. */
+      const fits = (a: Activity) => a.capacity >= headcount;
+      const byFit = (list: Activity[]) => [
+        ...list.filter(fits),
+        ...list.filter((a) => !fits(a)),
+      ];
       const ordered = [
-        ...candidates.filter((a) => wanted.includes(a.id)),
-        ...rest.slice(offset),
-        ...rest.slice(0, offset),
+        ...byFit(candidates.filter((a) => wanted.includes(a.id))),
+        ...byFit([...rest.slice(offset), ...rest.slice(0, offset)]),
       ];
 
       if (!ordered.length) {

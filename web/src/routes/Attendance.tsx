@@ -63,7 +63,10 @@ export function Attendance() {
     <>
       <SectionHead
         title="Attendance"
-        count={`${registers.filter((r) => r.takenBy).length} of ${registers.length} registers taken · ${allAbsent.length} unaccounted for`}
+        /* Counted against the sessions that have actually STARTED, not
+           against the register rows that happen to exist — "4 of 5" beside a
+           tab reading "Today 20" is a screen arguing with itself. */
+        count={`${today.filter((s) => hasRun(s) && registerFor(registers, s.id)?.takenBy).length} of ${today.filter((s) => hasRun(s)).length} registers taken so far · ${today.length - today.filter((s) => hasRun(s)).length} sessions still to run · ${allAbsent.length} unaccounted for`}
       />
 
       <p className="meta section__lede">
@@ -76,7 +79,8 @@ export function Attendance() {
 
       {missing.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 12 }}>
-          {missing.length} sessions ran today with no register at all
+          {missing.length} session{missing.length === 1 ? '' : 's'} ran today
+          with no register at all
         </p>
       )}
       {open.length > 0 && (

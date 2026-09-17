@@ -47,16 +47,20 @@ interface Store {
   /* Shared, because a session cancelled on the timetable has to lower the
      rota hours the staff screen reports. */
   sessions: Session[];
-  updateSessions: (fn: (all: Session[]) => Session[]) => void;
+  /* `note` is what goes in the audit trail. The updater cannot describe the
+     change — only the caller knows whether it cancelled a session, re-slotted
+     one or drafted a whole day — so the caller says, and the trail stops
+     being a partial record of what happened. */
+  updateSessions: (fn: (all: Session[]) => Session[], note?: string) => void;
 
   /* Bookings live here too, so a receipt attached on one screen clears the
      reminder chasing it on another. */
   bookings: Booking[];
-  updateBookings: (fn: (all: Booking[]) => Booking[]) => void;
+  updateBookings: (fn: (all: Booking[]) => Booking[], note?: string) => void;
 
   /* Flights, so a delay entered once moves every run that depends on it. */
   flights: Flight[];
-  updateFlights: (fn: (all: Flight[]) => Flight[]) => void;
+  updateFlights: (fn: (all: Flight[]) => Flight[], note?: string) => void;
 
   /* Document requests. Accepting one marks the document in on the student
      record, which is what closes its reminder. */
@@ -238,7 +242,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           );
         }
       },
-      reopen: (id) => patch(id, { done: false }),
+      reopen: (id) => {
+        patch(id, { done: false });
+        const r = find(id);
+        if (r) {
+          append(
+            entry(
+              'record',
+              'Reminder reopened',
+              r.title,
+              'Marked done and put back on the queue.',
+            ),
+          );
+        }
+      },
       remove: (id) => {
         const r = find(id);
         setRemoved((all) => [...all, id]);
@@ -294,13 +311,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
 
       sessions,
-      updateSessions: (fn) => setSessions((all) => fn(all)),
+      updateSessions: (fn, note) => {
+        setSessions((all) => fn(all));
+        if (note) append(entry('rota', 'Timetable changed', 'Rota', note));
+      },
 
       bookings,
-      updateBookings: (fn) => setBookings((all) => fn(all)),
+      updateBookings: (fn, note) => {
+        setBookings((all) => fn(all));
+        if (note) append(entry('finance', 'Booking changed', 'Bookings', note));
+      },
 
       flights,
-      updateFlights: (fn) => setFlights((all) => fn(all)),
+      updateFlights: (fn, note) => {
+        setFlights((all) => fn(all));
+        if (note) append(entry('record', 'Flight changed', 'Transfers', note));
+      },
 
       registers,
       takeRegister: (sessionId) => {

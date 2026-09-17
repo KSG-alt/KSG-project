@@ -2645,10 +2645,14 @@ span.fig {
 
 .matches {
   display: grid;
+  /* An implicit grid column sizes to its content, so one long payer line made
+     the column wider than the screen. The column is the screen. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 }
 
 .match {
+  min-width: 0;
   padding: 20px 22px;
   background: var(--white);
   border-radius: var(--r-lg);
