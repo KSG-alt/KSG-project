@@ -24,6 +24,7 @@ export function Chat({
   variant = 'panel',
   opener,
   localCommands,
+  ask = null,
 }: {
   system: string;
   tools: ToolSpec[];
@@ -36,6 +37,9 @@ export function Chat({
   /* Things this surface can do without a model. Tried before the read-only
      answers, so the keyless demo can act and not only report. */
   localCommands?: (q: string) => { text: string; source: string } | null;
+  /* Something to ask on the caller's behalf — a chip in a collapsed dock,
+     say. Changing it sends it once. */
+  ask?: { text: string; nonce: number } | null;
 }) {
   const { sessions, students, staff, payments, incidents, reminders } = useStore();
   const [keyed, setKeyed] = useState(hasKey());
@@ -58,6 +62,16 @@ export function Chat({
       behavior: 'smooth',
     });
   }, [turns, busy]);
+
+  /* An ask handed in from outside is sent once, when it changes. */
+  const lastAsk = useRef(0);
+  useEffect(() => {
+    if (!ask || ask.nonce === lastAsk.current) return;
+    lastAsk.current = ask.nonce;
+    void send(ask.text);
+    /* send is stable enough here: it reads state through setState callbacks. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask]);
 
   /* Grow with the message rather than scrolling a two-line box. */
   useEffect(() => {

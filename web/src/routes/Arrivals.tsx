@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
+import { AskDock } from '../components/AskDock';
 import { Chat } from '../components/Chat';
 import { ReadinessMark } from '../components/StudentReadiness';
 import { StudentProfile } from '../components/StudentProfile';
@@ -29,6 +30,7 @@ export function Arrivals() {
   const [open, setOpen] = useState<string | null>(null);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [planned, setPlanned] = useState<string>('');
+  const [ask, setAsk] = useState<{ text: string; nonce: number } | null>(null);
 
   /* Live records for the planner and the chat, so a bed applied here is the
      bed every other screen reads. */
@@ -170,6 +172,16 @@ export function Arrivals() {
 
       <div className="planner">
         <div className="planner__chat">
+          <AskDock
+            title="Ask Kadia to plan the beds"
+            hint="in words — it shows every move before anything is applied"
+            chips={[
+              'Give every student with no bed one',
+              'Give everyone arriving 19 July a bed',
+              'Plan the beds and never put two of the same language together',
+            ]}
+            onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+          >
           <Chat
             system={KADIA_SYSTEM}
             tools={kadiaTools({
@@ -183,7 +195,9 @@ export function Arrivals() {
               'Plan the beds without reusing any bed between stays',
             ]}
             localCommands={localBedCommand}
+            ask={ask}
           />
+          </AskDock>
         </div>
 
         <div className="planner__head">

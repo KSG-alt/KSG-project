@@ -4,6 +4,7 @@ import { SectionHead } from '../components/SectionHead';
 import { Chat } from '../components/Chat';
 import { StaffProfile } from '../components/StaffProfile';
 import { ActivityGuide } from '../components/ActivityGuide';
+import { AskDock } from '../components/AskDock';
 import { IconClose } from '../lib/icons';
 import { checkRatio } from '../lib/ratio';
 import {
@@ -57,6 +58,8 @@ export function Timetable() {
   const [selected, setSelected] = useState<string | null>(null);
   const [approved, setApproved] = useState(false);
   const [log, setLog] = useState<string[]>([]);
+  /* What a chip in the dock asked for, handed to the chat to send once. */
+  const [ask, setAsk] = useState<{ text: string; nonce: number } | null>(null);
   const live = useRef(sessions);
   live.current = allSessions;
 
@@ -955,6 +958,40 @@ export function Timetable() {
         })()}
 
         <aside className="tt__side">
+          <AskDock
+            title="Ask Kadia"
+            hint={
+              view === 'day'
+                ? 'draft the day, re-slot a session, find cover'
+                : view === 'week'
+                  ? 'draft this week or next, to contract'
+                  : view === 'duty'
+                    ? 'fill the duty rota, level the hours'
+                    : 'who is short, who is over, and why'
+            }
+            chips={
+              view === 'day'
+                ? [
+                    'Redraft the day, nothing off site',
+                    'Which sessions are below ratio?',
+                  ]
+                : view === 'week'
+                  ? [
+                      'Draft next week and fill everyone to their contracted hours',
+                      'Draft next week with nothing off site',
+                    ]
+                  : view === 'duty'
+                    ? [
+                        'Draft the week and fill the duty rota to contract',
+                        'Draft next week and put everyone on 40 hours',
+                      ]
+                    : [
+                        'Draft the week and fill everyone to their contracted hours',
+                        'How many hours is each staff member working this week?',
+                      ]
+            }
+            onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+          >
           <Chat
             system={`You shape a summer-school day timetable for a UK activity centre. Today is ${fmtDateLong(
               DEMO_TODAY.toISOString(),
@@ -1002,7 +1039,9 @@ Keep replies to a few short sentences. Use British English.`}
                       ]
             }
             localCommands={localTimetableCommand}
+            ask={ask}
           />
+          </AskDock>
 
           {sel ? (
             <div className="panel">

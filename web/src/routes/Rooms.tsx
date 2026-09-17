@@ -11,6 +11,7 @@ import {
 import {
   changed, parseRoomingSpec, propose, roomReport, type Mode, type Proposal,
 } from '../lib/allocate';
+import { AskDock } from '../components/AskDock';
 import { Chat } from '../components/Chat';
 import type { ToolSpec } from '../lib/anthropic';
 
@@ -32,6 +33,7 @@ export function Rooms() {
   const [view, setView] = useState<View>('rooms');
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const [ask, setAsk] = useState<{ text: string; nonce: number } | null>(null);
   const [openStudent, setOpenStudent] = useState<string | null>(null);
   const [openRoom, setOpenRoom] = useState<string | null>(null);
 
@@ -523,15 +525,16 @@ export function Rooms() {
             </div>
 
             <aside className="beds__side">
-              <div className="panel">
-                <div className="panel__head">
-                  <span className="label">Ask Kadia</span>
-                  <span className="meta">plans the beds</span>
-                </div>
-                <p className="meta" style={{ margin: '0 0 12px', color: 'var(--ink-3)' }}>
-                  Say how the rooms should work and I will draft it. I never
-                  move anybody — you apply it.
-                </p>
+              <AskDock
+                title="Ask Kadia to plan the beds"
+                hint="it drafts; you apply. Nobody is moved without you"
+                chips={[
+                  'Just fill the gaps, leave everyone else alone',
+                  'Plan the beds and never put two of the same language together',
+                  'Replan the 8–11 band from scratch, ages within 1 year',
+                ]}
+                onAsk={(text) => setAsk({ text, nonce: Date.now() })}
+              >
                 <Chat
                   system={`You plan bed allocations for a residential summer school. Today is ${fmtDateLong(
                     DEMO_TODAY.toISOString(),
@@ -556,8 +559,9 @@ Keep replies to a few short sentences. Use British English.`}
                     'Plan the beds without reusing any bed between stays',
                   ]}
                   localCommands={localRoomCommand}
+                  ask={ask}
                 />
-              </div>
+              </AskDock>
             </aside>
           </div>
         );

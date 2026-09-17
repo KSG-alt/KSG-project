@@ -2674,6 +2674,96 @@ span.fig {
   font-size: var(--t-xs);
 }
 
+/* ── Ask Kadia, as a small window ──────────────────────────────────────── */
+
+.dock {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: var(--paper-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge);
+}
+
+.dock--open {
+  background: var(--white);
+  box-shadow: var(--edge), var(--shadow-1);
+}
+
+.dock__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dock__open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 2px;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.dock__open svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.dock__title {
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+
+.dock__hint {
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock__close {
+  flex: 0 0 auto;
+}
+
+.dock__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.dock__chip {
+  padding: 6px 12px;
+  background: var(--white);
+  border: none;
+  border-radius: var(--r-pill);
+  box-shadow: var(--edge-strong);
+  color: var(--ink);
+  font-size: var(--t-xs);
+  cursor: pointer;
+  transition: background 160ms var(--ease-ui), color 160ms var(--ease-ui);
+}
+
+.dock__chip:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dock__body {
+  margin-top: 12px;
+}
+
+.dock__body .chat {
+  height: 340px;
+  margin: 0;
+}
+
 /* ── The bed planner on the arrivals screen ────────────────────────────── */
 
 .planner {
