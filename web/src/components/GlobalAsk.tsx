@@ -54,6 +54,13 @@ const ASK: Partial<Record<Route, { hint: string; chips: string[] }>> = {
       'Which students are travelling alone?',
     ],
   },
+  departures: {
+    hint: 'who flies when, and how they get there',
+    chips: [
+      'Who is leaving today and when?',
+      'Which students are travelling alone?',
+    ],
+  },
   attendance: {
     hint: 'who was counted, and who was not',
     chips: [

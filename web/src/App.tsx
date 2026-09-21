@@ -23,6 +23,7 @@ import {
 } from './lib/icons';
 import { Lockup } from './lib/Logo';
 import { Office } from './routes/Office';
+import { Departures } from './routes/Departures';
 import { GlobalAsk } from './components/GlobalAsk';
 import { OfficeHome } from './routes/OfficeHome';
 import { OPERATOR, SIDE, START, inSide } from './lib/side';
@@ -33,7 +34,7 @@ import { DEMO_TODAY, fmtDateLong } from './data/seed';
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
   | 'reminders' | 'rooms' | 'arrivals' | 'audit' | 'finance' | 'incidents'
-  | 'setup' | 'transfers' | 'portal' | 'attendance' | 'office';
+  | 'setup' | 'transfers' | 'portal' | 'attendance' | 'office' | 'departures';
 
 export const NAV: {
   id: Route;
@@ -44,6 +45,7 @@ export const NAV: {
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
   { id: 'arrivals', label: 'New arrivals', blurb: 'Everyone still to come, and whether they can be admitted', icon: IconArrivals },
+  { id: 'departures', label: 'Departures', blurb: 'Who flies when, how they get to the airport, and every reference', icon: IconArrivals },
   { id: 'transfers', label: 'Transfers', blurb: 'Flights, runs and who meets each one', icon: IconTransfers },
   { id: 'attendance', label: 'Attendance', blurb: 'Who was counted, by whom, and who was not there', icon: IconAttendance },
   { id: 'portal', label: 'Document portal', blurb: 'What parents have sent, and what is waiting on us', icon: IconPortal },
@@ -77,6 +79,7 @@ const TITLE: Record<Route, string> = {
   audit: 'Audit trail',
   setup: 'Centre setup',
   office: 'Head office',
+  departures: 'Departures',
 };
 
 function Shell() {
@@ -178,6 +181,7 @@ function Shell() {
           {route === 'reminders' && <Reminders onGo={go} />}
           {route === 'students' && <Students />}
           {route === 'arrivals' && <Arrivals />}
+          {route === 'departures' && <Departures />}
           {route === 'transfers' && <Transfers />}
           {route === 'attendance' && <Attendance />}
           {route === 'portal' && <Portal />}

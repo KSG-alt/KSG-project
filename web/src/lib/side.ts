@@ -36,7 +36,7 @@ export const SIDE: Side =
    keeps a home screen, which is its own screen rather than the centre's with
    different numbers on it (routes/OfficeHome.tsx). */
 const OFFICE_ONLY_HIDES: Route[] = [
-  'timetable', 'attendance', 'transfers', 'rooms', 'bookings',
+  'timetable', 'attendance', 'transfers', 'departures', 'rooms', 'bookings',
 ];
 
 export const inSide = (route: Route): boolean => {

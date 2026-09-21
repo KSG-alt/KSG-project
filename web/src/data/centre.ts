@@ -93,9 +93,9 @@ export interface RoleDef {
 }
 
 export const ALL_SECTIONS = [
-  'home', 'reminders', 'students', 'arrivals', 'transfers', 'attendance',
-  'portal', 'rooms', 'staff', 'timetable', 'bookings', 'finance', 'incidents',
-  'audit', 'setup', 'office', 'kadia',
+  'home', 'reminders', 'students', 'arrivals', 'departures', 'transfers',
+  'attendance', 'portal', 'rooms', 'staff', 'timetable', 'bookings', 'finance',
+  'incidents', 'audit', 'setup', 'office', 'kadia',
 ];
 
 /* Head office looks down at every centre. A centre administrator runs one and
@@ -128,8 +128,9 @@ export const ROLES: RoleDef[] = [
     name: 'Safeguarding lead',
     who: 'Owns DBS, incidents and the audit trail. No finance.',
     sections: [
-      'home', 'reminders', 'students', 'arrivals', 'transfers', 'attendance',
-      'portal', 'rooms', 'staff', 'timetable', 'incidents', 'audit', 'kadia',
+      'home', 'reminders', 'students', 'arrivals', 'departures', 'transfers',
+      'attendance', 'portal', 'rooms', 'staff', 'timetable', 'incidents',
+      'audit', 'kadia',
     ],
     welfareDetail: true,
     welfareEdit: false,
