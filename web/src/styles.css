@@ -2674,6 +2674,30 @@ span.fig {
   font-size: var(--t-xs);
 }
 
+.sechead__acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sechead__acts > .field {
+  max-width: 100%;
+}
+
+@media (max-width: 560px) {
+  .sechead__acts {
+    width: 100%;
+  }
+
+  .sechead__acts > .field {
+    flex: 1 1 100%;
+    width: auto !important;
+  }
+}
+
 /* ── Ask Kadia, as a small window ──────────────────────────────────────────
    Shut, it is a pill the width of its own words — a control, not a panel.
    Open, it is a card: one header line, the automations as chips, and the

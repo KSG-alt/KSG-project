@@ -28,9 +28,9 @@ export function SectionHead({
           )}
         </div>
         {children && (
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {children}
-          </div>
+          /* Controls wrap rather than push the page sideways — two fields in
+             a section head is one more than a phone has room for. */
+          <div className="sechead__acts">{children}</div>
         )}
       </div>
       <div className="rule rule--strong" />

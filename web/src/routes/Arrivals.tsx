@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { AskDock } from '../components/AskDock';
 import { Chat } from '../components/Chat';
@@ -31,6 +31,10 @@ export function Arrivals() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [planned, setPlanned] = useState<string>('');
   const [ask, setAsk] = useState<{ text: string; nonce: number } | null>(null);
+  /* One arrival day, or all of them. A centre works a changeover day at a
+     time — "who is landing on the 19th" is the question, not "who is landing
+     at some point in the next seven weeks". */
+  const [day, setDay] = useState<string>('');
 
   /* Live records for the planner and the chat, so a bed applied here is the
      bed every other screen reads. */
@@ -46,13 +50,27 @@ export function Arrivals() {
     [students, upcoming, win],
   );
 
-  const rows = all.filter((s) => {
-    if (win >= 0 && daysFromToday(s.arrival) > win) return false;
+  /* Everything the window allows, before the day filter — that is what the
+     day dropdown is built from, so it always offers days that exist. */
+  const inWindow = all.filter(
+    (s) => !(win >= 0 && daysFromToday(s.arrival) > win),
+  );
+
+  const dayOptions = useMemo(() => groupByArrival(inWindow), [inWindow]);
+
+  const rows = inWindow.filter((s) => {
+    if (day && s.arrival !== day) return false;
     if (!q) return true;
     return `${s.forename} ${s.surname} ${s.country} ${groupById(s.groupId).name} ${roomLabel(s.roomId)}`
       .toLowerCase()
       .includes(q.toLowerCase());
   });
+
+  /* A day chosen in one window may not exist in the next. Drop it rather than
+     showing an empty screen with a filter nobody can see the effect of. */
+  useEffect(() => {
+    if (day && !dayOptions.some(([d]) => d === day)) setDay('');
+  }, [day, dayOptions]);
 
   const days = groupByArrival(rows);
   const blocked = rows.filter((s) => !readiness(s).ready);
@@ -153,14 +171,38 @@ export function Arrivals() {
       <SectionHead
         title="New arrivals"
         count={
-          win === -2
-            ? `${students.length} students across the whole season · ${upcoming.length} still to arrive`
-            : `${upcoming.length} still to arrive this season`
+          day
+            ? `${rows.length} arriving ${fmtDate(day)} · ${rows.filter((s) => !readiness(s).ready).length} not ready`
+            : win === -2
+              ? `${students.length} students across the whole season · ${upcoming.length} still to arrive`
+              : `${upcoming.length} still to arrive this season`
         }
       >
+        <select
+          className="field"
+          style={{ width: 230 }}
+          value={day}
+          onChange={(e) => setDay(e.target.value)}
+          aria-label="Filter by arrival day"
+        >
+          <option value="">
+            Every arrival day · {inWindow.length} students
+          </option>
+          {dayOptions.map(([d, list]) => (
+            <option key={d} value={d}>
+              {new Date(d).toLocaleDateString('en-GB', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+              })}
+              {' — '}
+              {list.length} arriving
+            </option>
+          ))}
+        </select>
         <input
           className="field"
-          style={{ width: 220 }}
+          style={{ width: 200 }}
           placeholder="Search name, country, room"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -297,7 +339,8 @@ export function Arrivals() {
 
       {days.length === 0 ? (
         <p className="meta reminders__empty">
-          No arrivals in this window{q ? ` matching “${q}”` : ''}.
+          No arrivals {day ? `on ${fmtDate(day)}` : 'in this window'}
+          {q ? ` matching “${q}”` : ''}.
         </p>
       ) : (
         <div className="arrivals stagger">
