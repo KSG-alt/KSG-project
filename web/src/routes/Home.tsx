@@ -199,91 +199,46 @@ export function Home({
           {DEMO_TODAY.toLocaleDateString('en-GB', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
           })}
-          <span className="lede__season">
-            {season()} · seeded demonstration data
-          </span>
         </p>
 
-        {/* The brief, as one sentence rather than a wall of tiles. Every
-            number in it goes where the work is done. */}
-        <h1 className="lede__brief">
-          <span className="serif">{greeting()}</span>, {operator}.{' '}
-          {open.length === 0 ? (
-            <>Nothing is outstanding across the centre.</>
-          ) : (
-            <>
-              <button className="lede__n" onClick={() => onGo('reminders')}>
-                {open.length}
-              </button>{' '}
-              things need you
-              {critical.length > 0 && (
-                <>
-                  ,{' '}
-                  <button
-                    className="lede__n lede__n--alarm"
-                    onClick={() => onGo('reminders')}
-                  >
-                    {critical.length}
-                  </button>{' '}
-                  of them safeguarding
-                </>
-              )}
-              .{' '}
-              <span className="lede__quiet">
-                <button className="lede__n" onClick={() => onGo('timetable')}>
-                  {today.length}
-                </button>{' '}
-                sessions run today
-                {missing.length > 0 && (
-                  <>
-                    ,{' '}
-                    <button
-                      className="lede__n lede__n--alarm"
-                      onClick={() => onGo('attendance')}
-                    >
-                      {missing.length}
-                    </button>{' '}
-                    with no register
-                  </>
-                )}
-                , and{' '}
-                <button className="lede__n" onClick={() => onGo('arrivals')}>
-                  {travelling.moved}
-                </button>{' '}
-                children travel.
-              </span>
-            </>
-          )}
+        <h1 className="lede__greet">
+          <span className="serif">{greeting()}</span>, {operator}.
         </h1>
+
+        <p className="lede__state">
+          {open.length === 0
+            ? 'Nothing is outstanding across the centre.'
+            : critical.length > 0
+              ? `${open.length} things need you this morning, ${critical.length} of them safeguarding.`
+              : `${open.length} things need you this morning, none of them safeguarding.`}
+        </p>
 
         <div className="lede__cta">
           <button className="btn btn--primary" onClick={() => onGo('reminders')}>
             Open reminders
             <IconArrow />
           </button>
-          <span className="lede__here">
-            {onSite.length} children on site · {openIncidents.length} incident
-            {openIncidents.length === 1 ? '' : 's'} open
-          </span>
+          <GlobalAsk route="home" />
         </div>
       </header>
 
-      <div className="stage">
-        {/* The same pill as every other section, in the same place. */}
-        <GlobalAsk route="home" />
-        <div className="strip">
-          {figures.map((f) => (
-            <button
-              key={f.label}
-              className={`strip__cell${f.alarm ? ' strip__cell--alarm' : ''}`}
-              onClick={() => onGo(f.go)}
-            >
-              <span className="strip__label">{f.label}</span>
-              <span className="strip__n num">{f.n}</span>
-              <span className="strip__note meta">{f.note}</span>
-            </button>
-          ))}
-        </div>
+      <div className="rule" />
+
+      {/* The day in one line. Numbers in ink, what they are in the quiet
+          colour, each one a way into the section that owns it. */}
+      <div className="tally">
+        {figures.map((f) => (
+          <button
+            key={f.label}
+            className={`tally__item${f.alarm ? ' tally__item--alarm' : ''}`}
+            onClick={() => onGo(f.go)}
+            title={f.note}
+          >
+            <span className="tally__n num">{f.n}</span>
+            <span className="tally__label">{f.label}</span>
+          </button>
+        ))}
+      </div>
 
         <div className="hero__grid">
           <section className="slab" aria-labelledby="ahead-head">
@@ -361,7 +316,6 @@ export function Home({
           </section>
         </div>
 
-      </div>
     </main>
   );
 }
