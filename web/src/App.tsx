@@ -41,22 +41,43 @@ export const NAV: {
   blurb: string;
   icon: () => JSX.Element;
 }[] = [
+  /* Menu order follows the working day, not the alphabet: the queue first,
+     then today's programme, then the people moving through the centre, then
+     the money and the team, then the record of what happened. The audit
+     trail is last because nobody opens it to do work — it is opened when
+     somebody is asked to prove the work was done. */
+
+  /* What needs doing */
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
+
+  /* Today */
+  { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
+  { id: 'attendance', label: 'Attendance', blurb: 'Who was counted, by whom, and who was not there', icon: IconAttendance },
+
+  /* The children, in and out */
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
   { id: 'arrivals', label: 'New arrivals', blurb: 'Who lands when, how they get here, and whether they can be admitted', icon: IconArrivals },
   { id: 'departures', label: 'Departures', blurb: 'Who flies when, how they get to the airport, and every reference', icon: IconTransfers },
-  { id: 'attendance', label: 'Attendance', blurb: 'Who was counted, by whom, and who was not there', icon: IconAttendance },
-  { id: 'portal', label: 'Document portal', blurb: 'What parents have sent, and what is waiting on us', icon: IconPortal },
   { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
-  { id: 'staff', label: 'Staff', blurb: 'Details, qualifications, DBS and availability', icon: IconStaff },
-  { id: 'timetable', label: 'Timetable', blurb: 'Drafted schedule, editable by hand or by chat', icon: IconTimetable },
-  { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
+
+  /* What is owed, both ways */
+  { id: 'portal', label: 'Document portal', blurb: 'What parents have sent, and what is waiting on us', icon: IconPortal },
   { id: 'finance', label: 'Payments', blurb: 'What landed, who it belongs to, what is still owed', icon: IconFinance },
+
+  /* The team and the suppliers */
+  { id: 'staff', label: 'Staff', blurb: 'Details, qualifications, DBS, contracts and availability', icon: IconStaff },
+  { id: 'bookings', label: 'Bookings', blurb: 'Activity bookings and their receipts', icon: IconBookings },
+
+  /* When something happens */
   { id: 'incidents', label: 'Incidents', blurb: 'What happened, who was told, and how fast', icon: IconIncidents },
-  { id: 'audit', label: 'Audit trail', blurb: 'Every action, timestamped and attributed, for inspection', icon: IconAudit },
+
+  /* Above the centre, and the centre's own settings */
   { id: 'office', label: 'Head office', blurb: 'The senior team across every centre — verification, consent, clinical load', icon: IconOffice },
   { id: 'setup', label: 'Centre setup', blurb: 'Sites, ratios, escalation, access and import', icon: IconSetup },
   { id: 'kadia', label: 'Ask Kadia', blurb: 'Ask anything, search the system, automate the chase', icon: IconKadia },
+
+  /* The evidence, last */
+  { id: 'audit', label: 'Audit trail', blurb: 'Every action, timestamped and attributed, for inspection', icon: IconAudit },
 ];
 
 const TITLE: Record<Route, string> = {
