@@ -3,6 +3,7 @@ import { SectionHead } from '../components/SectionHead';
 import { useStore } from '../lib/store';
 import { CATEGORY_LABEL, toCsv, type AuditCategory } from '../lib/audit';
 import { demoIso } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type Filter = AuditCategory | 'all';
 
@@ -64,11 +65,11 @@ export function Audit() {
         </button>
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Every consequential action, timestamped and attributed. Entries are
         appended and never edited or removed — that is what makes it evidence.
         Anything you do in this demonstration is written here as you do it.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Audit view">
         {tabs.map((t) => (

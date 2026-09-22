@@ -36,6 +36,7 @@ import {
   DEMO_TODAY, daysFromToday, fmtDate, fmtDateLong, fmtMoney, isOnSite,
   roomLabel,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type View = 'centres' | 'money' | 'children' | 'verify' | 'consent' | 'load' | 'access';
 
@@ -150,12 +151,12 @@ export function Office() {
         count={`${SITES.filter((s) => s.onboarded).length} of ${SITES.length} centres live · ${toVerify.length} records to verify · ${slow.length} waiting over ${SLOW_DAYS} days`}
       />
 
-      <p className="meta section__lede">
+      <Lede>
         The senior team&rsquo;s view, not a centre&rsquo;s. Head office owns
         what the clinical record says — the centre reads it and records what it
         gave — so verifying, querying and chasing consent happen here. Nothing
         operational is duplicated: open a student for the rest of their record.
-      </p>
+      </Lede>
 
       {openStudent && (
         <StudentProfile id={openStudent} onClose={() => setOpenStudent(null)} />
@@ -336,11 +337,11 @@ export function Office() {
             </span>
           </div>
 
-          <p className="meta section__lede">
+          <Lede>
             Money in the bank that belongs to nobody yet is counted separately
             from money owed — adding the two would flatter the season by
             whatever the centre has failed to allocate.
-          </p>
+          </Lede>
 
           <p className="label">
             Arriving within a week and still owing — {purse.arrivingOwing.length}
@@ -351,12 +352,12 @@ export function Office() {
             </p>
           ) : (
             <>
-              <p className="meta section__lede">
+              <Lede>
                 A centre cannot hold a child at the door over a balance, so the
                 decision is made here and now: chase it, let it ride, or take
                 it up with the agent. Left to the day itself it is not a
                 decision, it is an argument in a car park.
-              </p>
+              </Lede>
               <div className="tablewrap">
                 <table className="reg">
                   <thead>
@@ -409,12 +410,12 @@ export function Office() {
 
       {view === 'children' && (
         <>
-          <p className="meta section__lede">
+          <Lede>
             Every child on the books, across every centre, with the six things
             head office is ever asked about: are they paid up, are their
             documents in, is their health record signed off, are they here,
             where do they sleep, and who is the contact.
-          </p>
+          </Lede>
 
           <input
             className="field"
@@ -630,12 +631,12 @@ export function Office() {
           </p>
         ) : (
           <>
-            <p className="meta section__lede">
+            <Lede>
               Medication a centre is holding with no signed consent to give it.
               Nobody may administer any of it, however obvious the need, so
               these are chased before arrival rather than argued about at 22:00
               on a Saturday.
-            </p>
+            </Lede>
             <div className="tablewrap">
               <table className="reg">
                 <thead>
@@ -785,12 +786,12 @@ export function Office() {
 
       {view === 'access' && (
         <>
-          <p className="meta section__lede">
+          <Lede>
             Every opening of a child&rsquo;s medication and allergy record, with
             who opened it and under which role. This is the answer to the
             question that follows any complaint about special category data, and
             it is written by the platform rather than by the person reading.
-          </p>
+          </Lede>
           {reads.length === 0 ? (
             <p className="meta reminders__empty">
               Nobody has opened a clinical record in this session.

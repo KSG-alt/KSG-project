@@ -5,6 +5,7 @@ import { IconCheck, IconClose } from '../lib/icons';
 import { useStore } from '../lib/store';
 import { invoiceRef, owed, suggestMatches, type Payment } from '../data/finance';
 import { fmtDate, fmtDateLong, fmtMoney, groupById } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type View = 'unmatched' | 'owing' | 'received';
 
@@ -130,12 +131,12 @@ export function Finance() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         A balance on a record is not reconciliation. Reconciliation is deciding
         which line on the statement is which student, when the payer is a parent
         with a different surname and the reference is blank. The platform
         suggests; a person decides, and the decision is signed.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Payment view">
         {tabs.map((t) => (

@@ -15,6 +15,7 @@ import {
 import {
   DEMO_TODAY, fmtDate, fmtDateLong, fmtMoney, groupById, type Student,
 } from '../data/seed';
+import { Lede } from './Lede';
 
 type View = 'day' | 'flights' | 'money' | 'season';
 
@@ -249,14 +250,14 @@ export function RunPlan({
           </p>
         ) : (
           <>
-            <p className="meta section__lede">
+            <Lede>
               One line per vehicle, priced off the supplier&rsquo;s rate card
               and the hours the run actually takes. Waiting time is where a
               transfer bill goes wrong: a late flight past the free allowance
               is chargeable, and an invoice with waiting on it that nobody
               agreed is the one to query before finance pays it.{' '}
               {RECEIPTS_ARE_NOT_FILES}
-            </p>
+            </Lede>
 
             {charges.some((c) => c.state === 'disputed' || c.receipt === null) && (
               <div className="alert alert--warn">

@@ -6,6 +6,7 @@ import {
   DEMO_TODAY, SEASON_END, SEASON_START, fmtDate, groupById,
   isOnSite, nights, roomLabel, type DocState, type Student,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type Filter = 'onsite' | 'arriving' | 'leaving' | 'all';
 
@@ -104,10 +105,10 @@ export function Students() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Open any name for the whole record — stay, room, guardian, their week on
         the rota, money, and everything logged against them.
-      </p>
+      </Lede>
 
       {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
 

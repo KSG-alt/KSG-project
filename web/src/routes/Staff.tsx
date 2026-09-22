@@ -7,6 +7,7 @@ import {
   DEMO_TODAY, SEASON_END, SEASON_START, WEEKLY_LIMIT, contractWeeks, fmtDate,
   fmtHours, inContract, isAway, sessionsFor, weeklyHours,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 const DUTY_ROLES = ['Safeguarding lead', 'Welfare officer'];
 
@@ -151,12 +152,12 @@ export function Staff() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Hours are what the rota schedules, not what anyone is paid — payroll
         stays with the centre. Open a name for the whole record: DBS, their
         week, what they have told us about availability, and every incident
         they attended.
-      </p>
+      </Lede>
 
       {overLimit.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 14 }}>

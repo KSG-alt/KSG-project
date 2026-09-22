@@ -22,6 +22,7 @@ import {
   WEEK_DAYS, activityById, dayName, fmtDate, fmtDateLong, fmtHours, groupById,
   isAway, staffById, weeklyHours, type Session,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 const TODAY_ISO = `${DEMO_TODAY.getFullYear()}-${String(
   DEMO_TODAY.getMonth() + 1,
@@ -565,7 +566,7 @@ Keep replies to a few short sentences. Use British English.`}
             children in than the activity holds
           </p>
           <ul className="log">
-            {tooBig.slice(0, 4).map(({ session: s, roll, capacity }) => (
+            {tooBig.slice(0, 2).map(({ session: s, roll, capacity }) => (
               <li key={s.id}>
                 <strong>
                   {activityById(s.activityId).name} · {groupById(s.groupId).name} at{' '}
@@ -576,6 +577,11 @@ Keep replies to a few short sentences. Use British English.`}
                 somewhere that fits.
               </li>
             ))}
+            {tooBig.length > 2 && (
+              <li className="meta">
+                …and {tooBig.length - 2} more, on the grid below.
+              </li>
+            )}
           </ul>
         </div>
       )}
@@ -823,13 +829,13 @@ Keep replies to a few short sentences. Use British English.`}
 
         {view === 'duty' && (
           <div className="duty">
-            <p className="meta section__lede">
+            <Lede>
               Activity sessions come to {(allSessions.filter((x) => weekDays.includes(x.day) && x.status !== 'cancelled').length * 1.5).toFixed(0)}h
               across the week. A seasonal contract is 25 to 40 hours, so most of
               it is duty — meals, free time, the evening programme, nights, and
               changeover-day transfers. The rota has to schedule it, or it lands
               in a WhatsApp message on Sunday night.
-            </p>
+            </Lede>
             {dutyDays.map((d) => (
               <section key={d} className="duty__day">
                 <div className="duty__head">
@@ -913,12 +919,12 @@ Keep replies to a few short sentences. Use British English.`}
           const totalAll = rows.reduce((n, r) => n + r.total, 0);
           return (
             <div className="hours">
-              <p className="meta section__lede">
+              <Lede>
                 Rota&rsquo;d hours against each person&rsquo;s own contract, not
                 against a flat number — the roster runs from 25 to 40 hours and
                 working a 25-hour contract to 40 is not a full week, it is a
                 breach. These are hours the rota schedules, never pay.
-              </p>
+              </Lede>
 
               <div className="split">
                 <span>
@@ -1141,30 +1147,7 @@ Keep replies to a few short sentences. Use British English.`}
                 </div>
               )}
             </div>
-          ) : (
-            <div className="panel">
-              <span className="label">
-                {view === 'day'
-                  ? 'Shape the day by chat'
-                  : view === 'week'
-                    ? 'Shape the week by chat'
-                    : view === 'duty'
-                      ? 'Shape the duty rota by chat'
-                      : 'Ask about the hours'}
-              </span>
-              <p className="meta" style={{ margin: '10px 0 0', color: 'var(--ink-3)' }}>
-                {view === 'day'
-                  ? 'Pick a session on the grid to edit it by hand, or tell Kadia what the day should look like.'
-                  : view === 'week'
-                    ? 'Ask for a whole week — this one or the next — and it drafts six days of activity and seven of duty against ratios, qualifications, availability and contracts.'
-                    : view === 'duty'
-                      ? 'Duty carries most of a seasonal contract. Ask for it to be filled to everyone’s contracted hours, or levelled at a flat number.'
-                      : 'Ask who is short, who is over, and why — then ask for the week to be redrafted against contracts.'}{' '}
-                It reads the real timetable and writes real changes — a person
-                still approves.
-              </p>
-            </div>
-          )}
+          ) : null}
 
           {log.length > 0 && (
             <div className="panel">

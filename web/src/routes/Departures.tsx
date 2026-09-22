@@ -31,6 +31,7 @@ import {
   DEMO_TODAY, daysFromToday, fmtDate, fmtDateLong, fmtMoney, groupById,
   roomLabel, whenLabel, type Student,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type Window = 0 | 7 | -1 | -2;
 
@@ -169,13 +170,13 @@ export function Departures() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Every child still to go, by the day they fly, with the whole journey
         against their name: the vehicle, the time it leaves the front drive,
         who is driving, the terminal, the desk time and the flight. The runs
         are the same ones the transfers screen builds — one plan, read by child
         here and by vehicle there.
-      </p>
+      </Lede>
 
       {noFlight.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 12 }}>

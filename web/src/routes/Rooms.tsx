@@ -14,6 +14,7 @@ import {
 import { AskDock } from '../components/AskDock';
 import { Chat } from '../components/Chat';
 import type { ToolSpec } from '../lib/anthropic';
+import { Lede } from '../components/Lede';
 
 type View = 'rooms' | 'students' | 'unallocated' | 'arrivals' | 'plan';
 
@@ -308,12 +309,12 @@ Keep replies to a few short sentences. Use British English.`}
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Rooms are allocated inside one age band. Whether a centre also rooms by
         gender is a per-centre configuration, specified in October, so it is not
         modelled here rather than guessed. Open any student for their full record
         and their parent or guardian&rsquo;s contact details.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Allocation view">
         {tabs.map((t) => (
@@ -350,12 +351,12 @@ Keep replies to a few short sentences. Use British English.`}
         return (
           <div className="beds">
             <div className="plan2">
-            <p className="meta section__lede">
+            <Lede>
               The allocator fills every bed against the centre&rsquo;s rooming
               rules and shows what it would change before anything moves. It
               proposes; you apply it. Rules are set in Centre setup — right now:{' '}
               <strong>{rulesLine}</strong>.
-            </p>
+            </Lede>
 
             <div className="split">
               <span>

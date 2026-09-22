@@ -9,6 +9,7 @@ import {
   type IncidentKind, type IncidentLevel,
 } from '../data/incidents';
 import { DEMO_TODAY, demoStamp, isOnSite } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type View = 'open' | 'all' | 'notifiable';
 
@@ -359,12 +360,12 @@ export function Incidents() {
         </button>
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         The question asked afterwards is never &ldquo;was it written down&rdquo;.
         It is how long it took to tell the safeguarding lead, and who decided
         what happened next. So that is what this screen measures. Today is{' '}
         {DEMO_TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
-      </p>
+      </Lede>
 
       {untold.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 20 }}>

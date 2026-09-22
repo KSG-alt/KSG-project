@@ -15,6 +15,7 @@ import {
   ROOMS, STUDENTS, daysFromToday, fmtDate, groupByArrival, groupById, isOnSite,
   readiness, roomLabel, upcomingArrivals, whenLabel, type Student,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 /* -1 is the rest of the season from today; -2 is the whole season, including
    the students who have already walked in. A centre plans the season it sold,
@@ -214,14 +215,14 @@ export function Arrivals() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         {win === -2
           ? 'Every student the season sold, by the day they land — the ones already here included, so the whole intake can be read in one list.'
           : 'Every student still to come, by the day they land.'}{' '}
         A student is <strong>not ready</strong> if they have no bed or a missing
         medical or consent form — both are safeguarding, and both have to clear
         before they walk in. Everything else is a watch, not a block.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Arrival window">
         {tabs.map((t) => (

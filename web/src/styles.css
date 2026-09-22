@@ -1577,9 +1577,42 @@ span.fig {
   margin: 14px 0 0;
 }
 
+/* Two lines on arrival, the rest one click away. An operator meets this
+   paragraph hundreds of times; it earns its place once. */
+.lede {
+  margin: -6px 0 20px;
+}
+
 .section__lede {
   max-width: 74ch;
-  margin: -6px 0 24px;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.section__lede--open {
+  display: block;
+  overflow: visible;
+}
+
+.lede__more {
+  margin: 4px 0 0;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--rule-strong);
+  cursor: pointer;
+}
+
+.lede__more:hover {
+  text-decoration-color: var(--ink);
 }
 
 /* ── Sheet: the menu drops the whole surface ───────────────────────────── */

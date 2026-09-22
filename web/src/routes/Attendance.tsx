@@ -10,6 +10,7 @@ import {
 import {
   DEMO_TODAY, activityById, fmtDateLong, groupById, type Session,
 } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type View = 'today' | 'gaps' | 'absent' | 'devices';
 
@@ -69,13 +70,13 @@ export function Attendance() {
         count={`${today.filter((s) => hasRun(s) && registerFor(registers, s.id)?.takenBy).length} of ${today.filter((s) => hasRun(s)).length} registers taken so far · ${today.length - today.filter((s) => hasRun(s)).length} sessions still to run · ${allAbsent.length} unaccounted for`}
       />
 
-      <p className="meta section__lede">
+      <Lede>
         The register is the spine. Without it you cannot show a ratio was met
         in practice rather than on paper, and you cannot answer the only
         question that matters when somebody is missing — when did anyone last
         see them. Every activity guide tells a leader to count out and count
         back; this is where those counts land.
-      </p>
+      </Lede>
 
       {missing.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 12 }}>

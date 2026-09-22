@@ -5,6 +5,7 @@ import { useStore } from '../lib/store';
 import type { Route } from '../App';
 import type { Severity } from '../lib/reminders';
 import { OUTBOX_COPY } from '../lib/outbox';
+import { Lede } from '../components/Lede';
 
 type Filter = 'open' | 'safeguarding' | 'done' | 'all' | 'outbox';
 
@@ -40,12 +41,12 @@ export function Reminders({ onGo }: { onGo: (r: Route) => void }) {
         count={`${open.length} outstanding · ${counts.safeguarding} safeguarding · ${counts.overdue} overdue · ${counts.admin} admin`}
       />
 
-      <p className="meta section__lede">
+      <Lede>
         Every row is a real outstanding thing in the records below — a document
         that has not arrived, a check that cannot be rota&rsquo;d, a booking with
         no receipt, a session under ratio. Nothing here is invented. Complete
         opens the screen where the work is done.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Reminder view">
         {tabs.map((t) => (
@@ -69,11 +70,11 @@ export function Reminders({ onGo }: { onGo: (r: Route) => void }) {
           </p>
         ) : (
           <>
-            <p className="meta section__lede">
+            <Lede>
               Drafted chases and what became of them. Queued is not sent —
               delivery needs a sending service the platform does not own yet, so
               the queue says so rather than implying a parent has been emailed.
-            </p>
+            </Lede>
             <ul className="outbox stagger">
               {outbox.map((o) => (
                 <li key={o.id} className="out">

@@ -8,6 +8,7 @@ import {
   waitingOnUs, type DocRequest,
 } from '../data/portal';
 import { fmtDate, fmtDateLong } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 /* Three piles, and only three: the ones that need chasing, the ones the
    centre can clear today, and the evidence of what came in. An "everything"
@@ -68,7 +69,7 @@ export function Portal() {
         />
       </SectionHead>
 
-      <p className="meta section__lede">
+      <Lede>
         Every chase needs somewhere for the answer to go. One link per document
         per student, in three piles that match how the work divides:{' '}
         <strong>waiting on them</strong> needs chasing,{' '}
@@ -77,7 +78,7 @@ export function Portal() {
         <strong>accepted</strong> is the evidence: what came in, who checked it
         and when. Sent but never opened is a different problem from opened and
         ignored, so it is counted separately.
-      </p>
+      </Lede>
 
       <div className="alert">
         <p className="label">No link is sent and no file is stored</p>

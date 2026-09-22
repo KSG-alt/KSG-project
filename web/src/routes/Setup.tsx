@@ -9,6 +9,7 @@ import {
 import { SIDE, sideRoles } from '../lib/side';
 import { ESCALATION_DEFAULTS, type Severity } from '../lib/reminders';
 import { GROUPS } from '../data/seed';
+import { Lede } from '../components/Lede';
 
 type Panel =
   | 'sites' | 'ratios' | 'rooming' | 'escalation' | 'access' | 'channels' | 'import';
@@ -51,12 +52,12 @@ export function Setup() {
         count={`${site.name} · ${SITES.length} sites configured · viewing as ${role.name.toLowerCase()}`}
       />
 
-      <p className="meta section__lede">
+      <Lede>
         What a centre sets once, in the October session, and the platform then
         enforces everywhere. Ratios, escalation thresholds and access are the
         three that have to be the centre&rsquo;s own numbers — a hardcoded
         threshold is a threshold that belongs to the wrong person.
-      </p>
+      </Lede>
 
       <div className="tabs" role="tablist" aria-label="Setup section">
         {panels.map((p) => (
