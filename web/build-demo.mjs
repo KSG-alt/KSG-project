@@ -10,14 +10,11 @@ import { join } from 'node:path';
 
 const DIST = 'dist';
 
-/* Three files out of one build. The centre demo and the head office demo are
-   the same application with a different audience: the centre runs the day,
-   head office owns what the records say and sees every centre at once. A
-   single "everything" demo shows a person screens they would never have, and
-   a prospect notices. The combined file stays for anyone who wants to see
-   both halves in one place. */
+/* One file out of the build: the centre demo. The head office side stays in
+   the application — a role away, in Centre setup — but nothing that ships as
+   a file opens on it. A demo that shows a centre director screens belonging
+   to head office invites a question nobody wanted asked. */
 const BUILDS = [
-  { side: 'both', out: '../docs/kadia-demo.html', label: 'Centre and head office' },
   { side: 'centre', out: '../docs/kadia-demo-centre.html', label: 'Centre' },
 ];
 

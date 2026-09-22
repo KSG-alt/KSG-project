@@ -1,12 +1,8 @@
-# The standalone demos
+# The standalone demo
 
-Two files, one build. Double-click any of them, or attach one to an email.
-No server, no install, no network.
-
-| File | Who it is for | Opens as |
-| --- | --- | --- |
-| `docs/kadia-demo-centre.html` | A centre director or administrator | The centre's day, as centre administrator |
-| `docs/kadia-demo.html` | Internal, and anyone who wants both halves | The centre's day, with Head office reachable by switching role |
+One file: `docs/kadia-demo-centre.html`. Double-click it, or attach it to an
+email. No server, no install, no network. It opens on the centre's day, as
+centre administrator.
 
 The two sides are the same application with a different audience. The centre
 runs the day — registers, rotas, transfers, rooms, the queue. Head office owns
