@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { AskDock } from '../components/AskDock';
+import { RunPlan } from '../components/RunPlan';
 import { Chat } from '../components/Chat';
 import { ReadinessMark } from '../components/StudentReadiness';
 import { StudentProfile } from '../components/StudentProfile';
@@ -35,6 +36,9 @@ export function Arrivals() {
      time — "who is landing on the 19th" is the question, not "who is landing
      at some point in the next seven weeks". */
   const [day, setDay] = useState<string>('');
+  /* Two readings of the same day: the children, and the vehicles that carry
+     them. A centre plans both in one breath, so they are one screen. */
+  const [how, setHow] = useState<'people' | 'vehicles'>('people');
 
   /* Live records for the planner and the chat, so a bed applied here is the
      bed every other screen reads. */
@@ -233,8 +237,41 @@ export function Arrivals() {
         ))}
       </div>
 
+      <div className="tabs" role="tablist" aria-label="Arrivals view">
+        {([
+          { id: 'people', label: 'The children' },
+          { id: 'vehicles', label: 'Getting them here' },
+        ] as const).map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={how === t.id}
+            className={`tab${how === t.id ? ' tab--on' : ''}`}
+            onClick={() => setHow(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+        {how === 'vehicles' && !day && dayOptions.length > 0 && (
+          <span className="meta" style={{ alignSelf: 'center', marginLeft: 8 }}>
+            showing {fmtDate(dayOptions[0][0])} — pick another above
+          </span>
+        )}
+      </div>
+
+      {how === 'vehicles' && (
+        dayOptions.length === 0 ? (
+          <p className="meta reminders__empty">
+            Nobody arrives in this window, so there is nothing to meet.
+          </p>
+        ) : (
+          <RunPlan day={day || dayOptions[0][0]} direction="in" />
+        )
+      )}
+
       {open && <StudentProfile id={open} onClose={() => setOpen(null)} />}
 
+      {how === 'people' && (
       <div className="planner">
         <div className="planner__head">
           <p className="label">Beds for these arrivals</p>
@@ -330,14 +367,16 @@ export function Arrivals() {
 
       </div>
 
-      {blocked.length > 0 && (
+      )}
+
+      {how === 'people' && blocked.length > 0 && (
         <p className="mark mark--critical" style={{ marginBottom: 22 }}>
           {blocked.length} of {rows.length} arriving in this window cannot be
           admitted yet
         </p>
       )}
 
-      {days.length === 0 ? (
+      {how === 'people' && (days.length === 0 ? (
         <p className="meta reminders__empty">
           No arrivals {day ? `on ${fmtDate(day)}` : 'in this window'}
           {q ? ` matching “${q}”` : ''}.
@@ -425,7 +464,7 @@ export function Arrivals() {
             </section>
           ))}
         </div>
-      )}
+      ))}
     </>
   );
 }

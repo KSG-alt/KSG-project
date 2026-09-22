@@ -89,37 +89,23 @@ const STATUS: Record<Flight['status'], { label: string; mark: string }> = {
   unknown: { label: 'No status', mark: 'mark--critical' },
 };
 
-export function Transfers() {
+/* The vehicle half of a changeover day, for one day and one direction. It
+   lives inside New arrivals and Departures rather than in a section of its
+   own: a centre plans the people and the vehicles in the same breath, and two
+   screens answering "who is moving on Sunday" is how they stop trusting
+   either. */
+export function RunPlan({
+  day,
+  direction,
+}: {
+  day: string;
+  direction: 'in' | 'out';
+}) {
   const { students, staff, flights } = useStore();
   const [view, setView] = useState<View>('day');
-  const [direction, setDirection] = useState<'in' | 'out'>('in');
   const [openStudent, setOpenStudent] = useState<string | null>(null);
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [wait, setWait] = useState<Wait>(90);
-
-  /* Every day anybody travels, so the busy ones can be picked out rather than
-     hunted for. */
-  const days = useMemo(() => {
-    const counts = new Map<string, { in: number; out: number }>();
-    students.forEach((s) => {
-      const bump = (d: string, k: 'in' | 'out') => {
-        const c = counts.get(d) ?? { in: 0, out: 0 };
-        c[k] += 1;
-        counts.set(d, c);
-      };
-      bump(s.arrival, 'in');
-      bump(s.leaving, 'out');
-    });
-    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [students]);
-
-  const nextChangeover = useMemo(() => {
-    const today = `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
-    const ahead = days.find(([d, c]) => d >= today && c.in + c.out > 4);
-    return ahead?.[0] ?? days[0]?.[0] ?? today;
-  }, [days]);
-
-  const [day, setDay] = useState<string>(nextChangeover);
 
   const plan = useMemo(
     () => buildRuns(day, direction, students, staff, flights, wait),
@@ -148,42 +134,22 @@ export function Transfers() {
 
   const tabs: { id: View; label: string }[] = [
     { id: 'day', label: `Runs ${plan.runs.length}` },
-    { id: 'flights', label: 'Flights' },
     { id: 'money', label: `Receipts ${noReceipt ? `${noReceipt} missing` : 'all in'}` },
-    { id: 'season', label: `Changeover days ${days.filter(([, c]) => c.in + c.out > 4).length}` },
   ];
 
   return (
     <>
-      <SectionHead
-        title="Transfers"
-        count={`${plan.studentsMoved} travelling · ${plan.runs.length} runs · ${plan.vehicleHours}h of vehicle time · ${fmtMoney(plan.costPence)}`}
-      >
-        <select
-          className="field"
-          style={{ width: 210 }}
-          value={day}
-          onChange={(e) => setDay(e.target.value)}
-          aria-label="Day"
-        >
-          {days
-            .filter(([, c]) => c.in + c.out > 0)
-            .map(([d, c]) => (
-              <option key={d} value={d}>
-                {fmtDateLong(d)} — {c.in} in, {c.out} out
-              </option>
-            ))}
-        </select>
-      </SectionHead>
-
-      <p className="meta section__lede">
-        Students land across the day in two peaks and every one of them has to
-        be met by name. The runs below are built from the flights: one airport
-        each, flights within 75 minutes sharing a vehicle, off-site ratios, a
-        D1 holder on anything that needs one, and a named meeter on any run
-        carrying an unaccompanied minor — the airline will not release a child
-        to anybody else.
-      </p>
+      <div className="runplan__head">
+        <p className="label">
+          {plan.studentsMoved} travelling · {plan.runs.length} runs ·{' '}
+          {plan.vehicleHours}h of vehicle time · {fmtMoney(plan.costPence)}
+        </p>
+        <p className="meta">
+          {direction === 'in'
+            ? 'Built from the flights: one airport each, flights within a window sharing a vehicle, off-site ratios, a D1 holder on anything that needs one, and a named meeter on any run carrying an unaccompanied minor — the airline will not release a child to anybody else.'
+            : 'Built backwards from the flights: at the desk two and a half hours before take-off, one airport per run, off-site ratios, a D1 holder where the vehicle needs one, and a named adult to hand over any child travelling alone.'}
+        </p>
+      </div>
 
       {openStudent && (
         <StudentProfile id={openStudent} onClose={() => setOpenStudent(null)} />
@@ -202,20 +168,14 @@ export function Transfers() {
             {t.label}
           </button>
         ))}
-        <span style={{ flex: 1 }} />
-        {(['in', 'out'] as const).map((d) => (
-          <button
-            key={d}
-            className={`tab${direction === d ? ' tab--on' : ''}`}
-            onClick={() => setDirection(d)}
-          >
-            {d === 'in' ? 'Arrivals' : 'Departures'}
-          </button>
-        ))}
       </div>
 
       <div className="wait">
-        <p className="label">How long may a student wait airside?</p>
+        <p className="label">
+          {direction === 'in'
+            ? 'How long may a student wait airside?'
+            : 'How long may a student wait at the airport before their flight?'}
+        </p>
         <p className="meta wait__lede">
           The longer they may wait with a staff member, the more flights share
           a vehicle. An hour is nothing to a seventeen-year-old and a long time
@@ -265,7 +225,7 @@ export function Transfers() {
       {view === 'day' && (
         plan.runs.length === 0 ? (
           <p className="meta reminders__empty">
-            Nobody travels {direction === 'in' ? 'in' : 'out'} on {fmtDateLong(day)}.
+            Nobody {direction === 'in' ? 'arrives' : 'leaves'} on {fmtDateLong(day)}.
           </p>
         ) : (
           <ul className="runs stagger">
@@ -280,72 +240,6 @@ export function Transfers() {
             ))}
           </ul>
         )
-      )}
-
-      {view === 'flights' && (
-        <div className="tablewrap">
-          <table className="reg">
-            <thead>
-              <tr>
-                <th style={{ width: '20%' }}>Student</th>
-                <th>Flight</th>
-                <th>Airport</th>
-                <th>Terminal</th>
-                <th>Lands</th>
-                <th>Status</th>
-                <th>Alone</th>
-                <th>Group</th>
-              </tr>
-            </thead>
-            <tbody className="stagger">
-              {students
-                .map((s) => ({
-                  s,
-                  f: flights.find(
-                    (x: Flight) => x.studentId === s.id && x.direction === direction,
-                  ),
-                }))
-                .filter((x) => x.f && flightDay(x.s, x.f) === day)
-                .sort((a, b) => mins(a.f!.at) - mins(b.f!.at))
-                .map(({ s, f }) => (
-                  <tr key={s.id}>
-                    <td>
-                      <button className="namebtn" onClick={() => setOpenStudent(s.id)}>
-                        {s.forename} {s.surname}
-                      </button>
-                      <span className="meta" style={{ display: 'block', color: 'var(--ink-3)' }}>
-                        {s.country} · {s.age}
-                      </span>
-                    </td>
-                    <td className="num">{f!.number}</td>
-                    <td>{airportBy(f!.airport).name}</td>
-                    <td className="num meta">{f!.terminal}</td>
-                    <td className="num">
-                      {f!.at}
-                      {f!.delay > 0 && (
-                        <span className="meta" style={{ display: 'block', color: 'var(--oxide)' }}>
-                          +{f!.delay} min
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <span className={`mark ${STATUS[f!.status].mark}`}>
-                        {STATUS[f!.status].label}
-                      </span>
-                    </td>
-                    <td>
-                      {f!.unaccompanied ? (
-                        <span className="mark mark--overdue">Unaccompanied</span>
-                      ) : (
-                        <span className="meta" style={{ color: 'var(--ink-3)' }}>—</span>
-                      )}
-                    </td>
-                    <td className="meta">{groupById(s.groupId).name}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-        </div>
       )}
 
       {view === 'money' && (
@@ -474,53 +368,6 @@ export function Transfers() {
         )
       )}
 
-      {view === 'season' && (
-        <div className="tablewrap">
-          <table className="reg">
-            <thead>
-              <tr>
-                <th>Day</th>
-                <th>Arriving</th>
-                <th>Leaving</th>
-                <th>Airports</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {days
-                .filter(([, c]) => c.in + c.out > 4)
-                .map(([d, c]) => {
-                  const aps = new Set(
-                    students
-                      .filter((s) => s.arrival === d || s.leaving === d)
-                      .map((s) => {
-                        const f = flights.find(
-                          (x: Flight) =>
-                            x.studentId === s.id &&
-                            x.direction === (s.arrival === d ? 'in' : 'out'),
-                        );
-                        return f ? airportBy(f.airport).name : '';
-                      })
-                      .filter(Boolean),
-                  );
-                  return (
-                    <tr key={d}>
-                      <td style={{ fontWeight: d === day ? 600 : 400 }}>{fmtDateLong(d)}</td>
-                      <td className="num">{c.in}</td>
-                      <td className="num">{c.out}</td>
-                      <td className="meta">{[...aps].join(', ')}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="btn" onClick={() => { setDay(d); setView('day'); }}>
-                          Plan it
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
-      )}
     </>
   );
 }

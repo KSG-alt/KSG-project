@@ -121,7 +121,7 @@ export function Home({
           r.unaccompanied > 0
             ? { label: `${r.unaccompanied} alone`, cls: 'mark--overdue' }
             : null,
-        go: 'transfers',
+        go: r.direction === 'in' ? 'arrivals' : 'departures',
       });
     });
 
@@ -168,7 +168,7 @@ export function Home({
       n: String(travelling.moved),
       label: 'travelling today',
       note: `${travelling.inbound.runs.length + travelling.outbound.runs.length} vehicle runs`,
-      go: 'transfers',
+      go: 'arrivals',
     },
     {
       n: String(critical.length),

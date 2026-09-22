@@ -434,7 +434,7 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
       title: `${s.forename} ${s.surname} arrives ${whenLabel(s.arrival)} with no flight on file`,
       action: 'Without a flight number and a landing time nobody can be sent to meet them. Get it from the agent today.',
       due: shift(-1),
-      route: 'transfers',
+      route: 'arrivals',
       source: `Transfers · ${s.country}`,
     }, `${s.guardian.name} · ${s.guardian.phone}`));
   });

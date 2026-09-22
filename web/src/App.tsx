@@ -12,7 +12,6 @@ import { Arrivals } from './routes/Arrivals';
 import { Finance } from './routes/Finance';
 import { Incidents } from './routes/Incidents';
 import { Setup } from './routes/Setup';
-import { Transfers } from './routes/Transfers';
 import { Portal } from './routes/Portal';
 import { Attendance } from './routes/Attendance';
 import { MenuOverlay } from './components/MenuOverlay';
@@ -34,7 +33,7 @@ import { DEMO_TODAY, fmtDateLong } from './data/seed';
 export type Route =
   | 'home' | 'students' | 'staff' | 'timetable' | 'bookings' | 'kadia'
   | 'reminders' | 'rooms' | 'arrivals' | 'audit' | 'finance' | 'incidents'
-  | 'setup' | 'transfers' | 'portal' | 'attendance' | 'office' | 'departures';
+  | 'setup' | 'portal' | 'attendance' | 'office' | 'departures';
 
 export const NAV: {
   id: Route;
@@ -44,9 +43,8 @@ export const NAV: {
 }[] = [
   { id: 'reminders', label: 'Reminders', blurb: 'Everything outstanding, safeguarding first', icon: IconReminders },
   { id: 'students', label: 'Students', blurb: 'Who is here, and when they arrive and leave', icon: IconStudents },
-  { id: 'arrivals', label: 'New arrivals', blurb: 'Everyone still to come, and whether they can be admitted', icon: IconArrivals },
-  { id: 'departures', label: 'Departures', blurb: 'Who flies when, how they get to the airport, and every reference', icon: IconArrivals },
-  { id: 'transfers', label: 'Transfers', blurb: 'Flights, runs and who meets each one', icon: IconTransfers },
+  { id: 'arrivals', label: 'New arrivals', blurb: 'Who lands when, how they get here, and whether they can be admitted', icon: IconArrivals },
+  { id: 'departures', label: 'Departures', blurb: 'Who flies when, how they get to the airport, and every reference', icon: IconTransfers },
   { id: 'attendance', label: 'Attendance', blurb: 'Who was counted, by whom, and who was not there', icon: IconAttendance },
   { id: 'portal', label: 'Document portal', blurb: 'What parents have sent, and what is waiting on us', icon: IconPortal },
   { id: 'rooms', label: 'Room allocations', blurb: 'Who sleeps where, with parent and guardian details', icon: IconRooms },
@@ -66,7 +64,6 @@ const TITLE: Record<Route, string> = {
   reminders: 'Reminders',
   students: 'Students',
   arrivals: 'New arrivals',
-  transfers: 'Transfers',
   attendance: 'Attendance',
   portal: 'Document portal',
   rooms: 'Room allocations',
@@ -182,7 +179,6 @@ function Shell() {
           {route === 'students' && <Students />}
           {route === 'arrivals' && <Arrivals />}
           {route === 'departures' && <Departures />}
-          {route === 'transfers' && <Transfers />}
           {route === 'attendance' && <Attendance />}
           {route === 'portal' && <Portal />}
           {route === 'rooms' && <Rooms />}

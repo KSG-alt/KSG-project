@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { SectionHead } from '../components/SectionHead';
 import { StudentProfile } from '../components/StudentProfile';
 import { StaffProfile } from '../components/StaffProfile';
+import { RunPlan } from '../components/RunPlan';
 import { useStore } from '../lib/store';
 import { buildRuns, chargeOf, type Run } from '../lib/transfers';
 import { agentFor } from '../data/suppliers';
@@ -49,6 +50,7 @@ export function Departures() {
   const [openStudent, setOpenStudent] = useState<string | null>(null);
   const [openStaff, setOpenStaff] = useState<string | null>(null);
   const [openRow, setOpenRow] = useState<string | null>(null);
+  const [how, setHow] = useState<'people' | 'vehicles'>('people');
 
   /* Everybody who still has to leave, soonest first. Whole season includes
      the ones who have already gone — a centre reconciles those too. */
@@ -210,12 +212,44 @@ export function Departures() {
         ))}
       </div>
 
+      <div className="tabs" role="tablist" aria-label="Departures view">
+        {([
+          { id: 'people', label: 'The children' },
+          { id: 'vehicles', label: 'Getting them to the airport' },
+        ] as const).map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={how === t.id}
+            className={`tab${how === t.id ? ' tab--on' : ''}`}
+            onClick={() => setHow(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+        {how === 'vehicles' && !day && dayOptions.length > 0 && (
+          <span className="meta" style={{ alignSelf: 'center', marginLeft: 8 }}>
+            showing {fmtDate(dayOptions[0][0])} — pick another above
+          </span>
+        )}
+      </div>
+
+      {how === 'vehicles' && (
+        dayOptions.length === 0 ? (
+          <p className="meta reminders__empty">
+            Nobody leaves in this window, so there is nothing to book.
+          </p>
+        ) : (
+          <RunPlan day={day || dayOptions[0][0]} direction="out" />
+        )
+      )}
+
       {openStudent && (
         <StudentProfile id={openStudent} onClose={() => setOpenStudent(null)} />
       )}
       {openStaff && <StaffProfile id={openStaff} onClose={() => setOpenStaff(null)} />}
 
-      {days.length === 0 ? (
+      {how === 'people' && (days.length === 0 ? (
         <p className="meta reminders__empty">
           Nobody leaves {day ? `on ${fmtDate(day)}` : 'in this window'}
           {q ? ` matching “${q}”` : ''}.
@@ -492,9 +526,9 @@ export function Departures() {
             </section>
           ))}
         </div>
-      )}
+      ))}
 
-      {rows.length > 0 && (
+      {how === 'people' && rows.length > 0 && (
         <p className="meta slab__more">
           Times come from the same builder the transfers screen uses: the desk
           wants a group two and a half hours before the flight, and the road

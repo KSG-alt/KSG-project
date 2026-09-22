@@ -2698,6 +2698,19 @@ span.fig {
   }
 }
 
+.runplan__head {
+  margin: 0 0 18px;
+  max-width: 78ch;
+}
+
+.runplan__head .label {
+  margin: 0 0 6px;
+}
+
+.runplan__head .meta + .meta {
+  margin-top: 6px;
+}
+
 /* ── Ask Kadia, as a small window ──────────────────────────────────────────
    Shut, it is a pill the width of its own words — a control, not a panel.
    Open, it is a card: one header line, the automations as chips, and the

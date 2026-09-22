@@ -13,7 +13,6 @@ const ROUTE_LABEL: Record<Route, string> = {
   office: 'Head office',
   departures: 'Departures',
   finance: 'Payments',
-  transfers: 'Transfers',
   attendance: 'Attendance',
   portal: 'Document portal',
   incidents: 'Incidents',
