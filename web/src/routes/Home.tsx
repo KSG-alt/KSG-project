@@ -195,22 +195,24 @@ export function Home({
   return (
     <main id="main" className="hero">
       <header className="lede">
-        <p className="lede__day">
-          {DEMO_TODAY.toLocaleDateString('en-GB', {
-            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-          })}
-        </p>
+        <div className="lede__row">
+          <h1 className="lede__title">
+            <span className="serif">{greeting()}</span>, {operator}.
+          </h1>
+          <p className="lede__when">
+            {DEMO_TODAY.toLocaleDateString('en-GB', {
+              weekday: 'long', day: 'numeric', month: 'long',
+            })}
+            <span className="lede__season">{season()} · seeded demonstration data</span>
+          </p>
+        </div>
 
-        <h1 className="lede__greet">
-          <span className="serif">{greeting()}</span>, {operator}.
-        </h1>
-
-        <p className="lede__state">
+        <p className="lede__sub">
           {open.length === 0
-            ? 'Nothing is outstanding across the centre.'
+            ? 'Nothing outstanding across the centre.'
             : critical.length > 0
-              ? `${open.length} things need you this morning, ${critical.length} of them safeguarding.`
-              : `${open.length} things need you this morning, none of them safeguarding.`}
+              ? `${open.length} things need you. ${critical.length} are safeguarding, ${openIncidents.length} incidents are open, and ${ahead.length} things still happen today.`
+              : `${open.length} things need you, none of them safeguarding. ${ahead.length} things still happen today.`}
         </p>
 
         <div className="lede__cta">
@@ -218,27 +220,25 @@ export function Home({
             Open reminders
             <IconArrow />
           </button>
-          <GlobalAsk route="home" />
         </div>
       </header>
 
-      <div className="rule" />
-
-      {/* The day in one line. Numbers in ink, what they are in the quiet
-          colour, each one a way into the section that owns it. */}
-      <div className="tally">
-        {figures.map((f) => (
-          <button
-            key={f.label}
-            className={`tally__item${f.alarm ? ' tally__item--alarm' : ''}`}
-            onClick={() => onGo(f.go)}
-            title={f.note}
-          >
-            <span className="tally__n num">{f.n}</span>
-            <span className="tally__label">{f.label}</span>
-          </button>
-        ))}
-      </div>
+      <div className="stage">
+        {/* The same pill as every other section, in the same place. */}
+        <GlobalAsk route="home" />
+        <div className="figs">
+          {figures.map((f) => (
+            <button
+              key={f.label}
+              className={`fig${f.alarm ? ' fig--alarm' : ''}`}
+              onClick={() => onGo(f.go)}
+            >
+              <span className="fig__n num">{f.n}</span>
+              <span className="fig__label">{f.label}</span>
+              <span className="fig__note meta">{f.note}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="hero__grid">
           <section className="slab" aria-labelledby="ahead-head">
@@ -316,6 +316,7 @@ export function Home({
           </section>
         </div>
 
+      </div>
     </main>
   );
 }
