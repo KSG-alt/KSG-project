@@ -4,40 +4,10 @@ One file: `docs/kadia-demo-centre.html`. Double-click it, or attach it to an
 email. No server, no install, no network. It opens on the centre's day, as
 centre administrator.
 
-The two sides are the same application with a different audience. The centre
-runs the day — registers, rotas, transfers, rooms, the queue. Head office owns
-what the records say — the clinical record, the money, the documents, DBS,
-incidents and the audit trail, across every centre — and does not carry the
-hour-to-hour screens at all. A single "everything" demo shows a person screens
-they would never have, and a prospect notices.
-
-Head office has its own home screen rather than the centre's with different
-numbers on it, because the two jobs keep different clocks. A centre opens the
-morning asking what happens in the next four hours; head office opens it
-asking what will be short by the end of the season and what is sitting on
-their own desk. So: where the season is, **only you can clear this**, the
-money with a banked-against-invoiced bar, the changeover days ahead with the
-unverified and unpaid counts against each, and which centres are live.
-
-## What head office sees that a centre does not
-
-- **Centres** — every site's figures side by side, with a site that is
-  contracted but not yet imported shown as exactly that.
-- **Money** — invoiced, banked, still owed, in the bank and unallocated,
-  committed to suppliers, and booked with no receipt behind it. Plus every
-  child arriving inside a week who still owes, because a centre cannot hold a
-  child at the door over a balance.
-- **Children** — every child on the books with documents, health state,
-  balance, bed and guardian, searchable.
-- **To verify / Consent** — the clinical declarations waiting on head office,
-  and the medication a centre holds with nothing signed behind it.
-- **Clinical load** — adrenaline plans on site, who holds what, doses due
-  today, doses nobody recorded.
-- **Who read what** — every opening of a child's medical record.
-
-The centre build has none of it, and a centre administrator cannot reach Head
-office in the combined build either — the first place in this platform where
-the person it was built for is not the person with the most access.
+The head office side of the platform is not in this file. It exists in the
+application — a role away, in Centre setup — and it will get its own demo when
+there is somebody to show it to. Until then the only thing that ships is the
+centre.
 
 ## What a viewer can actually do
 
