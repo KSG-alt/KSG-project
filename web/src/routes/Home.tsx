@@ -195,16 +195,21 @@ export function Home({
 
   return (
     <main id="main" className="hero">
+      {/* ── The folio line ──────────────────────────────────────────────
+          The date and what this data is, set as the rule across the top of a
+          printed page rather than as a right-aligned caption fighting the
+          greeting for the same baseline. It says where you are before it says
+          anything else, and it says it once. */}
+      <p className="folio">
+        <span className="folio__day">{fmtDayHead(DEMO_TODAY)}</span>
+        <span className="folio__season">{season()}</span>
+        <span className="folio__note">seeded demonstration data</span>
+      </p>
+
       <header className="lede">
-        <div className="lede__row">
-          <h1 className="lede__title">
-            <span className="serif">{greeting()}</span>, {operator}.
-          </h1>
-          <p className="lede__when">
-            {fmtDayHead(DEMO_TODAY)}
-            <span className="lede__season">{season()} · seeded demonstration data</span>
-          </p>
-        </div>
+        <h1 className="lede__title">
+          <span className="serif">{greeting()}</span>, {operator}.
+        </h1>
 
         <p className="lede__sub">
           {open.length === 0
@@ -214,17 +219,19 @@ export function Home({
               : `${open.length} things need you, none of them safeguarding. ${ahead.length} things still happen today.`}
         </p>
 
+        {/* The action and the assistant on one line: two ways to start the
+            morning, offered together rather than one in the header and one
+            floating over the numbers. */}
         <div className="lede__cta">
           <button className="btn btn--primary" onClick={() => onGo('reminders')}>
             Open reminders
             <IconArrow />
           </button>
+          <GlobalAsk route="home" />
         </div>
       </header>
 
       <div className="stage">
-        {/* The same pill as every other section, in the same place. */}
-        <GlobalAsk route="home" />
         <div className="figs">
           {figures.map((f) => (
             <button

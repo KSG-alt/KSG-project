@@ -575,48 +575,59 @@ p.mark::before {
   margin: 0 auto clamp(20px, 3vh, 30px);
 }
 
-.lede__row {
+/* ── The folio line ───────────────────────────────────────────────────────
+   Where you are, set across the top of the page on a rule, the way a printed
+   day-book states its date before anything else. It used to be a right-
+   aligned caption sharing a baseline with the greeting, competing with the
+   one line on the screen that should win. */
+.folio {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px 24px;
-}
-
-.lede__title {
-  font-size: clamp(1.9rem, 3.6vw, var(--t-2xl));
+  gap: 4px 14px;
+  max-width: 1240px;
+  margin: 0 auto 22px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.6875rem;
   font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.032em;
-}
-
-.lede__when {
-  margin: 0;
-  text-align: right;
-  font-size: var(--t-sm);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   color: var(--ink-2);
 }
 
+.folio__season {
+  color: var(--ink-3);
+}
+
+/* Pushed to the far end: it is the caveat, not the heading. */
+.folio__note {
+  margin-left: auto;
+  color: var(--ink-3);
+}
+
+.lede__title {
+  margin: 0;
+  font-size: clamp(2.1rem, 4.4vw, var(--t-3xl));
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
 .lede__sub {
-  max-width: 68ch;
-  margin: 12px 0 0;
+  max-width: 54ch;
+  margin: 14px 0 0;
   font-size: var(--t-md);
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--ink-2);
 }
 
 .lede__cta {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.lede__season {
-  display: block;
-  margin: 2px 0 0;
-  font-size: var(--t-xs);
-  color: var(--ink-3);
+  gap: 12px;
+  margin-top: 22px;
 }
 
 /* ── Figures ──────────────────────────────────────────────────────────────
@@ -627,8 +638,8 @@ p.mark::before {
 .figs {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 22px;
 }
 
 /* ── The six figures ──────────────────────────────────────────────────────
@@ -644,7 +655,7 @@ p.mark::before {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 13px 15px 15px;
+  padding: 15px 16px 17px;
   text-align: left;
   background: var(--white);
   border: none;
@@ -682,10 +693,18 @@ span.fig {
 }
 
 .fig__n {
-  font-size: clamp(1.6rem, 2.6vw, 2.125rem);
+  /* The figures are set in the display serif, not the interface sans. Six
+     numbers in the same face as the buttons around them read as chrome; in
+     the serif they read as the thing the page is about, and they tie to the
+     greeting at the top instead of floating free of it. Sizes are generous
+     because there are only six of them and they are the point. */
+  font-family: var(--serif);
+  font-size: clamp(2.1rem, 3.6vw, 2.875rem);
   font-weight: 400;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  font-variant-numeric: normal;
+  font-feature-settings: normal;
 }
 
 .fig__label {
@@ -821,29 +840,25 @@ span.fig {
 .stage {
   max-width: 1240px;
   margin: 0 auto;
-  padding: clamp(18px, 3vw, 30px);
-  border-radius: var(--r-xl);
-  /* A quiet ground, not a feature. The three stacked gradients that used to
-     sit here were the loudest thing on the page and said nothing: a wash
-     behind six numbers is decoration standing in for hierarchy. One flat
-     paper tone and a hairline separate the figures from the page and leave
-     them to carry it. */
-  background: var(--paper-2);
-  box-shadow: var(--edge);
+  /* No panel. A tinted box drawn around the figures and the two slabs was
+     a container for its own sake — the page already has a ground, and every
+     card inside it was drawing a second one. What separates things here is
+     white against paper and a rule, nothing else. */
+  padding: 0;
 }
 
 .hero__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
 .slab {
-  padding: 20px;
+  padding: 20px 22px 22px;
   background: var(--white);
-  border-radius: var(--r-lg);
-  box-shadow: var(--edge), var(--shadow-1);
+  border-radius: var(--r-sm);
+  box-shadow: var(--edge);
 }
 
 .slab__head {
@@ -851,12 +866,19 @@ span.fig {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  padding-bottom: 12px;
   margin-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
 }
 
+/* The same rule as a figure's heading, one size up: every block on this page
+   states what it is, on a line, before it says anything. */
 .slab__title {
-  font-size: var(--t-md);
+  font-size: 0.75rem;
   font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
 }
 
 .slab__more {
@@ -4752,3 +4774,14 @@ span.fig {
 .ml-5 { margin-left: var(--s-5); }
 .ml-6 { margin-left: var(--s-6); }
 .ml-7 { margin-left: var(--s-7); }
+
+/* The assistant sits on the action line of the home page rather than over the
+   figures, so the pill has to behave as an inline control there. */
+.lede__cta .dock--shut {
+  margin: 0;
+}
+
+.lede__cta .dock--open {
+  flex: 1 0 100%;
+  margin: 0;
+}
