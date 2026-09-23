@@ -232,8 +232,10 @@ export function Home({
               className={`fig${f.alarm ? ' fig--alarm' : ''}`}
               onClick={() => onGo(f.go)}
             >
+              <span className="fig__eyebrow">
+                <span className="fig__label">{f.label}</span>
+              </span>
               <span className="fig__n num">{f.n}</span>
-              <span className="fig__label">{f.label}</span>
               <span className="fig__note meta">{f.note}</span>
             </button>
           ))}

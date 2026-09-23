@@ -220,43 +220,56 @@ export function Office() {
                 {live ? (
                   <div className="figs">
                     <span className="fig">
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">on site</span>
+                      </span>
                       <span className="fig__n num">{here.length}</span>
-                      <span className="fig__label">on site</span>
                       <span className="fig__note meta">
                         {mine.length} booked this season
                       </span>
                     </span>
                     <span className={`fig${unverified ? ' fig--alarm' : ''}`}>
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">records to verify</span>
+                      </span>
                       <span className="fig__n num">{unverified}</span>
-                      <span className="fig__label">records to verify</span>
                       <span className="fig__note meta">
                         {slow.length} over {SLOW_DAYS} days
                       </span>
                     </span>
                     <span className={`fig${overdue ? ' fig--alarm' : ''}`}>
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">safeguarding open</span>
+                      </span>
                       <span className="fig__n num">{overdue}</span>
-                      <span className="fig__label">safeguarding open</span>
                       <span className="fig__note meta">
                         of {open.length} outstanding
                       </span>
                     </span>
                     <span className="fig">
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">incidents open</span>
+                      </span>
                       <span className="fig__n num">
                         {incidents.filter((i) => i.status === 'open').length}
                       </span>
-                      <span className="fig__label">incidents open</span>
                       <span className="fig__note meta">
                         {incidents.filter((i) => i.level === 'notifiable').length} notifiable this season
                       </span>
                     </span>
                     <span className="fig">
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">documents chased</span>
+                      </span>
                       <span className="fig__n num">{waitingOnThem(requests).length}</span>
-                      <span className="fig__label">documents chased</span>
                       <span className="fig__note meta">
                         {waitingOnUs(requests).length} to verify
                       </span>
                     </span>
                     <span className="fig">
+                      <span className="fig__eyebrow">
+                        <span className="fig__label">unmatched</span>
+                      </span>
                       <span className="fig__n num">
                         {fmtMoney(
                           payments
@@ -264,7 +277,6 @@ export function Office() {
                             .reduce((n, p) => n + p.amountPence, 0),
                         )}
                       </span>
-                      <span className="fig__label">unmatched</span>
                       <span className="fig__note meta">
                         {payments.filter((p) => !p.studentId).length} payments
                       </span>
@@ -300,37 +312,49 @@ export function Office() {
         <>
           <div className="figs">
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">invoiced this season</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.invoicedPence)}</span>
-              <span className="fig__label">invoiced this season</span>
               <span className="fig__note meta">{students.length} students on the books</span>
             </span>
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">banked against a student</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.bankedPence)}</span>
-              <span className="fig__label">banked against a student</span>
               <span className="fig__note meta">
                 {Math.round((purse.bankedPence / purse.invoicedPence) * 100)}% of the season
               </span>
             </span>
             <span className={`fig${purse.outstandingPence > 0 ? ' fig--alarm' : ''}`}>
+              <span className="fig__eyebrow">
+                <span className="fig__label">still owed</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.outstandingPence)}</span>
-              <span className="fig__label">still owed</span>
               <span className="fig__note meta">invoiced less banked</span>
             </span>
             <span className={`fig${purse.unmatchedCount ? ' fig--alarm' : ''}`}>
+              <span className="fig__eyebrow">
+                <span className="fig__label">in the bank, unallocated</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.unmatchedPence)}</span>
-              <span className="fig__label">in the bank, unallocated</span>
               <span className="fig__note meta">
                 {purse.unmatchedCount} payments with no student
               </span>
             </span>
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">committed to suppliers</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.bookedPence)}</span>
-              <span className="fig__label">committed to suppliers</span>
               <span className="fig__note meta">{bookings.length} activity bookings</span>
             </span>
             <span className={`fig${purse.unreceiptedCount ? ' fig--alarm' : ''}`}>
+              <span className="fig__eyebrow">
+                <span className="fig__label">booked with no receipt</span>
+              </span>
               <span className="fig__n num">{fmtMoney(purse.unreceiptedPence)}</span>
-              <span className="fig__label">booked with no receipt</span>
               <span className="fig__note meta">
                 {purse.unreceiptedCount} bookings finance cannot pay
               </span>
@@ -695,37 +719,49 @@ export function Office() {
         <>
           <div className="figs">
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">children with a record on site</span>
+              </span>
               <span className="fig__n num">{load.onSite.length}</span>
-              <span className="fig__label">children with a record on site</span>
               <span className="fig__note meta">of {health.length} this season</span>
             </span>
             <span className={`fig${load.severe.length ? ' fig--alarm' : ''}`}>
+              <span className="fig__eyebrow">
+                <span className="fig__label">adrenaline plans on site</span>
+              </span>
               <span className="fig__n num">{load.severe.length}</span>
-              <span className="fig__label">adrenaline plans on site</span>
               <span className="fig__note meta">
                 somebody trained has to be on every hour
               </span>
             </span>
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">holding medication for the centre</span>
+              </span>
               <span className="fig__n num">{load.held.length}</span>
-              <span className="fig__label">holding medication for the centre</span>
               <span className="fig__note meta">locked storage and a named holder</span>
             </span>
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">doses due today</span>
+              </span>
               <span className="fig__n num">{load.rounds}</span>
-              <span className="fig__label">doses due today</span>
               <span className="fig__note meta">across every centre</span>
             </span>
             <span className={`fig${missed.length ? ' fig--alarm' : ''}`}>
+              <span className="fig__eyebrow">
+                <span className="fig__label">doses unrecorded</span>
+              </span>
               <span className="fig__n num">{missed.length}</span>
-              <span className="fig__label">doses unrecorded</span>
               <span className="fig__note meta">due and never signed either way</span>
             </span>
             <span className="fig">
+              <span className="fig__eyebrow">
+                <span className="fig__label">declared at booking</span>
+              </span>
               <span className="fig__n num">
                 {health.filter((h) => h.source === 'booking').length}
               </span>
-              <span className="fig__label">declared at booking</span>
               <span className="fig__note meta">
                 {health.filter((h) => h.source === 'senior').length} typed up here
               </span>

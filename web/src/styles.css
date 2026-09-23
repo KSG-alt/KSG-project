@@ -631,24 +631,45 @@ p.mark::before {
   margin-bottom: 16px;
 }
 
+/* ── The six figures ──────────────────────────────────────────────────────
+   Six identical drop-shadowed tiles with a number on top is what every
+   dashboard looks like, and it reads as a template rather than as this
+   centre's morning. These are set as ledger entries instead: the heading
+   first in small tracked caps, a hairline carrying the eye across the card,
+   and the figure under it at a size nothing else on the page competes with.
+   Structure comes from the rule, not from a shadow.
+   ──────────────────────────────────────────────────────────────────────── */
+
 .fig {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 15px;
+  padding: 13px 15px 15px;
   text-align: left;
   background: var(--white);
   border: none;
-  border-radius: var(--r-lg);
-  box-shadow: var(--edge), var(--shadow-1);
+  border-radius: var(--r-sm);
+  box-shadow: var(--edge);
   color: var(--ink);
   cursor: pointer;
-  transition: transform 260ms var(--spring), box-shadow 180ms var(--ease-ui);
+  transition: background 160ms var(--ease-ui), box-shadow 160ms var(--ease-ui);
 }
 
+/* The heading sits on a rule that runs the full width of the card. A rule
+   that only fills what the label leaves over is a different length in every
+   card, which reads as an accident rather than a decision. */
+.fig__eyebrow {
+  display: block;
+  padding-bottom: 9px;
+  margin-bottom: 9px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* A tint and a firmer edge. Tiles that lift off the page on hover are the
+   other half of the template look. */
 button.fig:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--edge-strong), var(--shadow-2);
+  background: var(--paper);
+  box-shadow: var(--edge-strong);
 }
 
 /* The same tile, reporting rather than navigating. */
@@ -657,28 +678,42 @@ span.fig {
 }
 
 .fig:active {
-  transform: translateY(-1px) scale(0.99);
+  background: var(--paper-2);
 }
 
 .fig__n {
-  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.fig--alarm .fig__n {
-  color: var(--oxide);
+  font-size: clamp(1.6rem, 2.6vw, 2.125rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
 .fig__label {
-  font-size: var(--t-sm);
-  line-height: 1.3;
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  color: var(--ink-2);
 }
 
 .fig__note {
+  margin-top: 4px;
   color: var(--ink-3);
   line-height: 1.35;
+}
+
+/* Colour is spent on state and nothing else, so an alarm colours the heading
+   and its rule as well as the figure — the whole entry is the thing that is
+   wrong, not just the digits. */
+.fig--alarm .fig__n,
+.fig--alarm .fig__label {
+  color: var(--oxide);
+}
+
+.fig--alarm .fig__eyebrow {
+  border-bottom-color: rgba(192, 52, 26, 0.3);
 }
 
 /* ── The rest of today ────────────────────────────────────────────────── */
@@ -752,6 +787,13 @@ span.fig {
   .figs {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  /* Narrow cards wrap the longer headings onto a second line, which would
+     leave the rule at a different height in every card of a row. Two lines
+     of space for all of them keeps the rules reading as one ruled sheet. */
+  .fig__label {
+    min-height: 2.5em;
+  }
 }
 
 @media (max-width: 620px) {
@@ -781,11 +823,13 @@ span.fig {
   margin: 0 auto;
   padding: clamp(18px, 3vw, 30px);
   border-radius: var(--r-xl);
-  background-image:
-    radial-gradient(110% 90% at 12% 0%, #dce8f6 0%, rgba(220, 232, 246, 0) 58%),
-    radial-gradient(90% 80% at 88% 6%, #fdf6bb 0%, rgba(253, 246, 187, 0) 62%),
-    linear-gradient(180deg, #f4eee9 0%, #fbf8f6 100%);
-  box-shadow: var(--edge), var(--shadow-2);
+  /* A quiet ground, not a feature. The three stacked gradients that used to
+     sit here were the loudest thing on the page and said nothing: a wash
+     behind six numbers is decoration standing in for hierarchy. One flat
+     paper tone and a hairline separate the figures from the page and leave
+     them to carry it. */
+  background: var(--paper-2);
+  box-shadow: var(--edge);
 }
 
 .hero__grid {
