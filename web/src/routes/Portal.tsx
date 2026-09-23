@@ -109,12 +109,12 @@ export function Portal() {
       </div>
 
       {view !== 'accepted' && notSent > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+        <p className="mark mark--critical mb-4">
           {notSent} documents have never been asked for at all
         </p>
       )}
       {view !== 'accepted' && stale > 0 && (
-        <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
+        <p className="mark mark--overdue mb-6">
           {stale} links chased twice and never opened — the address is probably
           wrong. Check it before chasing a third time.
         </p>
@@ -245,7 +245,7 @@ export function Portal() {
       )}
 
       {rows.length > 60 && (
-        <p className="meta" style={{ marginTop: 18 }}>
+        <p className="meta mt-5">
           Showing 60 of {rows.length}. Narrow with search.
         </p>
       )}

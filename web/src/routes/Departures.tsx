@@ -30,6 +30,7 @@ import { owed } from '../data/finance';
 import {
   DEMO_TODAY, daysFromToday, fmtDate, fmtDateLong, fmtMoney, groupById,
   roomLabel, whenLabel, type Student,
+  fmtDayHead, fmtDayPick,
 } from '../data/seed';
 import { Lede } from '../components/Lede';
 
@@ -150,11 +151,7 @@ export function Departures() {
           <option value="">Every departure day · {inWindow.length} students</option>
           {dayOptions.map(([d, list]) => (
             <option key={d} value={d}>
-              {new Date(d).toLocaleDateString('en-GB', {
-                weekday: 'short',
-                day: '2-digit',
-                month: 'short',
-              })}
+              {fmtDayPick(d)}
               {' — '}
               {list.length} leaving
             </option>
@@ -179,20 +176,20 @@ export function Departures() {
       </Lede>
 
       {noFlight.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 12 }}>
+        <p className="mark mark--critical mb-3">
           {noFlight.length} student{noFlight.length === 1 ? ' has' : 's have'} no
           outbound flight on the record. Nothing can be planned around them until
           the agent sends it.
         </p>
       )}
       {unseated.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 12 }}>
+        <p className="mark mark--critical mb-3">
           {unseated.length} have a flight and no seat on any vehicle. Check the
           transfers screen for the day.
         </p>
       )}
       {owing.length > 0 && (
-        <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
+        <p className="mark mark--overdue mb-6">
           {owing.length} leaving with a balance outstanding —{' '}
           {fmtMoney(owing.reduce((n, s) => n + owed(s), 0))} in total. After the
           coach goes it is a debt, not a balance.
@@ -265,11 +262,7 @@ export function Departures() {
             >
               <div className="day__head">
                 <h2 className="day__date">
-                  {new Date(date).toLocaleDateString('en-GB', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                  })}
+                  {fmtDayHead(date)}
                 </h2>
                 <span className="meta day__when">
                   {whenLabel(date)} · {list.length} leaving ·{' '}
@@ -379,7 +372,7 @@ export function Departures() {
                                 </dl>
                               )}
                               {f?.unaccompanied && (
-                                <p className="meta" style={{ marginTop: 10 }}>
+                                <p className="meta mt-3">
                                   The airline will not take an unaccompanied minor
                                   without the paperwork and a named adult handing
                                   them over at the desk. Whoever leads this run
@@ -446,7 +439,7 @@ export function Departures() {
                                     </div>
                                   </dl>
 
-                                  <p className="label" style={{ marginTop: 14 }}>
+                                  <p className="label mt-4">
                                     Staff on the run
                                   </p>
                                   <ul className="log">
@@ -460,8 +453,7 @@ export function Departures() {
                                         </button>
                                         {id === run.meeterId && (
                                           <span
-                                            className="mark mark--clear"
-                                            style={{ marginLeft: 8 }}
+                                            className="mark mark--clear ml-2"
                                           >
                                             Hands them over
                                           </span>
@@ -494,7 +486,7 @@ export function Departures() {
                                 </div>
                               </dl>
 
-                              <p className="label" style={{ marginTop: 14 }}>
+                              <p className="label mt-4">
                                 Who to ring
                               </p>
                               <p className="meta">
@@ -508,7 +500,7 @@ export function Departures() {
                                   ? `Agent: ${agent.name}, ${agent.contact} · ${agent.phone} · out of hours ${agent.outOfHours}`
                                   : 'Booked direct — no agent to ring, call the parents.'}
                               </p>
-                              <p className="meta" style={{ marginTop: 10 }}>
+                              <p className="meta mt-3">
                                 <button
                                   className="btn"
                                   onClick={() => setOpenStudent(s.id)}

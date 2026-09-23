@@ -133,16 +133,16 @@ export function Setup() {
           </p>
 
           <div className="tablewrap">
-            <table className="reg">
+            <table className="reg" aria-label="Supervision ratios by age band">
               <thead>
                 <tr>
-                  <th>Band</th>
-                  <th>Students</th>
-                  <th>Groups</th>
-                  <th style={{ width: 140 }}>On site</th>
-                  <th style={{ width: 140 }}>Off site</th>
-                  <th style={{ width: 140 }}>Overnight</th>
-                  <th>Note</th>
+                  <th scope="col">Band</th>
+                  <th scope="col">Students</th>
+                  <th scope="col">Groups</th>
+                  <th scope="col" style={{ width: 140 }}>On site</th>
+                  <th scope="col" style={{ width: 140 }}>Off site</th>
+                  <th scope="col" style={{ width: 140 }}>Overnight</th>
+                  <th scope="col">Note</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,7 +184,7 @@ export function Setup() {
           </div>
 
           {draftRatios.some((r) => r.ratio < 1 || r.ratio > 30) && (
-            <p className="mark mark--critical" style={{ marginTop: 14 }}>
+            <p className="mark mark--critical mt-4">
               A ratio has to be between 1 and 30 students per staff member.
             </p>
           )}
@@ -371,7 +371,7 @@ export function Setup() {
           </div>
 
           {draftEsc.safeguarding > draftEsc.admin && (
-            <p className="mark mark--critical" style={{ marginTop: 14 }}>
+            <p className="mark mark--critical mt-4">
               Safeguarding would wait longer than admin. That inverts the one
               principle this product does not bend on.
             </p>
@@ -466,14 +466,14 @@ export function Setup() {
           </p>
 
           <div className="tablewrap">
-            <table className="reg">
+            <table className="reg" aria-label="Notification groups">
               <thead>
                 <tr>
-                  <th>Group</th>
-                  <th>Channel</th>
-                  <th>Members</th>
-                  <th>Status</th>
-                  <th />
+                  <th scope="col">Group</th>
+                  <th scope="col">Channel</th>
+                  <th scope="col">Members</th>
+                  <th scope="col">Status</th>
+                  <th scope="col" />
                 </tr>
               </thead>
               <tbody>

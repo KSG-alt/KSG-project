@@ -120,7 +120,7 @@ export function Import({ bands }: { bands: [number, number] }) {
           </div>
 
           {unmapped.length > 0 && (
-            <p className="mark mark--critical" style={{ marginTop: 16 }}>
+            <p className="mark mark--critical mt-4">
               {unmapped.map((f) => f.label).join(', ')} —{' '}
               {unmapped.length === 1 ? 'this column is' : 'these columns are'}{' '}
               required and not in the file
@@ -170,12 +170,12 @@ export function Import({ bands }: { bands: [number, number] }) {
             <>
               <p className="label">{checked.problems.length} problems</p>
               <div className="tablewrap">
-                <table className="reg">
+                <table className="reg" aria-label="Rows the import could not read">
                   <thead>
                     <tr>
-                      <th style={{ width: 80 }}>Row</th>
-                      <th style={{ width: '22%' }}>Column</th>
-                      <th>What is wrong</th>
+                      <th scope="col" style={{ width: 80 }}>Row</th>
+                      <th scope="col" style={{ width: '22%' }}>Column</th>
+                      <th scope="col">What is wrong</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -198,12 +198,12 @@ export function Import({ bands }: { bands: [number, number] }) {
             <>
               <p className="label">What would land</p>
               <div className="tablewrap">
-                <table className="reg">
+                <table className="reg" aria-label="Students the import will add">
                   <thead>
                     <tr>
-                      <th>Student</th>
-                      <th>Arrives</th>
-                      <th>Leaves</th>
+                      <th scope="col">Student</th>
+                      <th scope="col">Arrives</th>
+                      <th scope="col">Leaves</th>
                     </tr>
                   </thead>
                   <tbody>

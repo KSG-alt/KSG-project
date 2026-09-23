@@ -24,17 +24,15 @@ import { airportBy } from '../data/travel';
 import {
   DEMO_TODAY, SEASON_END, SEASON_START, activityById, fmtMoney, groupById,
   isOnSite, type Session,
+  fmtDayHead, fmtDayMonth,
 } from '../data/seed';
 
 const TODAY = `${DEMO_TODAY.getFullYear()}-${String(DEMO_TODAY.getMonth() + 1).padStart(2, '0')}-${String(DEMO_TODAY.getDate()).padStart(2, '0')}`;
 const NOW = DEMO_TODAY.getHours() * 60 + DEMO_TODAY.getMinutes();
 const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 
-const season = () => {
-  const f = (d: Date) =>
-    d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-  return `${f(SEASON_START)} – ${f(SEASON_END)} ${SEASON_END.getFullYear()}`;
-};
+const season = () =>
+  `${fmtDayMonth(SEASON_START)} – ${fmtDayMonth(SEASON_END)} ${SEASON_END.getFullYear()}`;
 
 const greeting = () => {
   const h = DEMO_TODAY.getHours();
@@ -66,6 +64,9 @@ export function Home({
   } = useStore();
 
   const critical = open.filter((r) => r.severity === 'safeguarding');
+  /* Escalated rows went up on their own. Worth saying out loud: it is the
+     difference between a list and a system. */
+  const escalated = open.filter((r) => r.escalated);
   const onSite = students.filter((s) => isOnSite(s));
 
   const today = useMemo(
@@ -200,9 +201,7 @@ export function Home({
             <span className="serif">{greeting()}</span>, {operator}.
           </h1>
           <p className="lede__when">
-            {DEMO_TODAY.toLocaleDateString('en-GB', {
-              weekday: 'long', day: 'numeric', month: 'long',
-            })}
+            {fmtDayHead(DEMO_TODAY)}
             <span className="lede__season">{season()} · seeded demonstration data</span>
           </p>
         </div>
@@ -211,7 +210,7 @@ export function Home({
           {open.length === 0
             ? 'Nothing outstanding across the centre.'
             : critical.length > 0
-              ? `${open.length} things need you. ${critical.length} are safeguarding, ${openIncidents.length} incidents are open, and ${ahead.length} things still happen today.`
+              ? `${open.length} things need you. ${critical.length} are safeguarding, ${escalated.length} have gone up to management on their own, and ${ahead.length} things still happen today.`
               : `${open.length} things need you, none of them safeguarding. ${ahead.length} things still happen today.`}
         </p>
 

@@ -222,11 +222,18 @@ function buildStudents(): Student[] {
     let leaving = addDays(arrival, weeks * 7);
     if (leaving > SEASON_END) leaving = SEASON_END;
 
+    /* Rates are the point of the demonstration, not a detail of it. A centre
+       where a third of the children are missing paperwork is a centre in
+       trouble, and a prospect reads that as "this place is failing" rather
+       than "this product catches things". These are the rates of a centre
+       that mostly works: 7% of documents outstanding, and under half of
+       those late enough to chase. The failures that remain are the product
+       doing its job. */
     const docState = (): DocState => {
       const x = r();
-      if (x < 0.78) return 'in';
+      if (x < 0.93) return 'in';
       /* Overdue only counts once the student is already here. */
-      return arrival <= DEMO_TODAY && x < 0.9 ? 'overdue' : 'outstanding';
+      return arrival <= DEMO_TODAY && x < 0.96 ? 'overdue' : 'outstanding';
     };
 
     /* Neutral relationship labels: the generated forenames carry no gender,
@@ -267,7 +274,7 @@ function buildStudents(): Student[] {
         address: `${Math.floor(r() * 180) + 1} ${STREETS[Math.floor(r() * STREETS.length)]}, ${country}`,
         emergencyName: `${FORENAMES[Math.floor(r() * FORENAMES.length)]} ${SURNAMES[Math.floor(r() * SURNAMES.length)]}`,
         emergencyPhone: intlPhone(country, r()),
-        consentToTravel: r() < 0.86,
+        consentToTravel: r() < 0.97,
       },
     });
   }
@@ -845,6 +852,37 @@ export function fmtDateLong(isoStr: string) {
     weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
   });
 }
+
+/* ── Every shape a date is written in, in one place ───────────────────────
+   These four used to be written out at the call site, with `en-GB` and its
+   options repeated a dozen times in four different combinations. The same
+   date then read differently depending on which screen you were on, which is
+   exactly the kind of small inconsistency that makes a system feel like
+   several systems stapled together. Anything that renders a date uses one of
+   these; if a screen needs a shape that is not here, it belongs here.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* "Mon 12 Jul" — a picker option, where the weekday is what you scan for. */
+export const fmtDayPick = (isoStr: string) =>
+  new Date(isoStr).toLocaleDateString('en-GB', {
+    weekday: 'short', day: '2-digit', month: 'short',
+  });
+
+/* "Monday 12 July" — a heading for one day's work. */
+export const fmtDayHead = (d: string | Date) =>
+  new Date(d).toLocaleDateString('en-GB', {
+    weekday: 'long', day: '2-digit', month: 'long',
+  });
+
+/* "12 July" — inside a sentence, where the year is already understood. */
+export const fmtDayMonth = (d: string | Date) =>
+  new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+
+/* "12 July 2027" — the written-out form, for anything that names today. */
+export const fmtDayFull = (d: string | Date) =>
+  new Date(d).toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
 
 export function fmtMoney(pence: number) {
   return `£${(pence / 100).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

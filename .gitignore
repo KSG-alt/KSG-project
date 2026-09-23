@@ -39,3 +39,7 @@ web/dist/
 
 # Review captures — regenerate, do not review in diffs
 .impeccable/review/
+
+# Prototype screen captures — 28 MB of PNGs nothing links to and nobody reads
+# in a diff. Regenerate them from the running app when a review needs them.
+docs/prototype-shots/

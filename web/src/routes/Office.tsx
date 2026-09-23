@@ -202,7 +202,7 @@ export function Office() {
               ? open.filter((r) => r.severity === 'safeguarding').length
               : 0;
             return (
-              <section key={site.id} className="slab" style={{ marginBottom: 16 }}>
+              <section key={site.id} className="slab mb-4">
                 <div className="slab__head">
                   <h2 className="slab__title">
                     {site.name}
@@ -359,15 +359,15 @@ export function Office() {
                 decision, it is an argument in a car park.
               </Lede>
               <div className="tablewrap">
-                <table className="reg">
+                <table className="reg" aria-label="Students with money outstanding">
                   <thead>
                     <tr>
-                      <th>Student</th>
-                      <th>Arrives</th>
-                      <th>Owed</th>
-                      <th>Invoice</th>
-                      <th>Guardian</th>
-                      <th>Documents</th>
+                      <th scope="col">Student</th>
+                      <th scope="col">Arrives</th>
+                      <th scope="col">Owed</th>
+                      <th scope="col">Invoice</th>
+                      <th scope="col">Guardian</th>
+                      <th scope="col">Documents</th>
                     </tr>
                   </thead>
                   <tbody className="stagger">
@@ -427,16 +427,16 @@ export function Office() {
           />
 
           <div className="tablewrap">
-            <table className="reg">
+            <table className="reg" aria-label="Every student on the books">
               <thead>
                 <tr>
-                  <th>Student</th>
-                  <th>Stay</th>
-                  <th>Documents</th>
-                  <th>Health</th>
-                  <th>Owed</th>
-                  <th>Room</th>
-                  <th>Guardian</th>
+                  <th scope="col">Student</th>
+                  <th scope="col">Stay</th>
+                  <th scope="col">Documents</th>
+                  <th scope="col">Health</th>
+                  <th scope="col">Owed</th>
+                  <th scope="col">Room</th>
+                  <th scope="col">Guardian</th>
                 </tr>
               </thead>
               <tbody className="stagger">
@@ -638,15 +638,15 @@ export function Office() {
               on a Saturday.
             </Lede>
             <div className="tablewrap">
-              <table className="reg">
+              <table className="reg" aria-label="Students whose medication the centre holds">
                 <thead>
                   <tr>
-                    <th>Student</th>
-                    <th>Medication</th>
-                    <th>Held by</th>
-                    <th>Arrives</th>
-                    <th>Guardian</th>
-                    <th>Record</th>
+                    <th scope="col">Student</th>
+                    <th scope="col">Medication</th>
+                    <th scope="col">Held by</th>
+                    <th scope="col">Arrives</th>
+                    <th scope="col">Guardian</th>
+                    <th scope="col">Record</th>
                   </tr>
                 </thead>
                 <tbody className="stagger">
@@ -737,14 +737,14 @@ export function Office() {
             <p className="meta">Nobody on site has an adrenaline plan today.</p>
           ) : (
             <div className="tablewrap">
-              <table className="reg">
+              <table className="reg" aria-label="Students with a declared allergy">
                 <thead>
                   <tr>
-                    <th>Student</th>
-                    <th>Allergy</th>
-                    <th>Pen kept</th>
-                    <th>On site until</th>
-                    <th>Record</th>
+                    <th scope="col">Student</th>
+                    <th scope="col">Allergy</th>
+                    <th scope="col">Pen kept</th>
+                    <th scope="col">On site until</th>
+                    <th scope="col">Record</th>
                   </tr>
                 </thead>
                 <tbody>

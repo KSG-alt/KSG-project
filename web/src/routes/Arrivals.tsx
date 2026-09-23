@@ -14,6 +14,7 @@ import { KADIA_SYSTEM, kadiaTools } from '../lib/kadiaAgent';
 import {
   ROOMS, STUDENTS, daysFromToday, fmtDate, groupByArrival, groupById, isOnSite,
   readiness, roomLabel, upcomingArrivals, whenLabel, type Student,
+  fmtDayHead, fmtDayMonth, fmtDayPick,
 } from '../data/seed';
 import { Lede } from '../components/Lede';
 
@@ -133,9 +134,7 @@ export function Arrivals() {
     /* "19 Jul", "19 July", "2027-07-19" and "Monday 19 July" all name the
        same arrival day, and a centre types whichever is in front of them. */
     const day = [...new Set(live.current.students.map((s) => s.arrival))].find((d) => {
-      const long = new Date(d)
-        .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
-        .toLowerCase();
+      const long = fmtDayMonth(d).toLowerCase();
       return t.includes(fmtDate(d).toLowerCase()) || t.includes(d) || t.includes(long);
     });
     const parsed = parseRoomingSpec(query, live.current.rooming, [
@@ -195,11 +194,7 @@ export function Arrivals() {
           </option>
           {dayOptions.map(([d, list]) => (
             <option key={d} value={d}>
-              {new Date(d).toLocaleDateString('en-GB', {
-                weekday: 'short',
-                day: '2-digit',
-                month: 'short',
-              })}
+              {fmtDayPick(d)}
               {' — '}
               {list.length} arriving
             </option>
@@ -371,7 +366,7 @@ export function Arrivals() {
       )}
 
       {how === 'people' && blocked.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 22 }}>
+        <p className="mark mark--critical mb-6">
           {blocked.length} of {rows.length} arriving in this window cannot be
           admitted yet
         </p>
@@ -392,11 +387,7 @@ export function Arrivals() {
             >
               <div className="day__head">
                 <h2 className="day__date">
-                  {new Date(date).toLocaleDateString('en-GB', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                  })}
+                  {fmtDayHead(date)}
                 </h2>
                 <span className="meta day__when">
                   {whenLabel(date)} · {list.length} arriving
@@ -407,17 +398,17 @@ export function Arrivals() {
               </div>
 
               <div className="tablewrap">
-                <table className="reg">
+                <table className="reg" aria-label="Students arriving on this day">
                   <thead>
                     <tr>
-                      <th style={{ width: '22%' }}>Student</th>
-                      <th>Age</th>
-                      <th>Group</th>
-                      <th>Room</th>
-                      <th>Bed</th>
-                      <th>Leaves</th>
-                      <th style={{ width: '18%' }}>Guardian</th>
-                      <th style={{ width: '20%' }}>Admission</th>
+                      <th scope="col" style={{ width: '22%' }}>Student</th>
+                      <th scope="col">Age</th>
+                      <th scope="col">Group</th>
+                      <th scope="col">Room</th>
+                      <th scope="col">Bed</th>
+                      <th scope="col">Leaves</th>
+                      <th scope="col" style={{ width: '18%' }}>Guardian</th>
+                      <th scope="col" style={{ width: '20%' }}>Admission</th>
                     </tr>
                   </thead>
                   <tbody>

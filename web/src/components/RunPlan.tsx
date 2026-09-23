@@ -279,18 +279,18 @@ export function RunPlan({
             )}
 
             <div className="tablewrap">
-              <table className="reg">
+              <table className="reg" aria-label="Vehicle runs and what each supplier charged">
                 <thead>
                   <tr>
-                    <th>Run</th>
-                    <th>Supplier</th>
-                    <th>Driver</th>
-                    <th>Reference</th>
-                    <th>Hours</th>
-                    <th>Quoted</th>
-                    <th>Waiting</th>
-                    <th>Charged</th>
-                    <th>Receipt</th>
+                    <th scope="col">Run</th>
+                    <th scope="col">Supplier</th>
+                    <th scope="col">Driver</th>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Hours</th>
+                    <th scope="col">Quoted</th>
+                    <th scope="col">Waiting</th>
+                    <th scope="col">Charged</th>
+                    <th scope="col">Receipt</th>
                   </tr>
                 </thead>
                 <tbody className="stagger">
@@ -478,7 +478,7 @@ function RunRow({
                         {named(id)}
                       </button>
                       {id === run.meeterId && (
-                        <span className="mark mark--clear" style={{ marginLeft: 8 }}>
+                        <span className="mark mark--clear ml-2">
                           Meets and signs
                         </span>
                       )}
@@ -552,7 +552,7 @@ function RunRow({
                 </div>
               </dl>
               {meeter && (
-                <p className="meta" style={{ marginTop: 10 }}>
+                <p className="meta mt-3">
                   {meeter.forename} {meeter.surname} meets the flight on{' '}
                   <span className="num">{meeter.phone}</span> — the number the
                   driver and the parents both get given.
@@ -604,13 +604,13 @@ function RunRow({
                 </span>
               </p>
               {charge.receipt ? (
-                <p className="meta" style={{ marginTop: 10 }}>
+                <p className="meta mt-3">
                   {charge.receipt.filename} · {Math.round(charge.receipt.bytes / 1024)} KB
                   · attached {fmtDate(charge.receipt.attachedAt)} by{' '}
                   {charge.receipt.attachedBy}
                 </p>
               ) : (
-                <p className="meta" style={{ marginTop: 10 }}>
+                <p className="meta mt-3">
                   Nothing attached against {charge.reference}. Finance will not
                   pay a transfer line without one, and August is when they go
                   missing.

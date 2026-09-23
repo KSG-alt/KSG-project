@@ -258,7 +258,7 @@ export function OfficeHome({
           </section>
         </div>
 
-        <div className="hero__grid" style={{ marginTop: 16 }}>
+        <div className="hero__grid mt-4">
           <section className="slab" aria-labelledby="change-head">
             <div className="slab__head">
               <h2 id="change-head" className="slab__title">

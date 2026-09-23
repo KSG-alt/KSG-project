@@ -8,7 +8,7 @@ export function SectionHead({
   children?: React.ReactNode;
 }) {
   return (
-    <header style={{ marginBottom: 30 }}>
+    <header className="mb-7">
       <div
         style={{
           display: 'flex',

@@ -300,7 +300,7 @@ export function buildHealth(students: Student[] = STUDENTS): Health[] {
         to: s.leaving,
         /* Consent is missing on a few, and that is the point: without it
            nobody may give anything, however obvious the need. */
-        consent: r() > 0.12,
+        consent: r() > 0.04,
       });
     }
     if (allergies.some((a) => a.autoInjector)) {
@@ -322,7 +322,7 @@ export function buildHealth(students: Student[] = STUDENTS): Health[] {
     /* Most records are signed off; the ones that are not are the queue. A
        season where a third of the children have an unverified record is not a
        demonstration of anything except a broken process. */
-    const state: HealthState = roll < 0.88 ? 'verified' : roll < 0.97 ? 'declared' : 'queried';
+    const state: HealthState = roll < 0.955 ? 'verified' : roll < 0.99 ? 'declared' : 'queried';
 
     out.push({
       studentId: s.id,
@@ -372,9 +372,9 @@ export function buildAdministrations(
 
     dueToday(h).forEach(({ medication, due }) => {
       const passed = mins(due) <= clock;
-      /* One dose in nine is missed, and the record says why rather than
+      /* One dose in twelve is missed, and the record says why rather than
          quietly holding no row at all. */
-      const missed = r() < 0.11;
+      const missed = r() < 0.08;
       out.push({
         id: `adm-${h.studentId}-${medication.id}-${due}`,
         studentId: h.studentId,
@@ -399,13 +399,20 @@ export function buildAdministrations(
 }
 
 /* Doses that were due before now and never recorded either way. The gap an
-   inspector looks for. */
+   inspector looks for.
+
+   "Either way" is load-bearing: a dose recorded as refused IS recorded, and
+   counting it as missing turns a centre that did its job into a centre with
+   a gap. A dose not yet due is not missing either, which is why the clock is
+   here. */
 export function missedDoses(
   administrations: Administration[],
   now: Date = DEMO_TODAY,
 ) {
   const clock = now.getHours() * 60 + now.getMinutes();
-  return administrations.filter((a) => mins(a.due) <= clock && !a.givenAt);
+  return administrations.filter(
+    (a) => mins(a.due) <= clock && !a.givenAt && !a.refused,
+  );
 }
 
 /* Anything the centre must not act on yet, or must not give at all. */

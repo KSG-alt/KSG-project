@@ -116,7 +116,7 @@ function Editor({ rec, onDone }: { rec: Staff; onDone: () => void }) {
       </div>
 
       {(certMissing || datesMissing || lapsed || hoursBad) && (
-        <p className="mark mark--critical" style={{ marginTop: 14 }}>
+        <p className="mark mark--critical mt-4">
           {certMissing
             ? 'A cleared or expiring check needs its certificate number.'
             : datesMissing
@@ -198,7 +198,7 @@ function AwayEditor({ rec }: { rec: Staff }) {
         </label>
       </div>
       {from && to && to < from && (
-        <p className="mark mark--critical" style={{ marginTop: 12 }}>
+        <p className="mark mark--critical mt-3">
           The end date is before the start date.
         </p>
       )}
@@ -406,7 +406,7 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
               <dd className="num">
                 {fmtHours(hours)}
                 {hours > WEEKLY_LIMIT && (
-                  <span className="mark mark--critical" style={{ marginLeft: 8 }}>
+                  <span className="mark mark--critical ml-2">
                     over {WEEKLY_LIMIT}h
                   </span>
                 )}
@@ -462,7 +462,7 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
             <table className="sched__grid">
               <thead>
                 <tr>
-                  <th />
+                  <th scope="col" />
                   {WEEK_DAYS.map((d) => (
                     <th key={d} scope="col">
                       <span className="sched__day">{dayName(d)}</span>
@@ -529,8 +529,7 @@ export function StaffProfile({ id, onClose }: { id: string; onClose: () => void 
                   · {a.reason}
                   {role.canEditRecords && (
                     <button
-                      className="btn btn--quiet"
-                      style={{ marginLeft: 10 }}
+                      className="btn btn--quiet ml-3"
                       onClick={() =>
                         saveStaff({
                           ...rec,

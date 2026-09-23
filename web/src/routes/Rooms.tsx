@@ -375,7 +375,7 @@ Keep replies to a few short sentences. Use British English.`}
               </span>
             </div>
 
-            <div className="editor__actions" style={{ marginTop: 4 }}>
+            <div className="editor__actions mt-1">
               <button className="btn btn--primary" onClick={() => plan('fill-gaps')}>
                 Fill the gaps
               </button>
@@ -396,7 +396,7 @@ Keep replies to a few short sentences. Use British English.`}
 
             {proposal && (
               <>
-                <div className="split" style={{ marginTop: 26 }}>
+                <div className="split mt-6">
                   <span>
                     <span className="split__n num">{proposal.moves.length}</span>
                     <span className="meta">students placed</span>
@@ -483,15 +483,15 @@ Keep replies to a few short sentences. Use British English.`}
                   </p>
                 ) : (
                   <div className="tablewrap">
-                    <table className="reg">
+                    <table className="reg" aria-label="Who is sharing, and why they were put together">
                       <thead>
                         <tr>
-                          <th style={{ width: '22%' }}>Student</th>
-                          <th>Language</th>
-                          <th>Stay</th>
-                          <th>From</th>
-                          <th>To</th>
-                          <th style={{ width: '28%' }}>Why there</th>
+                          <th scope="col" style={{ width: '22%' }}>Student</th>
+                          <th scope="col">Language</th>
+                          <th scope="col">Stay</th>
+                          <th scope="col">From</th>
+                          <th scope="col">To</th>
+                          <th scope="col" style={{ width: '28%' }}>Why there</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -524,7 +524,7 @@ Keep replies to a few short sentences. Use British English.`}
                       </tbody>
                     </table>
                     {real.length > 40 && (
-                      <p className="meta" style={{ marginTop: 12 }}>
+                      <p className="meta mt-3">
                         Showing 40 of {real.length}.
                       </p>
                     )}
@@ -550,7 +550,7 @@ Keep replies to a few short sentences. Use British English.`}
                 </div>
 
                 {disrupted.length > 0 && (
-                  <p className="mark mark--overdue" style={{ marginTop: 14 }}>
+                  <p className="mark mark--overdue mt-4">
                     {disrupted.length} of these students are already in a room.
                     Moving somebody mid-stay is disruptive — check the list
                     before applying
@@ -638,18 +638,18 @@ Keep replies to a few short sentences. Use British English.`}
 
       {view === 'arrivals' && (
         <div className="tablewrap">
-          <table className="reg">
+          <table className="reg" aria-label="Students arriving and the bed each is going to">
             <thead>
               <tr>
-                <th style={{ width: '22%' }}>Student</th>
-                <th>Arrives</th>
-                <th>When</th>
-                <th>Band</th>
-                <th>Room</th>
-                <th>Bed</th>
-                <th>Sharing with</th>
-                <th style={{ width: '18%' }}>Admission</th>
-                <th />
+                <th scope="col" style={{ width: '22%' }}>Student</th>
+                <th scope="col">Arrives</th>
+                <th scope="col">When</th>
+                <th scope="col">Band</th>
+                <th scope="col">Room</th>
+                <th scope="col">Bed</th>
+                <th scope="col">Sharing with</th>
+                <th scope="col" style={{ width: '18%' }}>Admission</th>
+                <th scope="col" />
               </tr>
             </thead>
             <tbody className="stagger">
@@ -685,7 +685,11 @@ Keep replies to a few short sentences. Use British English.`}
                     </td>
                     <td><ReadinessMark s={s} /></td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn" onClick={() => setOpenStudent(s.id)}>
+                      <button
+                        className="btn"
+                        aria-label={`Open ${s.forename} ${s.surname}`}
+                        onClick={() => setOpenStudent(s.id)}
+                      >
                         Open
                       </button>
                     </td>
@@ -699,18 +703,18 @@ Keep replies to a few short sentences. Use British English.`}
 
       {(view === 'students' || view === 'unallocated') && (
         <div className="tablewrap">
-          <table className="reg">
+          <table className="reg" aria-label="Students by room">
             <thead>
               <tr>
-                <th style={{ width: '22%' }}>Student</th>
-                <th>Age</th>
-                <th>Band</th>
-                <th>Group</th>
-                <th>Room</th>
-                <th>Bed</th>
-                <th>Stay</th>
-                <th style={{ width: '20%' }}>Parent or guardian</th>
-                <th />
+                <th scope="col" style={{ width: '22%' }}>Student</th>
+                <th scope="col">Age</th>
+                <th scope="col">Band</th>
+                <th scope="col">Group</th>
+                <th scope="col">Room</th>
+                <th scope="col">Bed</th>
+                <th scope="col">Stay</th>
+                <th scope="col" style={{ width: '20%' }}>Parent or guardian</th>
+                <th scope="col" />
               </tr>
             </thead>
             <tbody className="stagger">
@@ -747,7 +751,11 @@ Keep replies to a few short sentences. Use British English.`}
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn" onClick={() => setOpenStudent(s.id)}>
+                      <button
+                        className="btn"
+                        aria-label={`Open ${s.forename} ${s.surname}`}
+                        onClick={() => setOpenStudent(s.id)}
+                      >
                         Open
                       </button>
                     </td>

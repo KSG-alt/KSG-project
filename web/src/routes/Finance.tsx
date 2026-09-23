@@ -176,17 +176,17 @@ export function Finance() {
 
       {view === 'owing' && (
         <div className="tablewrap">
-          <table className="reg">
+          <table className="reg" aria-label="Student balances">
             <thead>
               <tr>
-                <th style={{ width: '24%' }}>Student</th>
-                <th>Invoice</th>
-                <th>Group</th>
-                <th>Invoiced</th>
-                <th>Received</th>
-                <th>Outstanding</th>
-                <th>Arrives</th>
-                <th />
+                <th scope="col" style={{ width: '24%' }}>Student</th>
+                <th scope="col">Invoice</th>
+                <th scope="col">Group</th>
+                <th scope="col">Invoiced</th>
+                <th scope="col">Received</th>
+                <th scope="col">Outstanding</th>
+                <th scope="col">Arrives</th>
+                <th scope="col" />
               </tr>
             </thead>
             <tbody className="stagger">
@@ -212,7 +212,11 @@ export function Finance() {
                     </td>
                     <td className="num">{fmtDate(s.arrival)}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn" onClick={() => setOpenStudent(s.id)}>
+                      <button
+                        className="btn"
+                        aria-label={`Open ${s.forename} ${s.surname}`}
+                        onClick={() => setOpenStudent(s.id)}
+                      >
                         Open
                       </button>
                     </td>
@@ -225,17 +229,17 @@ export function Finance() {
 
       {view === 'received' && (
         <div className="tablewrap">
-          <table className="reg">
+          <table className="reg" aria-label="Payments received">
             <thead>
               <tr>
-                <th>Received</th>
-                <th>Amount</th>
-                <th style={{ width: '20%' }}>Payer</th>
-                <th>Method</th>
-                <th>Reference</th>
-                <th style={{ width: '20%' }}>Matched to</th>
-                <th>How</th>
-                <th />
+                <th scope="col">Received</th>
+                <th scope="col">Amount</th>
+                <th scope="col" style={{ width: '20%' }}>Payer</th>
+                <th scope="col">Method</th>
+                <th scope="col">Reference</th>
+                <th scope="col" style={{ width: '20%' }}>Matched to</th>
+                <th scope="col">How</th>
+                <th scope="col" />
               </tr>
             </thead>
             <tbody className="stagger">

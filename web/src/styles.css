@@ -50,6 +50,20 @@
   --sage: #194b22;
   --info: #3f6b8f;
 
+  /* ── Spacing ──────────────────────────────────────────────────────────
+     There was no spacing scale, so every screen invented one: the same stack
+     of notices sat 14px apart on one section, 20 on another and 22 on a
+     third, all set inline at the call site. A seven-step scale on a 4px base
+     covers every gap the product actually uses. Use the utilities below;
+     a one-off margin in a style attribute is how the drift started. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+
   --t-xs: 0.75rem;
   --t-sm: 0.8125rem;
   --t-base: 0.9375rem;
@@ -4664,3 +4678,33 @@ span.fig {
 .sheet2__empty--soon {
   background: var(--paper-2);
 }
+
+
+/* ── Spacing utilities ────────────────────────────────────────────────────
+   The only utilities in the sheet, and deliberately the only ones: they exist
+   so a margin is a choice from the scale rather than a number typed into a
+   style attribute. Anything more structural than a margin belongs in a
+   component class. */
+.mt-1 { margin-top: var(--s-1); }
+.mt-2 { margin-top: var(--s-2); }
+.mt-3 { margin-top: var(--s-3); }
+.mt-4 { margin-top: var(--s-4); }
+.mt-5 { margin-top: var(--s-5); }
+.mt-6 { margin-top: var(--s-6); }
+.mt-7 { margin-top: var(--s-7); }
+
+.mb-1 { margin-bottom: var(--s-1); }
+.mb-2 { margin-bottom: var(--s-2); }
+.mb-3 { margin-bottom: var(--s-3); }
+.mb-4 { margin-bottom: var(--s-4); }
+.mb-5 { margin-bottom: var(--s-5); }
+.mb-6 { margin-bottom: var(--s-6); }
+.mb-7 { margin-bottom: var(--s-7); }
+
+.ml-1 { margin-left: var(--s-1); }
+.ml-2 { margin-left: var(--s-2); }
+.ml-3 { margin-left: var(--s-3); }
+.ml-4 { margin-left: var(--s-4); }
+.ml-5 { margin-left: var(--s-5); }
+.ml-6 { margin-left: var(--s-6); }
+.ml-7 { margin-left: var(--s-7); }

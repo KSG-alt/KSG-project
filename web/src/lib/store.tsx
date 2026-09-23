@@ -1,4 +1,6 @@
-import { createContext, useContext, useMemo, useRef, useState } from 'react';
+import {
+  createContext, useContext, useEffect, useMemo, useRef, useState,
+} from 'react';
 import {
   buildReminders, setEscalationDays, type Channel, type Reminder,
   type Severity,
@@ -26,7 +28,9 @@ import {
   BAND_RULES, PILOT_SITE, ROLES, type BandRule, type RoleDef, type Site,
 } from '../data/centre';
 import { START_ROLE } from './side';
-import { ESCALATION_DEFAULTS } from './reminders';
+import {
+  ESCALATES_TO, ESCALATION_DAYS, ESCALATION_DEFAULTS, overdueBy,
+} from './reminders';
 
 interface Store {
   reminders: Reminder[];
@@ -176,6 +180,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [escalation, setEscalationState] =
     useState<Record<Severity, number>>(ESCALATION_DEFAULTS);
 
+  const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
+  const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
+
   /* ── The queue ────────────────────────────────────────────────────────
      Reminders are DERIVED from the records above, every render, so the queue
      is a view of how things stand rather than a list made once at start-up.
@@ -190,7 +197,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const reminders = useMemo(() => {
     const derived = buildReminders({
       students, staff, sessions, bookings, registers, requests, flights,
-      health, administrations,
+      health, administrations, incidents, payments,
     });
     return derived
       .filter((r) => !removed.includes(r.id))
@@ -199,11 +206,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
        — without it the queue would not re-rank when they change. */
   }, [
     students, staff, sessions, bookings, registers, requests, flights,
-    health, administrations, touched, removed, escalation,
+    health, administrations, incidents, payments, touched, removed, escalation,
   ]);
+
+  /* Escalation happens on its own (reminders.ts), so the trail has to record
+     it on its own too — an escalation nobody can point to afterwards is the
+     same as one that never happened. Written once per row, from an effect,
+     because rendering must not write to the trail. */
+  const logged = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const fresh = reminders.filter(
+      (r) => r.escalated && !r.done && !logged.current.has(r.id),
+    );
+    if (!fresh.length) return;
+    fresh.forEach((r) => logged.current.add(r.id));
+    setAudit((all) => [
+      ...fresh.map((r) =>
+        entry(
+          r.severity === 'safeguarding' ? 'safeguarding' : 'record',
+          'Escalated automatically',
+          r.title,
+          `${overdueBy(r)} days past the ${r.severity} threshold of ${ESCALATION_DAYS[r.severity]}. Passed to ${ESCALATES_TO[r.severity]} without waiting to be noticed.`,
+          /* Attributed to the platform, not to whoever happened to be
+             logged in. Nobody did this, which is the point of it. */
+          'Kadia',
+        ),
+      ),
+      ...all,
+    ]);
+  }, [reminders]);
   const [rooming, setRoomingState] = useState<RoomingRules>(DEFAULT_RULES);
-  const [payments, setPayments] = useState<Payment[]>(() => buildPayments());
-  const [incidents, setIncidents] = useState<Incident[]>(() => buildIncidents());
   const [site, setSite] = useState<Site>(PILOT_SITE);
   /* Each standalone demo opens as the side it was built for. */
   const [role, setRole] = useState<RoleDef>(START_ROLE);

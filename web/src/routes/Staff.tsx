@@ -160,28 +160,28 @@ export function Staff() {
       </Lede>
 
       {overLimit.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+        <p className="mark mark--critical mb-4">
           {overLimit.length} staff rota&rsquo;d past the {WEEKLY_LIMIT}h
           working-time limit
         </p>
       )}
 
       {blocked.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+        <p className="mark mark--critical mb-4">
           {blocked.length} staff without a cleared DBS. They cannot be rota&rsquo;d
           with students.
         </p>
       )}
 
       {outside.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 14 }}>
+        <p className="mark mark--critical mb-4">
           {outside.length} staff are rota&rsquo;d on a day outside their
           contract — before they start or after they finish.
         </p>
       )}
 
       {clashing.length > 0 && (
-        <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
+        <p className="mark mark--overdue mb-6">
           {clashing.length} staff are rota&rsquo;d on a day they have told us they
           are away. The draft was built before they said so — re-slot them on
           the timetable.
@@ -208,18 +208,18 @@ export function Staff() {
         <p className="meta reminders__empty">Nobody in this view.</p>
       ) : (
         <div className="tablewrap">
-          <table className="reg">
+          <table className="reg" aria-label="Staff roster">
             <thead>
               <tr>
-                <th style={{ width: '20%' }}>Name</th>
-                <th>Age</th>
-                <th style={{ width: '15%' }}>Role</th>
-                <th style={{ width: '12%' }}>Hours / week</th>
-                <th style={{ width: '14%' }}>Contract</th>
-                <th>Bands</th>
-                <th style={{ width: '20%' }}>DBS</th>
-                <th style={{ width: '14%' }}>Availability</th>
-                <th />
+                <th scope="col" style={{ width: '20%' }}>Name</th>
+                <th scope="col">Age</th>
+                <th scope="col" style={{ width: '15%' }}>Role</th>
+                <th scope="col" style={{ width: '12%' }}>Hours / week</th>
+                <th scope="col" style={{ width: '14%' }}>Contract</th>
+                <th scope="col">Bands</th>
+                <th scope="col" style={{ width: '20%' }}>DBS</th>
+                <th scope="col" style={{ width: '14%' }}>Availability</th>
+                <th scope="col" />
               </tr>
             </thead>
             <tbody className="stagger">
@@ -316,7 +316,11 @@ export function Staff() {
                       )}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className="btn" onClick={() => setOpen(s.id)}>
+                      <button
+                        className="btn"
+                        aria-label={`Open ${s.forename} ${s.surname}`}
+                        onClick={() => setOpen(s.id)}
+                      >
                         Open
                       </button>
                     </td>

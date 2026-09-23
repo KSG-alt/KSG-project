@@ -133,19 +133,19 @@ export function Students() {
         </p>
       ) : (
         <div className="tablewrap">
-        <table className="reg">
+        <table className="reg" aria-label="Students">
           <thead>
             <tr>
-              <th style={{ width: '22%' }}>Name</th>
-              <th>Age</th>
-              <th>Group</th>
-              <th>Arrival</th>
-              <th>Leaving</th>
-              <th>Nights</th>
-              <th style={{ width: '16%' }}>Stay</th>
-              <th>Room</th>
-              <th>Documents</th>
-              <th />
+              <th scope="col" style={{ width: '22%' }}>Name</th>
+              <th scope="col">Age</th>
+              <th scope="col">Group</th>
+              <th scope="col">Arrival</th>
+              <th scope="col">Leaving</th>
+              <th scope="col">Nights</th>
+              <th scope="col" style={{ width: '16%' }}>Stay</th>
+              <th scope="col">Room</th>
+              <th scope="col">Documents</th>
+              <th scope="col" />
             </tr>
           </thead>
           <tbody className="stagger">
@@ -175,7 +175,11 @@ export function Students() {
                 </td>
                 <td><DocMark s={s} /></td>
                 <td style={{ textAlign: 'right' }}>
-                  <button className="btn" onClick={() => setOpen(s.id)}>
+                  <button
+                    className="btn"
+                    aria-label={`Open ${s.forename} ${s.surname}`}
+                    onClick={() => setOpen(s.id)}
+                  >
                     Open
                   </button>
                 </td>

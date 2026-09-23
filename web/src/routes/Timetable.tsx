@@ -552,7 +552,7 @@ Keep replies to a few short sentences. Use British English.`}
       </SectionHead>
 
       {breaches.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 20 }}>
+        <p className="mark mark--critical mb-5">
           {breaches.length} session{breaches.length > 1 ? 's' : ''} below required
           ratio or staffed by an uncleared DBS. A person decides this, not the
           draft.
@@ -780,9 +780,9 @@ Keep replies to a few short sentences. Use British English.`}
                   <table className="reg wk__grid">
                     <thead>
                       <tr>
-                        <th style={{ width: 74 }}>Day</th>
+                        <th scope="col" style={{ width: 74 }}>Day</th>
                         {SLOTS.map((sl) => (
-                          <th key={sl.start} className="num">{sl.start}</th>
+                          <th scope="col" key={sl.start} className="num">{sl.start}</th>
                         ))}
                       </tr>
                     </thead>
@@ -847,14 +847,14 @@ Keep replies to a few short sentences. Use British English.`}
                   </span>
                 </div>
                 <div className="tablewrap">
-                  <table className="reg">
+                  <table className="reg" aria-label="Duty shifts and who covers them">
                     <thead>
                       <tr>
-                        <th style={{ width: '16%' }}>Shift</th>
-                        <th style={{ width: 110 }}>Time</th>
-                        <th style={{ width: 70 }}>Hours</th>
-                        <th style={{ width: 90 }}>On it</th>
-                        <th>Who</th>
+                        <th scope="col" style={{ width: '16%' }}>Shift</th>
+                        <th scope="col" style={{ width: 110 }}>Time</th>
+                        <th scope="col" style={{ width: 70 }}>Hours</th>
+                        <th scope="col" style={{ width: 90 }}>On it</th>
+                        <th scope="col">Who</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -958,16 +958,16 @@ Keep replies to a few short sentences. Use British English.`}
               </div>
 
               <div className="tablewrap">
-                <table className="reg">
+                <table className="reg" aria-label="Staff hours against contract">
                   <thead>
                     <tr>
-                      <th style={{ width: '22%' }}>Name</th>
-                      <th style={{ width: '15%' }}>Role</th>
-                      <th>Activity</th>
-                      <th>Duty</th>
-                      <th>Total</th>
-                      <th>Contract</th>
-                      <th style={{ width: '24%' }}>Against contract</th>
+                      <th scope="col" style={{ width: '22%' }}>Name</th>
+                      <th scope="col" style={{ width: '15%' }}>Role</th>
+                      <th scope="col">Activity</th>
+                      <th scope="col">Duty</th>
+                      <th scope="col">Total</th>
+                      <th scope="col">Contract</th>
+                      <th scope="col" style={{ width: '24%' }}>Against contract</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1043,7 +1043,7 @@ Keep replies to a few short sentences. Use British English.`}
                 {sel.origin === 'ai-draft' ? ' · drafted' : ' · edited by hand'}
               </p>
 
-              <label className="editor__f" style={{ marginBottom: 14 }}>
+              <label className="editor__f mb-4">
                 <span className="label">Slot</span>
                 <select
                   className="field"
@@ -1069,7 +1069,7 @@ Keep replies to a few short sentences. Use British English.`}
                 ) : (
                   <div>
                     {v.reasons.map((r) => (
-                      <p key={r} className="mark mark--critical" style={{ marginBottom: 6 }}>
+                      <p key={r} className="mark mark--critical mb-2">
                         {r}
                       </p>
                     ))}
@@ -1081,7 +1081,7 @@ Keep replies to a few short sentences. Use British English.`}
                 Ratio verdict comes from the rota engine, not from this screen.
               </p>
 
-              <div className="editor__f" style={{ marginBottom: 14 }}>
+              <div className="editor__f mb-4">
                 <span className="label">
                   Staff assigned · {sel.staffIds.length} of {checkRatio(sel, records).required}
                 </span>
@@ -1133,7 +1133,7 @@ Keep replies to a few short sentences. Use British English.`}
               </div>
 
               {sel.status !== 'cancelled' && (
-                <div style={{ marginTop: 18 }}>
+                <div className="mt-5">
                   <span className="label" style={{ display: 'block', marginBottom: 8 }}>
                     Cancel and re-slot this group
                   </span>

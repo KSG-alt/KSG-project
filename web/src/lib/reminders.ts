@@ -13,8 +13,11 @@ import {
 import { checkRatio } from './ratio';
 import type { Register } from '../data/attendance';
 import type { DocRequest } from '../data/portal';
-import type { Administration, Health } from '../data/health';
+import { missedDoses, type Administration, type Health } from '../data/health';
 import type { Flight } from '../data/travel';
+import type { Incident } from '../data/incidents';
+import type { Payment } from '../data/finance';
+import { invoiceRef, owed } from '../data/finance';
 import type { Route } from '../App';
 
 export type Severity = 'safeguarding' | 'overdue' | 'admin';
@@ -73,10 +76,22 @@ export function overdueBy(r: Reminder) {
   return -days(r.due);
 }
 
-/* Past the threshold it needs a person above the admin, not another chase. */
+/* Past the threshold it needs a person above the admin, not another chase —
+   and it needs them without waiting for somebody to notice and press a
+   button. Escalation is DERIVED, the same way the queue is: cross the
+   threshold and the row is escalated. `escalate()` on the store stays for
+   escalating something early, which is a judgement a button should carry.
+
+   This is the one piece of automation the product is named for. An admin who
+   has to spot the overdue item and escalate it by hand is doing the job the
+   system claimed to do. */
 export function needsEscalation(r: Reminder) {
   return !r.done && !r.escalated && overdueBy(r) >= ESCALATION_DAYS[r.severity];
 }
+
+/* Applied to every derived row before it reaches the screen. */
+export const autoEscalated = (r: Reminder): Reminder =>
+  needsEscalation(r) ? { ...r, escalated: true } : r;
 
 export function escalationLabel(r: Reminder) {
   const over = overdueBy(r);
@@ -145,6 +160,13 @@ export interface Records {
   flights?: Flight[];
   health?: Health[];
   administrations?: Administration[];
+  /* Incidents and payments are in the queue for the same reason everything
+     else is: an open incident nobody told the safeguarding lead about, and
+     money sitting on the statement against no student, are both outstanding
+     work. A queue that shows sixteen sections' worth of work except those
+     two is not one queue, it is fourteen. */
+  incidents?: Incident[];
+  payments?: Payment[];
 }
 
 export const SEED_RECORDS: Records = {
@@ -242,8 +264,10 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
   });
 
   /* Off-site travel with no consent on file. */
+  /* No cap. A slice would hide how many there really are, which is the one
+     thing this row exists to say. The seeded rate is low enough that the
+     true number fits on the screen. */
   STUDENTS.filter((s) => isOnSite(s) && !s.guardian.consentToTravel)
-    .slice(0, 6)
     .forEach((s) => {
       out.push(seedChases({
         id: `travel-${s.id}`,
@@ -371,9 +395,10 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
   });
 
   /* A dose that was due and was never recorded either way. */
-  records.administrations
-    ?.filter((a) => !a.givenAt && !a.refused)
-    .slice(0, 6)
+  /* `missedDoses` and not a filter written here: a dose due at four o'clock
+     is not missing at two, and this row used to say it was. One definition
+     of missing, in the module that owns the record. */
+  missedDoses(records.administrations ?? [])
     .forEach((a) => {
       const s = records.students.find((x) => x.id === a.studentId);
       if (!s) return;
@@ -439,10 +464,96 @@ export function buildReminders(records: Records = SEED_RECORDS): Reminder[] {
     }, `${s.guardian.name} · ${s.guardian.phone}`));
   });
 
+  /* ── Incidents ──────────────────────────────────────────────────────
+     Three questions get asked afterwards, every time: was the safeguarding
+     lead told, were the parents told, and was anything decided. An incident
+     sitting open with any of those unanswered is outstanding work. */
+  const openIncidents = (records.incidents ?? []).filter((i) => i.status === 'open');
+
+  openIncidents
+    .filter((i) => !i.dslInformedAt)
+    .forEach((i) => {
+      out.push(seedChases({
+        id: `incident-dsl-${i.id}`,
+        severity: 'safeguarding',
+        title: `${i.kind} on ${fmtDate(i.at.slice(0, 10))} and the safeguarding lead was never told`,
+        action: 'Brief the safeguarding lead now and record the time. How long this took is the first thing asked afterwards.',
+        due: i.at.slice(0, 10),
+        route: 'incidents',
+        source: `Incidents · ${i.where}`,
+      }, 'Safeguarding lead'));
+    });
+
+  openIncidents
+    .filter((i) => i.level === 'notifiable')
+    .forEach((i) => {
+      out.push(seedChases({
+        id: `incident-referral-${i.id}`,
+        severity: 'safeguarding',
+        title: `Notifiable ${i.kind.toLowerCase()} still open — no referral decision`,
+        action: 'A notifiable incident needs a referral decision from the safeguarding lead today. The decision is a person\u2019s; recording it is not optional.',
+        due: i.at.slice(0, 10),
+        route: 'incidents',
+        source: `Incidents · ${i.where}`,
+      }, 'Safeguarding lead'));
+    });
+
+  openIncidents
+    .filter((i) => i.dslInformedAt && !i.parentsInformedAt)
+    .forEach((i) => {
+      out.push(seedChases({
+        id: `incident-parents-${i.id}`,
+        severity: 'overdue',
+        title: `Parents not told about the ${i.kind.toLowerCase()} involving ${i.studentIds.length} student${i.studentIds.length === 1 ? '' : 's'}`,
+        action: 'Call the guardians before they hear it from the child. Record who was called and when.',
+        due: i.at.slice(0, 10),
+        route: 'incidents',
+        source: `Incidents · ${i.where}`,
+      }, 'Guardians'));
+    });
+
+  /* ── Money ──────────────────────────────────────────────────────────
+     Reconciliation is the job of deciding which line on the statement is
+     which student. Money banked against nobody is not income yet. */
+  const unmatched = (records.payments ?? []).filter((p) => !p.studentId);
+  const stale = unmatched.filter((p) => daysFromToday(p.at) <= -3);
+  if (stale.length) {
+    const total = stale.reduce((n, p) => n + p.amountPence, 0);
+    out.push(seedChases({
+      id: 'pay-unmatched',
+      severity: 'overdue',
+      title: `${fmtMoney(total)} banked against no student`,
+      action: `${stale.length} payments have sat unmatched for three days or more. Match them or ask the bank who sent them — until then the balances on those students are wrong.`,
+      due: shift(-3),
+      route: 'finance',
+      source: 'Payments · bank statement',
+    }, 'Nobody \u2014 this one is ours'));
+  }
+
+  /* A child leaving with a balance is a conversation to have this week, not
+     on the morning the taxi arrives. */
+  (records.students ?? [])
+    .filter((s) => owed(s) > 0)
+    .filter((s) => {
+      const left = daysFromToday(s.leaving);
+      return left >= 0 && left <= 3;
+    })
+    .forEach((s) => {
+      out.push(seedChases({
+        id: `owing-${s.id}`,
+        severity: 'overdue',
+        title: `${s.forename} ${s.surname} leaves ${whenLabel(s.leaving)} owing ${fmtMoney(owed(s))}`,
+        action: 'Settle it before the departure run is built. Nobody wants this conversation at the door with the vehicle waiting.',
+        due: s.leaving,
+        route: 'finance',
+        source: `Payments · ${invoiceRef(s)}`,
+      }, `${s.guardian.name} \u00b7 ${s.guardian.phone}`));
+    });
+
   const rank: Record<Severity, number> = { safeguarding: 0, overdue: 1, admin: 2 };
-  return out.sort(
-    (a, b) => rank[a.severity] - rank[b.severity] || a.due.localeCompare(b.due),
-  );
+  return out
+    .map(autoEscalated)
+    .sort((a, b) => rank[a.severity] - rank[b.severity] || a.due.localeCompare(b.due));
 }
 
 export const SEVERITY_COPY: Record<Severity, { label: string; mark: string }> = {

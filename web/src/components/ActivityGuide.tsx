@@ -495,13 +495,13 @@ export function ActivityGuide({
 
             <p className="label">The roll</p>
             <div className="tablewrap">
-              <table className="reg">
+              <table className="reg" aria-label="Students in this session">
                 <thead>
                   <tr>
-                    <th style={{ width: '40%' }}>Student</th>
-                    <th>Age</th>
-                    <th>Room</th>
-                    <th>Ready</th>
+                    <th scope="col" style={{ width: '40%' }}>Student</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Room</th>
+                    <th scope="col">Ready</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -636,7 +636,7 @@ export function ActivityGuide({
                 </dl>
               )}
               {a.supplier && !otherDay && (
-                <p className="mark mark--overdue" style={{ marginTop: 16 }}>
+                <p className="mark mark--overdue mt-4">
                   A supplied activity with no booking is a bill nobody has agreed
                 </p>
               )}
@@ -648,11 +648,11 @@ export function ActivityGuide({
           <>
             <p className="label">What can go wrong, and what stops it</p>
             <div className="tablewrap">
-              <table className="reg">
+              <table className="reg" aria-label="Risks and the control for each">
                 <thead>
                   <tr>
-                    <th style={{ width: '40%' }}>Risk</th>
-                    <th>Control</th>
+                    <th scope="col" style={{ width: '40%' }}>Risk</th>
+                    <th scope="col">Control</th>
                   </tr>
                 </thead>
                 <tbody>

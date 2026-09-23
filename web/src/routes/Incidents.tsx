@@ -8,7 +8,7 @@ import {
   INCIDENT_KINDS, LEVEL_COPY, minutesToDsl, sinceLabel, type Incident,
   type IncidentKind, type IncidentLevel,
 } from '../data/incidents';
-import { DEMO_TODAY, demoStamp, isOnSite } from '../data/seed';
+import { DEMO_TODAY, demoStamp, fmtDayFull, isOnSite } from '../data/seed';
 import { Lede } from '../components/Lede';
 
 type View = 'open' | 'all' | 'notifiable';
@@ -106,7 +106,7 @@ function Raise({ onDone }: { onDone: () => void }) {
         />
       </label>
 
-      <p className={`mark ${LEVEL_COPY[level].mark}`} style={{ marginTop: 4 }}>
+      <p className={`mark ${LEVEL_COPY[level].mark} mt-1`}>
         {LEVEL_COPY[level].note}
       </p>
 
@@ -364,11 +364,11 @@ export function Incidents() {
         The question asked afterwards is never &ldquo;was it written down&rdquo;.
         It is how long it took to tell the safeguarding lead, and who decided
         what happened next. So that is what this screen measures. Today is{' '}
-        {DEMO_TODAY.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.
+        {fmtDayFull(DEMO_TODAY)}.
       </Lede>
 
       {untold.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 20 }}>
+        <p className="mark mark--critical mb-5">
           {untold.length} incident{untold.length === 1 ? '' : 's'} above the
           logging threshold with no record of the safeguarding lead being told
         </p>

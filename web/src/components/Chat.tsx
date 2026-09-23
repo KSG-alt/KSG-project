@@ -138,7 +138,7 @@ export function Chat({
 
   const keyForm = (
     <div className="keygate">
-      <p className="label" style={{ marginBottom: 12 }}>API key</p>
+      <p className="label mb-3">API key</p>
       <p className="meta" style={{ margin: '0 0 16px', maxWidth: '62ch' }}>
         This panel calls the Anthropic API straight from the browser. The key is
         held in this browser&rsquo;s <code>localStorage</code> only — never

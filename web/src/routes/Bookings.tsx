@@ -85,25 +85,25 @@ export function Bookings() {
       </p>
 
       {unreceipted.length > 0 && (
-        <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
+        <p className="mark mark--overdue mb-6">
           {unreceipted.length} booking{unreceipted.length > 1 ? 's' : ''} without
           a receipt — cannot be confirmed
         </p>
       )}
 
       <div className="tablewrap">
-        <table className="reg">
+        <table className="reg" aria-label="Supplier bookings">
         <thead>
           <tr>
-            <th style={{ width: '9%' }}>Ref</th>
-            <th style={{ width: '17%' }}>Activity</th>
-            <th>Group</th>
-            <th>Date</th>
-            <th>Heads</th>
-            <th>Cost</th>
-            <th style={{ width: '24%' }}>Receipt</th>
-            <th>Status</th>
-            <th />
+            <th scope="col" style={{ width: '9%' }}>Ref</th>
+            <th scope="col" style={{ width: '17%' }}>Activity</th>
+            <th scope="col">Group</th>
+            <th scope="col">Date</th>
+            <th scope="col">Heads</th>
+            <th scope="col">Cost</th>
+            <th scope="col" style={{ width: '24%' }}>Receipt</th>
+            <th scope="col">Status</th>
+            <th scope="col" />
           </tr>
         </thead>
         <tbody className="stagger">

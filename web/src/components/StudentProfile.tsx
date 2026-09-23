@@ -115,7 +115,7 @@ function Editor({ s, onDone }: { s: Student; onDone: () => void }) {
       </label>
 
       {emailBad && (
-        <p className="mark mark--critical" style={{ marginTop: 12 }}>
+        <p className="mark mark--critical mt-3">
           That is not an email address. A chase sent to it will not arrive.
         </p>
       )}
@@ -442,7 +442,7 @@ export function StudentProfile({
               <table className="sched__grid">
                 <thead>
                   <tr>
-                    <th />
+                    <th scope="col" />
                     {days.map((d) => (
                       <th key={d} scope="col">
                         <span className="sched__day">{dayName(d)}</span>
@@ -628,7 +628,7 @@ function HealthPanel({
           </span>
         </p>
         <p className="meta">{HEALTH_COPY[record.state].note}</p>
-        <p className="meta" style={{ marginTop: 8 }}>
+        <p className="meta mt-2">
           {record.source === 'booking'
             ? `Filled in by the family with the booking on ${fmtDate(record.declaredAt)}.`
             : `Entered by head office on ${fmtDate(record.declaredAt)}, after speaking to the family.`}
@@ -636,7 +636,7 @@ function HealthPanel({
             ` Verified by ${record.verifiedBy} on ${fmtDate(record.verifiedAt!)}.`}
         </p>
         {record.query && (
-          <p className="meta" style={{ marginTop: 8 }}>
+          <p className="meta mt-2">
             {record.query}
           </p>
         )}
@@ -736,7 +736,7 @@ function HealthPanel({
                     : d.note ?? 'Nobody has recorded this dose either way.'}
                 </span>
                 {canRecord && !d.givenAt && med?.consent && (
-                  <span className="markbtn" style={{ marginTop: 6 }}>
+                  <span className="markbtn mt-2">
                     <button
                       className="btn"
                       onClick={() => onDose(d.id, true, givenByName, null)}
@@ -809,7 +809,7 @@ function HealthPanel({
           )}
         </div>
       ) : (
-        <p className="meta" style={{ marginTop: 14 }}>
+        <p className="meta mt-4">
           {roleName} can read this and record what was given. Entering,
           verifying and correcting the record belongs to head office — the
           centre never edits a dose.

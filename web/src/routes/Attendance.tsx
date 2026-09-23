@@ -79,13 +79,13 @@ export function Attendance() {
       </Lede>
 
       {missing.length > 0 && (
-        <p className="mark mark--critical" style={{ marginBottom: 12 }}>
+        <p className="mark mark--critical mb-3">
           {missing.length} session{missing.length === 1 ? '' : 's'} ran today
           with no register at all
         </p>
       )}
       {open.length > 0 && (
-        <p className="mark mark--overdue" style={{ marginBottom: 22 }}>
+        <p className="mark mark--overdue mb-6">
           {open.length} groups were counted out and never counted back. That is
           worse than an untaken register, because it looks finished.
         </p>
@@ -116,15 +116,15 @@ export function Attendance() {
           <p className="meta reminders__empty">Everybody was where they should be.</p>
         ) : (
           <div className="tablewrap">
-            <table className="reg">
+            <table className="reg" aria-label="Students marked missing">
               <thead>
                 <tr>
-                  <th style={{ width: '24%' }}>Student</th>
-                  <th>Group</th>
-                  <th>Missed</th>
-                  <th>At</th>
-                  <th>Marked by</th>
-                  <th />
+                  <th scope="col" style={{ width: '24%' }}>Student</th>
+                  <th scope="col">Group</th>
+                  <th scope="col">Missed</th>
+                  <th scope="col">At</th>
+                  <th scope="col">Marked by</th>
+                  <th scope="col" />
                 </tr>
               </thead>
               <tbody className="stagger">
