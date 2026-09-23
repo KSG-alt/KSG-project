@@ -7,7 +7,7 @@
     "dev": "vite",
     "check": "tsc -b --noEmit && esbuild src/check.ts --bundle --platform=node --format=esm --outfile=node_modules/.kadia-check.mjs --log-level=error && node node_modules/.kadia-check.mjs",
     "build": "npm run check && vite build",
-    "demo": "npm run check && node build-demo.mjs",
+    "demo": "npm run build && node build-demo.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
