@@ -129,6 +129,18 @@ function Shell() {
     return () => window.removeEventListener('keydown', onKey);
   }, [route, menu]);
 
+  /* The bar sits transparent over the home hero, which reads well at the top
+     of the page and breaks the moment anything scrolls: the bar is sticky, so
+     content slides underneath it and the two sets of words land on top of
+     each other. Transparent only while the page is actually at the top. */
+  const [atTop, setAtTop] = useState(true);
+  useEffect(() => {
+    const read = () => setAtTop(window.scrollY < 8);
+    read();
+    window.addEventListener('scroll', read, { passive: true });
+    return () => window.removeEventListener('scroll', read);
+  }, [route]);
+
   const allowed = (r: Route) => role.sections.includes(r) && inSide(r);
 
   return (
@@ -137,7 +149,7 @@ function Shell() {
         Skip to content
       </a>
 
-      <header className={`bar${route === 'home' ? ' bar--over' : ''}`}>
+      <header className={`bar${route === 'home' && atTop ? ' bar--over' : ''}`}>
         <button
           className="bar__brand"
           onClick={() => go('home')}

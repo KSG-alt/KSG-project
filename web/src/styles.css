@@ -1428,6 +1428,8 @@ span.fig {
   background: rgba(252, 250, 248, 0.86);
   border-bottom: 1px solid var(--rule);
   backdrop-filter: blur(16px) saturate(1.1);
+  /* Fades in as the home page leaves the top, rather than snapping. */
+  transition: background 200ms var(--ease-ui), border-bottom-color 200ms var(--ease-ui);
 }
 
 /* On the home page nothing sits under the bar — the lede carries the top. */
