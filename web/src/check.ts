@@ -20,6 +20,11 @@ import { selfCheck as suppliers } from './data/suppliers';
 import { selfCheck as health } from './data/health';
 import { selfCheck as cover } from './lib/cover';
 import { selfCheck as season } from './lib/season';
+import { selfCheck as inspection } from './lib/inspection';
+import { buildAudit } from './lib/audit';
+import { buildIncidents } from './data/incidents';
+import { buildRegisters } from './data/attendance';
+import { DEMO_TODAY, SEASON_START, SESSIONS, STAFF, STUDENTS } from './data/seed';
 
 const CHECKS: [string, () => void][] = [
   ['importCsv', importCsv],
@@ -32,6 +37,22 @@ const CHECKS: [string, () => void][] = [
   ['health', health],
   ['cover', cover],
   ['season', season],
+  ['inspection', () => {
+    const p = (n: number) => String(n).padStart(2, '0');
+    const iso = (d: Date) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    const today = iso(DEMO_TODAY);
+    inspection({
+      from: iso(SEASON_START),
+      to: today,
+      audit: buildAudit(),
+      staff: STAFF,
+      students: STUDENTS,
+      sessions: SESSIONS,
+      registers: buildRegisters(today, DEMO_TODAY.getHours() * 60 + 30),
+      incidents: buildIncidents(),
+      now: `${today}T${p(DEMO_TODAY.getHours())}:${p(DEMO_TODAY.getMinutes())}`,
+    });
+  }],
 ];
 
 /* Declared rather than pulled in with @types/node: this file is the only

@@ -4,6 +4,7 @@ import { useStore } from '../lib/store';
 import { CATEGORY_LABEL, toCsv, type AuditCategory } from '../lib/audit';
 import { demoIso } from '../data/seed';
 import { Lede } from '../components/Lede';
+import { InspectionPack } from '../components/InspectionPack';
 
 type Filter = AuditCategory | 'all';
 
@@ -18,6 +19,7 @@ export function Audit() {
   const { audit } = useStore();
   const [filter, setFilter] = useState<Filter>('all');
   const [q, setQ] = useState('');
+  const [pack, setPack] = useState(false);
 
   const rows = audit.filter((e) => {
     if (filter !== 'all' && e.category !== filter) return false;
@@ -63,7 +65,13 @@ export function Audit() {
         <button className="btn" onClick={exportCsv} disabled={rows.length === 0}>
           Export CSV
         </button>
+        {/* The same record, arranged the way an inspector asks for it. */}
+        <button className="btn btn--primary" onClick={() => setPack(true)}>
+          Inspection pack
+        </button>
       </SectionHead>
+
+      {pack && <InspectionPack onClose={() => setPack(false)} />}
 
       <Lede>
         Every consequential action, timestamped and attributed. Entries are

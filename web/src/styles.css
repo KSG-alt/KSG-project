@@ -4710,3 +4710,186 @@ span.fig {
 .ml-5 { margin-left: var(--s-5); }
 .ml-6 { margin-left: var(--s-6); }
 .ml-7 { margin-left: var(--s-7); }
+
+/* ── Inspection pack ──────────────────────────────────────────────────────
+   A document laid over the app. On screen: paper on a dimmed ground with a
+   control bar. In print: the document alone, A4, no app chrome. Oxide marks
+   only the safeguarding-critical rows, as everywhere else. */
+.pack {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  background: var(--paper-3);
+  outline: none;
+}
+.pack__bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-5);
+  background: var(--paper);
+  box-shadow: var(--shadow-1);
+}
+.pack__range,
+.pack__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+}
+.pack__range .field { width: 160px; }
+.pack__doc {
+  max-width: 880px;
+  margin: var(--s-6) auto var(--s-7);
+  padding: 48px 56px;
+  background: var(--white);
+  border-radius: var(--r-sm);
+  box-shadow: var(--shadow-2);
+  color: var(--ink);
+  font-size: var(--t-sm);
+  line-height: 1.55;
+}
+.pack__demo {
+  display: inline-block;
+  margin-bottom: var(--s-5);
+  padding: var(--s-1) var(--s-3);
+  border-radius: 999px;
+  background: var(--butter);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+.pack__cover { padding-bottom: var(--s-6); border-bottom: 2px solid var(--ink); }
+.pack__title {
+  margin: var(--s-2) 0 var(--s-1);
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--t-3xl);
+  line-height: 1.05;
+}
+.pack__sub { font-size: var(--t-md); color: var(--ink-2); }
+.pack__meta,
+.pack__kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s-3) var(--s-5);
+  margin-top: var(--s-5);
+}
+.pack__meta dt,
+.pack__kv dt {
+  font-size: var(--t-xs);
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.pack__kv { grid-template-columns: 180px 1fr; gap: var(--s-1) var(--s-4); margin-top: var(--s-2); }
+.pack__kv > div { display: contents; }
+.pack__sec { padding-top: var(--s-6); break-inside: auto; }
+.pack__sec h2 {
+  margin-bottom: var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--rule-strong);
+  font-size: var(--t-lg);
+  break-after: avoid;
+}
+.pack__sec h3 { margin: var(--s-5) 0 var(--s-2); font-size: var(--t-base); }
+.pack__sec p + p,
+.pack__sec p + table,
+.pack__sec .meta + table { margin-top: var(--s-3); }
+.pack__figs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-3);
+  margin-top: var(--s-5);
+}
+.pack__fig { padding: var(--s-3) var(--s-4); border-radius: var(--r-xs); box-shadow: var(--edge); }
+.pack__fig dt { font-size: var(--t-xl); line-height: 1.1; }
+.pack__fig dd { color: var(--ink-2); font-size: var(--t-xs); }
+.pack__fig--bad dt { color: var(--oxide); }
+.pack__flag {
+  margin-bottom: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-left: 3px solid var(--oxide);
+  background: rgba(192, 52, 26, 0.06);
+}
+.pack__flagrow { margin-top: var(--s-2); }
+.pack__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-xs);
+}
+.pack__table th,
+.pack__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+.pack__table th {
+  color: var(--ink-3);
+  font-weight: 600;
+  border-bottom-color: var(--rule-strong);
+}
+.pack__table .num { white-space: nowrap; }
+.pack__table tr { break-inside: avoid; }
+.pack__table thead { display: table-header-group; }
+.pack__row--bad td:first-child { box-shadow: inset 3px 0 0 var(--oxide); }
+.pack__row--bad td { background: rgba(192, 52, 26, 0.05); }
+.pack__row--warn td:first-child { box-shadow: inset 3px 0 0 var(--ochre); }
+.pack__table--dense td { padding: 4px 6px; }
+.pack__list { padding-left: var(--s-5); list-style: disc; }
+.pack__incident {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--r-xs);
+  box-shadow: var(--edge);
+  break-inside: avoid;
+}
+.pack__incident--bad { box-shadow: inset 3px 0 0 var(--oxide), var(--edge); }
+.pack__incidenthead { font-weight: 600; }
+.pack__foot {
+  margin-top: var(--s-7);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule-strong);
+  color: var(--ink-3);
+  font-size: var(--t-xs);
+}
+
+@media (max-width: 720px) {
+  .pack__doc { margin: 0; padding: 24px 16px; border-radius: 0; }
+  .pack__figs { grid-template-columns: repeat(2, 1fr); }
+  .pack__kv { grid-template-columns: 1fr; }
+  .pack__table { display: block; overflow-x: auto; }
+}
+
+@media print {
+  @page { size: A4; margin: 16mm 14mm; }
+  /* Only the pack prints when it is open; the rest of the app is chrome. */
+  body:has(> .pack) > *:not(.pack) { display: none !important; }
+  body:has(> .pack) { overflow: visible !important; background: #fff; }
+  .pack {
+    position: static;
+    overflow: visible;
+    background: #fff;
+  }
+  .pack__bar { display: none; }
+  .pack__doc {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+    font-size: 10pt;
+  }
+  .pack__cover { break-after: page; }
+  .pack__sec--appendix { break-before: page; }
+  .pack__table { font-size: 8pt; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.pack dd { margin: 0; }
