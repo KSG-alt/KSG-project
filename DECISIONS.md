@@ -61,12 +61,18 @@ doesn't sink the proof of concept.
 
 ---
 
-## 0004 — Application stack and layout: David's call, not yet set
+## 0004 — Application stack and layout: proposed, David confirms
 
-**Decided:** 10 Sep 2026 · **Status:** open
+**Decided:** 10 Sep 2026 · **Updated:** 1 Oct 2026 · **Status:** proposed, not settled
 
-This repo currently holds docs only. The stack, the data model and the
-directory layout are Seat 1's to decide.
+The stack, the data model and the directory layout are Seat 1's to decide.
+Since this was first written, a working prototype of the centre admin
+dashboard has landed in `web/`: TypeScript + React (Vite), on seeded fake
+data, with the reasoning for that stack in [PRODUCT.md](PRODUCT.md). That is
+a proposal for David to accept or change, not a decision made on his behalf.
+Where the prototype touches his engines (ratio checks, the audit trail) it
+calls a stand-in through a fixed seam, so the call sites do not move when the
+real engine lands.
 
 **Why it's recorded as open:** Ismail's three pieces (reminder tracker,
 timetabling, config screens) build on David's data model. Until it's stable,

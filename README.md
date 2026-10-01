@@ -5,6 +5,16 @@ Built by Kadia Systems Group.
 
 **Goal:** at least one signed, configured and live pilot centre for the **Summer 2027 season** (June–August 2027).
 
+## See it
+
+**Live demo: [ksg-alt.github.io/KSG-project/kadia-demo-centre.html](https://ksg-alt.github.io/KSG-project/kadia-demo-centre.html)**
+
+A working prototype of the **centre admin dashboard**, running on seeded fake
+data. It opens in any browser, on any device, with nothing to install. It is a
+demonstration, not the product: no real student, staff member or centre is in
+it, and the staff mobile app and the head office side are not in it. What a
+viewer can do in it is in [docs/DEMO.md](docs/DEMO.md).
+
 ## Who owns what
 
 Three seats, each owning a lane end-to-end. This split is the whole reason
@@ -22,16 +32,26 @@ for the detail and for what happens when a change crosses a boundary.
 
 ## Repo layout
 
+    web/            The admin dashboard prototype — TypeScript + React (Vite), seeded fake data
     docs/           Specs, decisions, ownership. Read before building.
     docs/source/    Original business overview + launch roadmap (.docx originals)
-    .github/        CODEOWNERS, PR template
+    docs/kadia-demo-centre.html   The demo as one self-contained file (built from web/)
+    docs/DEMO.md    What the demo shows, and how to rebuild it
+    branding/       The KSG mark
+    .github/        CODEOWNERS, PR template, the `check` workflow
 
-Application layout is **David's call** and is not fixed here yet — see
-[Decision 0004](DECISIONS.md). Once he sets it, the paths in CODEOWNERS get
-updated to match.
+The stack in `web/` is a **proposal, not a settled decision** — architecture
+and the data model are David's call ([Decision 0004](DECISIONS.md)). The
+prototype is built so it can be moved onto his schema rather than thrown
+away. Once he sets the real layout, the paths in CODEOWNERS get updated to
+match.
+
+To run it locally: `cd web && npm install && npm run dev`. To rebuild the
+demo file after a change: `cd web && npm run demo`.
 
 ## Start here
 
+0. Open the [live demo](https://ksg-alt.github.io/KSG-project/kadia-demo-centre.html) — five minutes in it explains the product faster than any document.
 1. Read [docs/source/Summer_School_Platform_Business_Overview.docx](docs/source/Summer_School_Platform_Business_Overview.docx) — what we're building and why.
 2. Read [docs/source/launch-roadmap-2026-09-10.docx](docs/source/launch-roadmap-2026-09-10.docx) — the plan and the dates.
 3. Read [DECISIONS.md](DECISIONS.md) — what's already locked, so we don't relitigate it.

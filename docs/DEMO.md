@@ -4,6 +4,12 @@ One file: `docs/kadia-demo-centre.html`. Double-click it, or attach it to an
 email. No server, no install, no network. It opens on the centre's day, as
 centre administrator.
 
+It is also live at **[ksg-alt.github.io/KSG-project/kadia-demo-centre.html](https://ksg-alt.github.io/KSG-project/kadia-demo-centre.html)**, served by
+GitHub Pages from the `docs/` folder of the `prototype/web-dashboard` branch.
+Pushing a rebuilt `docs/kadia-demo-centre.html` to that branch updates the
+link within a couple of minutes — send the link rather than the file when you
+can, so nobody is looking at an old copy.
+
 The head office side of the platform is not in this file. It exists in the
 application — a role away, in Centre setup — and it will get its own demo when
 there is somebody to show it to. Until then the only thing that ships is the
@@ -66,6 +72,10 @@ build, not a slideshow of it.
   balance and the audit trail both move.
 - Record an incident, and find you cannot close it until the safeguarding lead
   has been told.
+- Open the **Audit trail** and produce an **Inspection pack** for any date
+  range: staff vetting, ratios and registers, incidents, escalations, then the
+  full trail — every figure computed from the records, gaps reported as gaps.
+  Print it or save it as PDF. Producing one is itself logged.
 - Change the ratio for an age band in Centre setup and watch the timetable's
   compliance verdict change with it. Change the escalation thresholds and watch
   the reminder queue re-rank.
